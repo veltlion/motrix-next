@@ -46,7 +46,7 @@ function startPolling() {
     }
     refreshTimer = setTimeout(tick, appStore.interval)
   }
-  tick()
+  refreshTimer = setTimeout(tick, appStore.interval)
 }
 
 function stopPolling() {
@@ -56,8 +56,9 @@ function stopPolling() {
   }
 }
 
-function changeCurrentList() {
-  taskStore.changeCurrentList(props.status)
+async function changeCurrentList() {
+  stopPolling()
+  await taskStore.changeCurrentList(props.status)
   startPolling()
 }
 
@@ -174,6 +175,7 @@ function handleStopSeeding(task: Record<string, unknown>) {
     </header>
     <div class="panel-content">
       <TaskList
+        :key="props.status"
         @pause="handlePauseTask"
         @resume="handleResumeTask"
         @delete="handleDeleteTask"

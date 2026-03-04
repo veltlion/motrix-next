@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useTaskStore } from '@/stores/task'
 import { useI18n } from 'vue-i18n'
 import TaskItem from './TaskItem.vue'
@@ -18,8 +18,20 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const taskStore = useTaskStore()
 
-const taskList = computed(() => taskStore.taskList)
+const mounted = ref(false)
+const taskList = ref<Record<string, unknown>[]>([])
 const selectedGidList = computed(() => taskStore.selectedGidList)
+
+onMounted(() => {
+  nextTick(() => {
+    mounted.value = true
+    taskList.value = taskStore.taskList as Record<string, unknown>[]
+  })
+})
+
+watch(() => taskStore.taskList, (v) => {
+  if (mounted.value) taskList.value = v as Record<string, unknown>[]
+})
 
 function isSelected(gid: string) {
   return selectedGidList.value.includes(gid)
@@ -64,7 +76,7 @@ function handleItemClick(task: Record<string, unknown>, event: MouseEvent) {
       </div>
     </TransitionGroup>
     <Transition name="fade">
-      <div v-if="taskList.length === 0" class="no-task">
+      <div v-if="mounted && taskList.length === 0" class="no-task">
         <div class="no-task-inner">
           <div class="no-task-brand">Motrix Next</div>
           <div class="no-task-text">{{ t('task.no-task') || 'No Task' }}</div>
