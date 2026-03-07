@@ -12,6 +12,7 @@ import 'virtual:uno.css'
 import './styles/variables.css'
 
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { getLocale } from 'tauri-plugin-locale-api'
 import { nextTick } from 'vue'
 
 const app = createApp(App)
@@ -73,7 +74,6 @@ preferenceStore.loadPreference().then(async () => {
     let locale = preferenceStore.locale
     if (!locale) {
         try {
-            const { getLocale } = await import('tauri-plugin-locale-api')
             const raw = (await getLocale()) || 'en-US'
             const sysLang = raw.replace('-Hans', '').replace('-Hant', '')
             const available = i18n.global.availableLocales
