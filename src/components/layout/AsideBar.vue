@@ -29,11 +29,21 @@ function showAddTask() {
       <h1 class="logo-mini">
         <a target="_blank" href="https://github.com/AnInsomniacy/motrix-next/">
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="18" viewBox="0 0 40 18">
-            <rect x="0.5" y="0.5" width="39" height="17" rx="4" fill="none" stroke="#888" stroke-width="1" />
+            <rect
+              x="0.5"
+              y="0.5"
+              width="39"
+              height="17"
+              rx="4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+              opacity="0.5"
+            />
             <text
               x="20"
               y="13"
-              fill="#FFF"
+              fill="currentColor"
               font-family="Arial, Helvetica, sans-serif"
               font-weight="900"
               font-size="10"
@@ -103,7 +113,7 @@ function showAddTask() {
   margin: 0;
   padding: 0;
   width: 100%;
-  margin-top: 58px;
+  margin-top: 38px;
 }
 .logo-mini > a {
   display: block;
@@ -132,11 +142,11 @@ function showAddTask() {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--aside-icon-color);
 }
 .menu > li:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  background-color: var(--aside-icon-hover-bg);
+  color: var(--aside-text);
 }
 .top-menu {
   flex: 1;

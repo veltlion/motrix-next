@@ -102,17 +102,21 @@ const naiveDateLocaleMap: Record<string, NDateLocale> = {
 const naiveLocale = computed(() => naiveLocaleMap[currentLocale.value] || null)
 const naiveDateLocale = computed(() => naiveDateLocaleMap[currentLocale.value] || null)
 
-const themeOverrides: GlobalThemeOverrides = {
+const themeOverrides = computed<GlobalThemeOverrides>(() => ({
   common: {
     primaryColor: '#E0A422',
-    primaryColorHover: '#c89319',
-    primaryColorPressed: '#b38417',
+    primaryColorHover: isDark.value ? '#f0bf48' : '#c89319',
+    primaryColorPressed: isDark.value ? '#d4a530' : '#b38417',
     primaryColorSuppl: '#E0A422',
-    borderRadius: '4px',
+    bodyColor: isDark.value ? '#141210' : '#fefbf6',
+    cardColor: isDark.value ? '#201e1b' : '#f3efe8',
+    modalColor: isDark.value ? '#2b2926' : '#ede9e2',
+    popoverColor: isDark.value ? '#2b2926' : '#ede9e2',
+    borderRadius: '6px',
     fontFamily:
       '"Monospaced Number", "Chinese Quote", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif',
   },
-}
+}))
 </script>
 
 <template>

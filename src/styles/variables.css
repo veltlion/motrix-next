@@ -1,58 +1,116 @@
+/**
+ * @fileoverview Design tokens following Material Design 3 tonal surface system.
+ *
+ * Seed color: #E0A422 (Amber Gold)
+ * Architecture: M3 semantic tokens → legacy alias layer → component consumption
+ *
+ * Naming: --m3-{role} for M3 tokens, --{legacy} aliased to M3 tokens.
+ * Light values in :root, dark overrides in .dark class.
+ */
+
+/* ── Light Theme (default) ─────────────────────────────────────────── */
 :root {
+  /* ── M3 Surface Tonal System ───────────────────────────────────── */
+  --m3-surface: #fefbf6;
+  --m3-surface-dim: #dfdbd4;
+  --m3-surface-container-lowest: #ffffff;
+  --m3-surface-container-low: #f9f5ee;
+  --m3-surface-container: #f3efe8;
+  --m3-surface-container-high: #ede9e2;
+  --m3-surface-container-highest: #e7e3dd;
+
+  /* ── M3 On-Surface / Text ──────────────────────────────────────── */
+  --m3-on-surface: #1d1b16;
+  --m3-on-surface-variant: #4d4639;
+
+  /* ── M3 Outline / Borders ──────────────────────────────────────── */
+  --m3-outline: #7f7667;
+  --m3-outline-variant: #d1c7b7;
+
+  /* ── M3 Primary (Amber Gold) ───────────────────────────────────── */
+  --m3-primary: #7c5800;
+  --m3-on-primary: #ffffff;
+  --m3-primary-container: #ffdea3;
+  --m3-on-primary-container: #271900;
+
+  /* ── M3 Error ──────────────────────────────────────────────────── */
+  --m3-error: #ba1a1a;
+  --m3-on-error: #ffffff;
+  --m3-error-container: #ffdad6;
+
+  /* ── M3 Success (Extended) ─────────────────────────────────────── */
+  --m3-success: #386a20;
+  --m3-on-success: #ffffff;
+
+  /* ── M3 Warning (maps to Primary for amber brand) ──────────────── */
+  --m3-warning: #7c5800;
+  --m3-on-warning: #ffffff;
+
+  /* ── M3 Inverse ────────────────────────────────────────────────── */
+  --m3-inverse-surface: #32302b;
+  --m3-on-inverse-surface: #ebe4db;
+
+  /* ── M3 Scrollbar ──────────────────────────────────────────────── */
+  --m3-scrollbar-thumb: rgba(29, 27, 22, 0.3);
+  --m3-scrollbar-thumb-inactive: rgba(29, 27, 22, 0.15);
+
+  /* ── M3 Shadow ─────────────────────────────────────────────────── */
+  --m3-shadow: rgba(0, 0, 0, 0.15);
+
+  /* ── Brand Color (backward-compatible) ─────────────────────────── */
   --color-primary: #e0a422;
   --color-primary-hover: #c89319;
   --color-primary-light-5: #f0d291;
   --color-primary-light-9: #faf3e0;
-  --color-success: #67c23a;
-  --color-warning: #e6a23c;
-  --color-danger: #f56c6c;
-  --color-info: #909399;
 
-  --color-text-primary: #303133;
-  --color-text-regular: #606266;
-  --color-text-secondary: #909399;
-  --color-text-placeholder: #c0c4cc;
+  /* ── Legacy Aliases → M3 Tokens ────────────────────────────────── */
+  --color-text-primary: var(--m3-on-surface);
+  --color-text-regular: var(--m3-on-surface-variant);
+  --color-text-secondary: var(--m3-outline);
+  --color-text-placeholder: var(--m3-outline-variant);
 
-  --border-color-base: #dcdfe6;
-  --border-color-light: #e4e7ed;
+  --border-color-base: var(--m3-outline-variant);
+  --border-color-light: var(--m3-outline-variant);
   --border-color-lighter: #ebeef5;
 
-  --aside-bg: rgb(28, 28, 30);
-  --aside-text: #fff;
+  --aside-bg: #e4dfd7;
+  --aside-text: var(--m3-on-surface);
+  --aside-icon-color: rgba(0, 0, 0, 0.55);
+  --aside-icon-hover-bg: rgba(0, 0, 0, 0.08);
 
-  --subnav-bg: #f4f5f7;
-  --subnav-title: #303133;
-  --subnav-text: #4d515a;
-  --subnav-active-text: #e0a422;
-  --subnav-active-bg: #eaecf0;
-  --subnav-action: #4d515a;
+  --subnav-bg: var(--m3-surface-container-low);
+  --subnav-title: var(--m3-on-surface);
+  --subnav-text: var(--m3-on-surface-variant);
+  --subnav-active-text: var(--color-primary);
+  --subnav-active-bg: var(--m3-surface-container);
+  --subnav-action: var(--m3-on-surface-variant);
 
-  --main-bg: #ffffff;
-  --panel-bg: #ffffff;
-  --panel-title: #303133;
-  --panel-border: rgba(0, 0, 0, 0.1);
+  --main-bg: var(--m3-surface-container-high);
+  --panel-bg: var(--m3-surface-container-high);
+  --panel-title: var(--m3-on-surface);
+  --panel-border: var(--m3-outline-variant);
 
-  --task-item-bg: #fff;
-  --task-item-border: #ccc;
-  --task-item-hover-border: #e0a422;
-  --task-item-text: #505753;
-  --task-action-bg: #fff;
-  --task-action-border: #f5f5f5;
-  --task-action-color: #9b9b9b;
-  --task-action-hover-bg: #f0f0f0;
-  --task-action-hover-border: #d0d0d0;
-  --task-action-hover-color: #555;
+  --task-item-bg: var(--m3-surface-container);
+  --task-item-border: var(--m3-outline-variant);
+  --task-item-hover-border: var(--color-primary);
+  --task-item-text: var(--m3-on-surface-variant);
+  --task-action-bg: var(--m3-surface-container);
+  --task-action-border: var(--m3-surface-container-highest);
+  --task-action-color: var(--m3-outline);
+  --task-action-hover-bg: var(--m3-surface-container-high);
+  --task-action-hover-border: var(--m3-outline);
+  --task-action-hover-color: var(--m3-on-surface);
 
-  --speedometer-bg: #fff;
-  --speedometer-border: #ccc;
-  --speedometer-hover-border: #9b9b9b;
-  --speedometer-primary: #e0a422;
-  --speedometer-stopped: #9b9b9b;
-  --speedometer-text: #9b9b9b;
+  --speedometer-bg: var(--m3-surface-container-lowest);
+  --speedometer-border: var(--m3-outline-variant);
+  --speedometer-hover-border: var(--m3-outline);
+  --speedometer-primary: var(--color-primary);
+  --speedometer-stopped: var(--m3-outline);
+  --speedometer-text: var(--m3-outline);
 
-  --add-task-footer-bg: #eeeeee;
-  --dialog-bg: #fff;
-  --preference-text: #4c4c4c;
+  --add-task-footer-bg: var(--m3-surface-container-high);
+  --dialog-bg: var(--m3-surface-container-high);
+  --preference-text: var(--m3-on-surface-variant);
 
   --window-ctrl-border: rgba(0, 0, 0, 0.15);
   --window-ctrl-bg: rgba(0, 0, 0, 0.05);
@@ -61,10 +119,12 @@
   --window-ctrl-hover-border: rgba(0, 0, 0, 0.25);
   --window-ctrl-hover-color: rgba(0, 0, 0, 0.85);
 
+  /* ── Layout ────────────────────────────────────────────────────── */
   --aside-width: 78px;
   --subnav-width: 200px;
   --titlebar-height: 0px;
 
+  /* ── Typography ────────────────────────────────────────────────── */
   --font-family:
     'Monospaced Number', 'Chinese Quote', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -72,53 +132,74 @@
   --font-size-sm: 13px;
   --font-size-xs: 12px;
   --font-size-lg: 16px;
-  --border-radius: 4px;
+  --border-radius: 6px;
   --transition-all: all 0.2s cubic-bezier(0.2, 0, 0, 1);
   --transition-fast: 0.15s cubic-bezier(0.2, 0, 0, 1);
   --transition-border: border-color 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* ── Dark Theme ────────────────────────────────────────────────────── */
 .dark {
-  --color-text-primary: #eee;
-  --color-text-regular: #ddd;
-  --color-text-secondary: #aaa;
-  --color-text-placeholder: #666;
+  /* ── M3 Surface Tonal System ───────────────────────────────────── */
+  --m3-surface: #141210;
+  --m3-surface-dim: #141210;
+  --m3-surface-container-lowest: #0e0d0b;
+  --m3-surface-container-low: #1c1a17;
+  --m3-surface-container: #201e1b;
+  --m3-surface-container-high: #2b2926;
+  --m3-surface-container-highest: #363331;
 
-  --border-color-base: #555;
-  --border-color-light: #555;
-  --border-color-lighter: #444;
+  /* ── M3 On-Surface / Text ──────────────────────────────────────── */
+  --m3-on-surface: #e8e2d9;
+  --m3-on-surface-variant: #d0c8b9;
+
+  /* ── M3 Outline / Borders ──────────────────────────────────────── */
+  --m3-outline: #998f80;
+  --m3-outline-variant: #4d4639;
+
+  /* ── M3 Primary (Amber Gold — lighter in dark) ─────────────────── */
+  --m3-primary: #f0bf48;
+  --m3-on-primary: #412d00;
+  --m3-primary-container: #5e4200;
+  --m3-on-primary-container: #ffdea3;
+
+  /* ── M3 Error ──────────────────────────────────────────────────── */
+  --m3-error: #ffb4ab;
+  --m3-on-error: #690005;
+  --m3-error-container: #93000a;
+
+  /* ── M3 Success (Extended — lighter in dark) ────────────────────── */
+  --m3-success: #8edb6a;
+  --m3-on-success: #0a3900;
+
+  /* ── M3 Warning ────────────────────────────────────────────────── */
+  --m3-warning: #f0bf48;
+  --m3-on-warning: #412d00;
+
+  /* ── M3 Inverse ────────────────────────────────────────────────── */
+  --m3-inverse-surface: #e8e2d9;
+  --m3-on-inverse-surface: #32302b;
+
+  /* ── M3 Scrollbar ──────────────────────────────────────────────── */
+  --m3-scrollbar-thumb: rgba(232, 226, 217, 0.22);
+  --m3-scrollbar-thumb-inactive: rgba(232, 226, 217, 0.1);
+
+  /* ── M3 Shadow ─────────────────────────────────────────────────── */
+  --m3-shadow: rgba(0, 0, 0, 0.5);
+
+  /* ── Brand Color (consistent across themes) ────────────────────── */
+  --color-primary-light-5: #5e4200;
+  --color-primary-light-9: #271900;
+
+  /* ── Legacy Overrides (dark-specific) ──────────────────────────── */
+  --border-color-lighter: #3a3730;
 
   --aside-bg: rgb(20, 20, 22);
+  --aside-text: #fff;
+  --aside-icon-color: rgba(255, 255, 255, 0.7);
+  --aside-icon-hover-bg: rgba(255, 255, 255, 0.15);
 
-  --subnav-bg: #2d2d2d;
-  --subnav-title: #fff;
-  --subnav-text: #aaa;
   --subnav-active-text: #fff;
-  --subnav-active-bg: #444;
-
-  --main-bg: #343434;
-  --panel-bg: #343434;
-  --panel-title: #fff;
-  --panel-border: #555;
-
-  --task-item-bg: #2d2d2d;
-  --task-item-border: #555;
-  --task-item-hover-border: #e0a422;
-  --task-item-text: #eee;
-  --task-action-bg: #4a4a4a;
-  --task-action-border: #5f5f5f;
-  --task-action-color: #eee;
-  --task-action-hover-bg: #5a5a5a;
-  --task-action-hover-border: #777;
-  --task-action-hover-color: #fff;
-
-  --speedometer-bg: #333;
-  --speedometer-border: #5f5f5f;
-  --speedometer-hover-border: #9b9b9b;
-
-  --add-task-footer-bg: #3a3a3a;
-  --dialog-bg: #343434;
-  --preference-text: #dfdfdf;
 
   --window-ctrl-border: rgba(255, 255, 255, 0.12);
   --window-ctrl-bg: rgba(255, 255, 255, 0.06);
@@ -128,10 +209,17 @@
   --window-ctrl-hover-color: rgba(255, 255, 255, 0.9);
 }
 
+/* ── Global Reset ──────────────────────────────────────────────────── */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 html,
@@ -148,6 +236,7 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Scrollbar (M3-aware) ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -155,17 +244,18 @@ body,
 
 ::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: var(--m3-scrollbar-thumb);
 }
 
 ::-webkit-scrollbar-thumb:window-inactive {
-  background-color: rgba(0, 0, 0, 0.25);
+  background-color: var(--m3-scrollbar-thumb-inactive);
 }
 
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
+/* ── Base Element Styles ───────────────────────────────────────────── */
 a {
   color: var(--color-primary);
   text-decoration: none;
@@ -186,6 +276,7 @@ textarea {
   font-size: inherit;
 }
 
+/* ── Draggable Regions ─────────────────────────────────────────────── */
 .draggable {
   -webkit-app-region: drag;
   user-select: none;
@@ -195,6 +286,7 @@ textarea {
   -webkit-app-region: no-drag;
 }
 
+/* ── Animations ────────────────────────────────────────────────────── */
 @keyframes mo-progress-active {
   0% {
     opacity: 0.1;
@@ -247,6 +339,7 @@ textarea {
   transform: scale(0.96);
 }
 
+/* ── Naive UI Transition Overrides ─────────────────────────────────── */
 .n-tabs-pane-wrapper {
   transition:
     opacity 0.18s cubic-bezier(0.2, 0, 0, 1),

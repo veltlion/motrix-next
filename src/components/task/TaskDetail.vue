@@ -422,14 +422,14 @@ function handleClose() {
 .progress-pct {
   white-space: nowrap;
   font-size: 12px;
-  color: #999;
+  color: var(--m3-on-surface-variant);
   min-width: 45px;
   text-align: right;
 }
 
 .remaining-text {
   margin-left: 12px;
-  color: #999;
+  color: var(--m3-on-surface-variant);
   font-size: 12px;
 }
 

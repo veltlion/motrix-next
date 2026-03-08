@@ -162,7 +162,7 @@ onMounted(() => nextTick(draw))
   display: block;
 }
 .no-bitfield {
-  color: #666;
+  color: var(--m3-on-surface-variant);
   font-size: 12px;
   padding: 8px 0;
 }

@@ -261,7 +261,7 @@ defineExpose({ open })
   background: var(--n-color, #1e1e2e);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 40px var(--m3-shadow);
 }
 .update-dialog-header {
   position: relative;
@@ -323,16 +323,16 @@ defineExpose({ open })
   margin-bottom: 4px;
 }
 .update-icon-success {
-  background: rgba(99, 226, 183, 0.12);
-  color: #63e2b7;
+  background: color-mix(in srgb, var(--m3-success) 12%, transparent);
+  color: var(--m3-success);
 }
 .update-icon-new {
-  background: rgba(224, 164, 34, 0.12);
-  color: #e0a422;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
 }
 .update-icon-error {
-  background: rgba(232, 128, 128, 0.12);
-  color: #e88080;
+  background: color-mix(in srgb, var(--m3-error) 12%, transparent);
+  color: var(--m3-error);
 }
 
 .update-main-text {
@@ -367,7 +367,7 @@ defineExpose({ open })
 }
 .version-new {
   background: rgba(224, 164, 34, 0.15);
-  color: #e0a422;
+  color: var(--color-primary);
 }
 .version-arrow {
   font-size: 12px;

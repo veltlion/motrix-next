@@ -191,13 +191,13 @@ function onAction(event: string) {
   color: var(--primary-color, #e0a422);
 }
 .task-item-action.stop-seeding {
-  color: #67c23a;
+  color: var(--m3-success);
 }
 .task-item-action.stop-seeding:hover {
-  color: #85ce61;
+  color: var(--m3-success);
 }
 .task-item-action.is-stopping {
-  color: #e6a23c;
+  color: var(--m3-warning);
   pointer-events: none;
 }
 

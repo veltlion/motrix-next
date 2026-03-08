@@ -144,7 +144,7 @@ function openUrl(url: string) {
   margin-top: 8px;
 }
 .about-title-accent {
-  color: #e0a422;
+  color: var(--color-primary);
 }
 .about-version {
   font-size: 14px;
@@ -189,7 +189,7 @@ function openUrl(url: string) {
   opacity: 0.35;
 }
 .about-link {
-  color: #e0a422;
+  color: var(--color-primary);
   cursor: pointer;
   text-decoration: none;
 }

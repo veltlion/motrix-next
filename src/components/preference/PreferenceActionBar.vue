@@ -32,18 +32,18 @@ const { t } = useI18n()
   padding: 16px 24px 16px 40px;
 }
 .save-btn-dirty {
-  background-color: #18a058 !important;
+  background-color: var(--m3-success) !important;
   transition: background-color 0.35s cubic-bezier(0.2, 0, 0, 1);
 }
 .save-btn-dirty :deep(.n-button__border) {
-  border-color: #18a058 !important;
+  border-color: var(--m3-success) !important;
 }
 .save-btn-dirty :deep(.n-button__state-border) {
-  border-color: #18a058 !important;
+  border-color: var(--m3-success) !important;
 }
 .discard-btn-dirty {
   background-color: rgba(208, 48, 80, 0.85) !important;
-  color: #fff !important;
+  color: var(--m3-on-success) !important;
   transition:
     background-color 0.35s cubic-bezier(0.2, 0, 0, 1),
     color 0.35s cubic-bezier(0.2, 0, 0, 1);

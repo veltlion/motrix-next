@@ -533,11 +533,11 @@ onMounted(() => {
   padding-left: 50px;
 }
 .info-text {
-  color: #999;
+  color: var(--m3-on-surface-variant);
   font-size: 12px;
 }
 .info-link {
-  color: #e8a838;
+  color: var(--color-primary);
   text-decoration: none;
   font-size: 12px;
 }
@@ -545,7 +545,7 @@ onMounted(() => {
   text-decoration: underline;
 }
 .action-link {
-  color: #e8a838;
+  color: var(--color-primary);
   cursor: pointer;
   margin-left: 8px;
   font-size: 12px;

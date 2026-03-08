@@ -250,7 +250,7 @@ watch(() => props.task.status, checkFileExists)
   align-items: center;
   gap: 3px;
   font-size: 13px;
-  color: #e88080;
+  color: var(--m3-error);
   opacity: 0.85;
   vertical-align: middle;
   animation: fade-in 0.3s ease;
@@ -273,7 +273,7 @@ watch(() => props.task.status, checkFileExists)
   font-size: 12px;
   line-height: 14px;
   min-height: 14px;
-  color: #9b9b9b;
+  color: var(--m3-on-surface-variant);
   margin-top: 8px;
 }
 .progress-left {
@@ -303,14 +303,14 @@ watch(() => props.task.status, checkFileExists)
   align-items: center;
   gap: 3px;
   font-size: 13px;
-  color: #67c23a;
+  color: var(--m3-success);
   opacity: 0.9;
   vertical-align: middle;
   animation: fade-in 0.3s ease;
 }
 .task-item.is-seeding {
-  border-left: 3px solid #67c23a;
-  background: linear-gradient(90deg, rgba(103, 194, 58, 0.04) 0%, transparent 40%);
+  border-left: 3px solid var(--m3-success);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--m3-success) 4%, transparent) 0%, transparent 40%);
 }
 .status-tag {
   display: inline-flex;
@@ -324,7 +324,7 @@ watch(() => props.task.status, checkFileExists)
 .error-message {
   flex-basis: 100%;
   font-size: 11px;
-  color: #f56c6c;
+  color: var(--m3-error);
   margin-top: 4px;
   opacity: 0.85;
   word-break: break-all;
