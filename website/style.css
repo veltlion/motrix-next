@@ -42,6 +42,11 @@ body {
   overflow-x: hidden;
 }
 
+main,
+footer {
+  transition: opacity 180ms ease;
+}
+
 a {
   color: var(--accent);
   text-decoration: none;
@@ -1004,5 +1009,133 @@ tbody tr:last-child td {
 
   html {
     scroll-behavior: auto
+  }
+}
+
+/* ── Language picker ─────────────────────────────────────────────── */
+.lang-picker {
+  position: relative;
+}
+
+.lang-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: color 180ms, border-color 180ms;
+}
+
+.lang-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+#lang-toggle-label {
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 5px;
+  font-family: var(--font-body);
+}
+
+.lang-system-hint {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  opacity: 0.9;
+}
+
+.lang-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 8px;
+}
+
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  min-width: 180px;
+  max-height: 400px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.96);
+  transition: opacity 200ms var(--ease-enter), transform 250ms var(--ease-enter), visibility 200ms;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.lang-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.lang-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 12px;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 120ms, color 120ms;
+}
+
+.lang-option:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.lang-option.active {
+  color: var(--accent);
+  font-weight: 600;
+  background: var(--accent-soft);
+}
+
+/* ── RTL overrides ───────────────────────────────────────────────── */
+html[dir="rtl"] .nav-right {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .lang-dropdown {
+  right: auto;
+  left: 0;
+}
+
+html[dir="rtl"] .lang-option {
+  text-align: right;
+}
+
+html[dir="rtl"] .card {
+  text-align: right;
+}
+
+html[dir="rtl"] .prose {
+  text-align: right;
+}
+
+html[dir="rtl"] .compare td:first-child,
+html[dir="rtl"] .compare th:first-child {
+  text-align: right;
+}
+
+/* ── Mobile language picker ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .lang-dropdown {
+    right: -60px;
+    min-width: 160px;
   }
 }
