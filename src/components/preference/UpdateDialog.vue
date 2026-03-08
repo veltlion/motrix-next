@@ -127,6 +127,9 @@ async function startDownload() {
 function cancelDownload() {
   downloadCancelled.value = true
   phase.value = 'available'
+  invoke('cancel_update').catch(() => {
+    /* best-effort: Rust side may have already finished */
+  })
 }
 
 function handleRelaunch() {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** @fileoverview Advanced preference form: proxy, tracker, RPC, port, and protocol settings. */
+/** @fileoverview Advanced preference form: proxy, tracker, RPC, port, and user-agent settings. */
 import { ref, h, onMounted } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useI18n } from 'vue-i18n'
@@ -155,18 +155,23 @@ function generateSecret(): string {
 
 const { form, isDirty, handleSave, handleReset, resetSnapshot } = usePreferenceForm({
   buildForm,
-  buildSystemConfig: (f) => ({
-    'rpc-listen-port': String(f.rpcListenPort),
-    'rpc-secret': f.rpcSecret,
-    'enable-dht': 'true',
-    'enable-peer-exchange': 'true',
-    'enable-upnp': String(f.enableUpnp),
-    'listen-port': String(f.listenPort),
-    'dht-listen-port': String(f.dhtListenPort),
-    'user-agent': f.userAgent || '',
-    'log-level': f.logLevel || 'warn',
-    'bt-tracker': convertLineToComma(f.btTracker),
-  }),
+  buildSystemConfig: (f) => {
+    const proxyForDownloads = f.proxy.enable && Array.isArray(f.proxy.scope) && f.proxy.scope.includes('downloads')
+    return {
+      'rpc-listen-port': String(f.rpcListenPort),
+      'rpc-secret': f.rpcSecret,
+      'enable-dht': 'true',
+      'enable-peer-exchange': 'true',
+      'enable-upnp': String(f.enableUpnp),
+      'listen-port': String(f.listenPort),
+      'dht-listen-port': String(f.dhtListenPort),
+      'user-agent': f.userAgent || '',
+      'log-level': f.logLevel || 'warn',
+      'bt-tracker': convertLineToComma(f.btTracker),
+      'all-proxy': proxyForDownloads ? f.proxy.server : '',
+      'no-proxy': proxyForDownloads ? f.proxy.bypass || '' : '',
+    }
+  },
   transformForStore: (f) =>
     ({
       ...f,
@@ -185,7 +190,6 @@ const { form, isDirty, handleSave, handleReset, resetSnapshot } = usePreferenceF
 function buildForm() {
   const c = preferenceStore.config
   const proxy = c.proxy || { enable: false, server: '', bypass: '', scope: [] }
-  const protocols = c.protocols || { magnet: false, thunder: false }
   const savedSecret = c.rpcSecret || ''
   const rpcSecret = savedSecret || generateSecret()
   if (!savedSecret) {
@@ -207,10 +211,7 @@ function buildForm() {
     enableUpnp: c.enableUpnp !== false,
     listenPort: Number(c.listenPort) || 21301,
     dhtListenPort: Number(c.dhtListenPort) || 26701,
-    protocols: {
-      magnet: protocols.magnet !== false,
-      thunder: !!protocols.thunder,
-    },
+
     userAgent: c.userAgent || '',
     logLevel: c.logLevel || 'warn',
   }
@@ -291,6 +292,7 @@ function handleSessionReset() {
       try {
         await taskStore.purgeTaskRecord()
         await taskStore.pauseAllTask()
+        await invoke('clear_session_file')
         message.success(t('preferences.session-reset'))
       } catch (e) {
         logger.error('Advanced.sessionReset', e)
@@ -460,17 +462,6 @@ onMounted(() => {
             </template>
           </NButton>
         </NInputGroup>
-      </NFormItem>
-
-      <NDivider title-placement="left">{{ t('preferences.download-protocol') }}</NDivider>
-      <NFormItem :show-label="false">
-        <div class="info-text">{{ t('preferences.protocols-default-client') }}</div>
-      </NFormItem>
-      <NFormItem :label="t('preferences.protocols-magnet')">
-        <NSwitch v-model:value="form.protocols.magnet" />
-      </NFormItem>
-      <NFormItem :label="t('preferences.protocols-thunder')">
-        <NSwitch v-model:value="form.protocols.thunder" />
       </NFormItem>
 
       <NDivider title-placement="left">{{ t('preferences.user-agent') }}</NDivider>

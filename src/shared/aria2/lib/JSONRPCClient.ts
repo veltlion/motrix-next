@@ -112,26 +112,46 @@ export class JSONRPCClient extends EventEmitter {
       return this._buildMessage(method as string, params as unknown[])
     })
 
-    await this._send(message)
-
-    return message.map(({ id }) => {
+    // Register deferreds BEFORE sending to prevent race with fast HTTP responses
+    const promises = message.map(({ id }) => {
       const deferred = new Deferred(RPC_TIMEOUT, () => {
         delete this.deferreds[id]
       })
       this.deferreds[id] = deferred
       return deferred.promise
     })
+
+    try {
+      await this._send(message)
+    } catch (err) {
+      for (const { id } of message) {
+        const deferred = this.deferreds[id]
+        if (deferred) deferred.reject(err instanceof Error ? err : new Error(String(err)))
+        delete this.deferreds[id]
+      }
+      throw err
+    }
+
+    return promises
   }
 
   async call(method: string, parameters?: unknown[]): Promise<unknown> {
     const message = this._buildMessage(method, parameters)
-    await this._send(message)
-
     const id = message.id
+
+    // Register deferred BEFORE sending to prevent race with fast HTTP responses
     const deferred = new Deferred(RPC_TIMEOUT, () => {
       delete this.deferreds[id]
     })
     this.deferreds[id] = deferred
+
+    try {
+      await this._send(message)
+    } catch (err) {
+      deferred.reject(err instanceof Error ? err : new Error(String(err)))
+      delete this.deferreds[id]
+      throw err
+    }
 
     return deferred.promise
   }

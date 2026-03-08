@@ -1,7 +1,10 @@
 use crate::error::AppError;
 use serde::Serialize;
-use tauri::{AppHandle, Emitter};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_updater::UpdaterExt;
+use tokio::sync::Notify;
 use url::Url;
 
 /// Base URL for update JSON files on the fixed `updater` GitHub Release tag.
@@ -28,6 +31,39 @@ pub enum UpdateProgressEvent {
         downloaded: u64,
     },
     Finished,
+}
+
+/// Shared state for coordinating update cancellation between commands.
+pub struct UpdateCancelState {
+    /// Set to `true` when the user requests cancellation.
+    cancelled: AtomicBool,
+    /// Notified when cancellation is requested, waking the `select!` branch.
+    notify: Notify,
+}
+
+impl UpdateCancelState {
+    pub fn new() -> Self {
+        Self {
+            cancelled: AtomicBool::new(false),
+            notify: Notify::new(),
+        }
+    }
+
+    /// Arms the cancel state for a new download (resets the flag).
+    fn reset(&self) {
+        self.cancelled.store(false, Ordering::SeqCst);
+    }
+
+    /// Signals cancellation.
+    fn cancel(&self) {
+        self.cancelled.store(true, Ordering::SeqCst);
+        self.notify.notify_waiters();
+    }
+
+    /// Returns `true` if cancellation has been requested.
+    fn is_cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::SeqCst)
+    }
 }
 
 /// Returns the update endpoint URL for the given channel.
@@ -72,9 +108,13 @@ pub async fn check_for_update(
 /// Downloads and installs the latest update on the specified channel.
 ///
 /// Emits `update-progress` events to the frontend with download progress.
+/// The download can be cancelled by calling `cancel_update`.
 /// After installation, the frontend should call `relaunch()` to apply.
 #[tauri::command]
 pub async fn install_update(app: AppHandle, channel: String) -> Result<(), AppError> {
+    let cancel_state = app.state::<Arc<UpdateCancelState>>();
+    cancel_state.reset();
+
     let endpoint = Url::parse(&endpoint_for_channel(&channel))
         .map_err(|e| AppError::Updater(e.to_string()))?;
 
@@ -94,40 +134,66 @@ pub async fn install_update(app: AppHandle, channel: String) -> Result<(), AppEr
     };
 
     let app_handle = app.clone();
+    let cancel = cancel_state.inner().clone();
     let mut downloaded: u64 = 0;
 
-    update
-        .download_and_install(
-            move |chunk_length, content_length| {
-                downloaded += chunk_length as u64;
+    let download_fut = update.download_and_install(
+        move |chunk_length, content_length| {
+            // Stop emitting progress once cancelled (download may still be in flight)
+            if cancel.is_cancelled() {
+                return;
+            }
 
-                // Emit progress only on the first chunk (Started) and every chunk (Progress)
-                if downloaded == chunk_length as u64 {
-                    let _ = app_handle.emit(
-                        "update-progress",
-                        UpdateProgressEvent::Started {
-                            content_length: content_length.unwrap_or(0),
-                        },
-                    );
-                }
+            downloaded += chunk_length as u64;
 
+            if downloaded == chunk_length as u64 {
                 let _ = app_handle.emit(
                     "update-progress",
-                    UpdateProgressEvent::Progress {
-                        chunk_length,
-                        downloaded,
+                    UpdateProgressEvent::Started {
+                        content_length: content_length.unwrap_or(0),
                     },
                 );
-            },
-            {
-                let app_handle = app.clone();
-                move || {
+            }
+
+            let _ = app_handle.emit(
+                "update-progress",
+                UpdateProgressEvent::Progress {
+                    chunk_length,
+                    downloaded,
+                },
+            );
+        },
+        {
+            let app_handle = app.clone();
+            let cancel = cancel_state.inner().clone();
+            move || {
+                if !cancel.is_cancelled() {
                     let _ = app_handle.emit("update-progress", UpdateProgressEvent::Finished);
                 }
-            },
-        )
-        .await
-        .map_err(|e| AppError::Updater(e.to_string()))?;
+            }
+        },
+    );
 
+    // Race the download against cancellation
+    tokio::select! {
+        result = download_fut => {
+            if cancel_state.is_cancelled() {
+                return Err(AppError::Updater("Update cancelled by user".into()));
+            }
+            result.map_err(|e| AppError::Updater(e.to_string()))?;
+        }
+        _ = cancel_state.notify.notified() => {
+            return Err(AppError::Updater("Update cancelled by user".into()));
+        }
+    }
+
+    Ok(())
+}
+
+/// Cancels an in-progress update download.
+#[tauri::command]
+pub fn cancel_update(app: AppHandle) -> Result<(), AppError> {
+    let cancel_state = app.state::<Arc<UpdateCancelState>>();
+    cancel_state.cancel();
     Ok(())
 }

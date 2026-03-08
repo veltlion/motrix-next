@@ -4,6 +4,7 @@ mod error;
 mod menu;
 mod tray;
 
+use crate::commands::updater::UpdateCancelState;
 use engine::EngineState;
 use tauri::{Emitter, Manager};
 use tauri_plugin_deep_link::DeepLinkExt;
@@ -42,6 +43,7 @@ pub fn run() {
 
     builder
         .manage(EngineState::new())
+        .manage(std::sync::Arc::new(UpdateCancelState::new()))
         .invoke_handler(tauri::generate_handler![
             commands::get_app_config,
             commands::save_preference,
@@ -51,6 +53,7 @@ pub fn run() {
             commands::stop_engine_command,
             commands::restart_engine_command,
             commands::factory_reset,
+            commands::clear_session_file,
             commands::update_tray_title,
             commands::update_tray_menu_labels,
             commands::update_menu_labels,
@@ -58,6 +61,7 @@ pub fn run() {
             commands::update_dock_badge,
             commands::check_for_update,
             commands::install_update,
+            commands::cancel_update,
         ])
         .setup(|app| {
             let handle = app.handle();

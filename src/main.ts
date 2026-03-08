@@ -17,7 +17,6 @@ import './styles/variables.css'
 
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { getLocale } from 'tauri-plugin-locale-api'
-import { nextTick } from 'vue'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -27,12 +26,8 @@ app.use(i18n)
 
 app.mount('#app')
 
-nextTick(() => {
-  setTimeout(() => {
-    getCurrentWindow().show()
-    getCurrentWindow().setFocus()
-  }, 50)
-})
+// Window visibility is deferred until preferences are loaded (see below).
+// This replaces the unconditional show() that ignored autoHideWindow.
 
 const preferenceStore = usePreferenceStore()
 const taskStore = useTaskStore()
@@ -179,6 +174,31 @@ preferenceStore.loadPreference().then(async () => {
     })
   } catch (e) {
     logger.warn('DeepLink', 'setup failed: ' + (e as Error).message)
+  }
+
+  // Show the window unless user has autoHideWindow enabled
+  if (!config.autoHideWindow) {
+    const mainWindow = getCurrentWindow()
+    await mainWindow.show()
+    await mainWindow.setFocus()
+  }
+
+  // Resume all paused/waiting tasks on launch if configured
+  if (config.resumeAllWhenAppLaunched) {
+    taskStore.resumeAllTask().catch((e) => logger.debug('main.resumeAll', e))
+  }
+
+  // Sync autostart state with user preference
+  try {
+    const { isEnabled, enable, disable } = await import('@tauri-apps/plugin-autostart')
+    const currentlyEnabled = await isEnabled()
+    if (config.openAtLogin && !currentlyEnabled) {
+      await enable()
+    } else if (!config.openAtLogin && currentlyEnabled) {
+      await disable()
+    }
+  } catch (e) {
+    logger.debug('main.autostart', e)
   }
 
   autoCheckForUpdate()

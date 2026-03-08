@@ -84,6 +84,7 @@ pub fn restart_engine_command(app: AppHandle) -> Result<(), AppError> {
 }
 
 /// Clears user, system, and preference stores, resetting the app to defaults.
+/// Also removes the aria2 session file to prevent tasks from resurrecting.
 #[tauri::command]
 pub fn factory_reset(app: AppHandle) -> Result<(), AppError> {
     let user_store = app
@@ -99,6 +100,29 @@ pub fn factory_reset(app: AppHandle) -> Result<(), AppError> {
         .store("config.json")
         .map_err(|e| AppError::Store(e.to_string()))?;
     config_store.clear();
+
+    // Remove aria2 session file so downloads don't reappear after restart
+    clear_session_file_inner(&app)?;
+
+    Ok(())
+}
+
+/// Removes the aria2 download session file.
+/// Called by both factory reset and session reset flows.
+#[tauri::command]
+pub fn clear_session_file(app: AppHandle) -> Result<(), AppError> {
+    clear_session_file_inner(&app)
+}
+
+fn clear_session_file_inner(app: &AppHandle) -> Result<(), AppError> {
+    let session_path = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| AppError::Io(e.to_string()))?
+        .join("download.session");
+    if session_path.exists() {
+        std::fs::remove_file(&session_path).map_err(|e| AppError::Io(e.to_string()))?;
+    }
     Ok(())
 }
 
