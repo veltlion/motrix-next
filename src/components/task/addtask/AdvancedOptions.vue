@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** @fileoverview Advanced task options panel (UA, auth, referer, cookie, proxy, navigate). */
 import { useI18n } from 'vue-i18n'
-import { NFormItem, NInput, NCheckbox, NGrid, NGridItem, NCollapseTransition } from 'naive-ui'
+import { NFormItem, NInput, NCheckbox, NCollapseTransition } from 'naive-ui'
 
 const { t } = useI18n()
 
@@ -66,17 +66,15 @@ defineEmits<{
           @update:value="$emit('update:cookie', $event)"
         />
       </NFormItem>
-      <NGrid :cols="24" :x-gap="12">
-        <NGridItem :span="16">
-          <NFormItem :label="t('task.task-proxy') + ':'">
-            <NInput
-              :value="allProxy"
-              placeholder="[http://][USER:PASSWORD@]HOST[:PORT]"
-              @update:value="$emit('update:allProxy', $event)"
-            />
-          </NFormItem>
-        </NGridItem>
-      </NGrid>
+      <NFormItem :label="t('task.task-proxy') + ':'">
+        <NInput
+          :value="allProxy"
+          type="textarea"
+          :autosize="{ minRows: 2, maxRows: 3 }"
+          placeholder="[http://][USER:PASSWORD@]HOST[:PORT]"
+          @update:value="$emit('update:allProxy', $event)"
+        />
+      </NFormItem>
       <NFormItem :show-label="false">
         <NCheckbox :checked="newTaskShowDownloading" @update:checked="$emit('update:newTaskShowDownloading', $event)">
           {{ t('task.navigate-to-downloading') }}

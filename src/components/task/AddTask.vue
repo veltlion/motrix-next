@@ -124,10 +124,13 @@ watch(
   async (visible) => {
     if (!visible) return
     if (appStore.droppedTorrentPaths.length > 0) {
-      await loadDroppedFile(appStore.droppedTorrentPaths[0])
-      // Auto-submit remaining files in background
-      for (let i = 1; i < appStore.droppedTorrentPaths.length; i++) {
-        autoSubmitFile(appStore.droppedTorrentPaths[i])
+      // Snapshot and clear immediately to prevent the paths watcher from
+      // re-processing the same batch (both fire on showAddTaskDialog).
+      const paths = [...appStore.droppedTorrentPaths]
+      appStore.droppedTorrentPaths = []
+      await loadDroppedFile(paths[0])
+      for (let i = 1; i < paths.length; i++) {
+        autoSubmitFile(paths[i])
       }
       return
     }
@@ -150,13 +153,17 @@ watch(
   },
 )
 
+// Handles files dropped WHILE the dialog is already visible (drag-drop overlay).
+// Initial open is handled exclusively by the props.show watcher above.
 watch(
   () => appStore.droppedTorrentPaths,
   async (paths) => {
     if (paths.length > 0 && props.show) {
-      await loadDroppedFile(paths[0])
-      for (let i = 1; i < paths.length; i++) {
-        autoSubmitFile(paths[i])
+      const snapshot = [...paths]
+      appStore.droppedTorrentPaths = []
+      await loadDroppedFile(snapshot[0])
+      for (let i = 1; i < snapshot.length; i++) {
+        autoSubmitFile(snapshot[i])
       }
     }
   },

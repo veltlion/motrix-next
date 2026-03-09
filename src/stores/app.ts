@@ -185,15 +185,25 @@ export const useAppStore = defineStore('app', () => {
       }
     }
 
-    // Process file-based and URI-based inputs independently
+    // File-based inputs open the interactive dialog
     if (filePaths.length > 0) {
       showAddTaskDialog(ADD_TASK_TYPE.TORRENT, filePaths)
     }
+
     if (uriLines.length > 0) {
-      addTaskUrl.value = uriLines.join('\n')
-      // Only open URI dialog if no file dialog was opened
       if (filePaths.length === 0) {
+        // Pure URI payload — open dialog for user review
+        addTaskUrl.value = uriLines.join('\n')
         showAddTaskDialog(ADD_TASK_TYPE.URI)
+      } else {
+        // Mixed payload — dialog is showing files, so auto-submit URIs
+        // to prevent them from being silently dropped by hideAddTaskDialog.
+        import('@/stores/task').then(({ useTaskStore }) => {
+          const taskStore = useTaskStore()
+          taskStore.addUri({ uris: uriLines, outs: [], options: {} }).catch((e) => {
+            logger.warn('handleDeepLinkUrls', `auto-submit URIs failed: ${e}`)
+          })
+        })
       }
     }
   }
