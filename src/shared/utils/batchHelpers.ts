@@ -53,3 +53,43 @@ export function createBatchItem(kind: BatchItemKind, source: string, payload = '
 export function resetBatchIdCounter(): void {
   nextId = 0
 }
+
+// ── URI normalization ───────────────────────────────────────────────
+
+/**
+ * Split, trim, remove blanks, and deduplicate URI lines by first occurrence.
+ * Handles multiline payloads — each line is treated as an independent URI.
+ */
+export function normalizeUriLines(text: string): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const raw of text.split('\n')) {
+    const line = raw.trim()
+    if (line && !seen.has(line)) {
+      seen.add(line)
+      result.push(line)
+    }
+  }
+  return result
+}
+
+/**
+ * Merge existing textarea content with incoming URI payloads.
+ * Each incoming payload is treated as potentially multiline (split by \\n).
+ * Returns a single string with order-preserving, deduplicated URI lines.
+ */
+export function mergeUriLines(existingText: string, incoming: string[]): string {
+  const existing = normalizeUriLines(existingText)
+  const seen = new Set(existing)
+  for (const payload of incoming) {
+    // Each payload may itself contain multiple lines (e.g. multiline deep-link arg)
+    for (const raw of payload.split('\n')) {
+      const line = raw.trim()
+      if (line && !seen.has(line)) {
+        seen.add(line)
+        existing.push(line)
+      }
+    }
+  }
+  return existing.join('\n')
+}

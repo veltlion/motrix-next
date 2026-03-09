@@ -10,6 +10,7 @@ import { ADD_TASK_TYPE } from '@shared/constants'
 import { isEngineReady } from '@/api/aria2'
 import { detectResource, bytesToSize } from '@shared/utils'
 import { buildOuts } from '@shared/utils/rename'
+import { normalizeUriLines, mergeUriLines } from '@shared/utils/batchHelpers'
 import { open as openDialog } from '@tauri-apps/plugin-dialog'
 import { downloadDir } from '@tauri-apps/api/path'
 import { readFile } from '@tauri-apps/plugin-fs'
@@ -196,32 +197,9 @@ watch(
 
 // ── URI normalization helpers ────────────────────────────────────────
 
-/** Split, trim, remove blanks, and deduplicate URI lines by first occurrence. */
-function normalizeUriLines(text: string): string[] {
-  const seen = new Set<string>()
-  const result: string[] = []
-  for (const raw of text.split('\n')) {
-    const line = raw.trim()
-    if (line && !seen.has(line)) {
-      seen.add(line)
-      result.push(line)
-    }
-  }
-  return result
-}
-
-/** Merge incoming URIs into form.uris with order-preserving dedup against existing content. */
+/** Merge incoming URIs into form.uris with order-preserving dedup. Delegates to shared helper. */
 function mergeUrisIntoForm(incoming: string[]): void {
-  const existing = normalizeUriLines(form.value.uris)
-  const seen = new Set(existing)
-  for (const uri of incoming) {
-    const trimmed = uri.trim()
-    if (trimmed && !seen.has(trimmed)) {
-      seen.add(trimmed)
-      existing.push(trimmed)
-    }
-  }
-  form.value.uris = existing.join('\n')
+  form.value.uris = mergeUriLines(form.value.uris, incoming)
 }
 
 /** Remove all URI-kind items from pendingBatch, keeping file items intact. */

@@ -67,9 +67,15 @@ export const useAppStore = defineStore('app', () => {
    */
   function enqueueBatch(items: BatchItem[]): number {
     if (items.length === 0) return 0
-    // Deduplicate: skip items whose source is already queued
-    const existingSources = new Set(pendingBatch.value.map((i) => i.source))
-    const unique = items.filter((i) => !existingSources.has(i.source))
+    // Deduplicate against existing batch AND within incoming items
+    const seen = new Set(pendingBatch.value.map((i) => i.source))
+    const unique: BatchItem[] = []
+    for (const item of items) {
+      if (!seen.has(item.source)) {
+        seen.add(item.source)
+        unique.push(item)
+      }
+    }
     const skipped = items.length - unique.length
     if (unique.length > 0) {
       pendingBatch.value = [...pendingBatch.value, ...unique]
