@@ -74,6 +74,7 @@ export default {
   'task-peer-client': '客户端',
   'task-peer-flags': '标志',
   'task-tracker-probe': '探测',
+  'task-tracker-cancel-probe': '取消',
   'task-tracker-protocol': '协议',
   'task-tracker-status': '状态',
   'task-tracker-online': '在线',

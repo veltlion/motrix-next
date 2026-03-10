@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'İstemci',
   'task-peer-flags': 'İşaretler',
   'task-tracker-probe': 'Kontrol Et',
+  'task-tracker-cancel-probe': 'İptal',
   'task-tracker-protocol': 'Protokol',
   'task-tracker-status': 'Durum',
   'task-tracker-online': 'Çevrimiçi',

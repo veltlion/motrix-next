@@ -39,15 +39,15 @@ const actionsMap = computed<
   Record<string, { key: string; icon: Component; label: string; event: string; tooltip?: string; cls?: string }[]>
 >(() => ({
   [TASK_STATUS.ACTIVE]: [
-    { key: 'pause', icon: PauseOutline, label: t('task.pause-task'), event: 'pause' },
+    { key: 'toggle', icon: PauseOutline, label: t('task.pause-task'), event: 'pause' },
     { key: 'delete', icon: CloseOutline, label: t('task.delete-task'), event: 'delete' },
   ],
   [TASK_STATUS.PAUSED]: [
-    { key: 'resume', icon: PlayOutline, label: t('task.resume-task'), event: 'resume' },
+    { key: 'toggle', icon: PlayOutline, label: t('task.resume-task'), event: 'resume' },
     { key: 'delete', icon: CloseOutline, label: t('task.delete-task'), event: 'delete' },
   ],
   [TASK_STATUS.WAITING]: [
-    { key: 'resume', icon: PlayOutline, label: t('task.resume-task'), event: 'resume' },
+    { key: 'toggle', icon: PlayOutline, label: t('task.resume-task'), event: 'resume' },
     { key: 'delete', icon: CloseOutline, label: t('task.delete-task'), event: 'delete' },
   ],
   [TASK_STATUS.ERROR]: [
@@ -115,6 +115,33 @@ function onAction(event: string) {
       break
   }
 }
+
+/** Minimum press visual duration (ms) so quick clicks still show the animation. */
+const MIN_PRESS_MS = 200
+const pressTimers = new WeakMap<HTMLElement, { start: number; timer: ReturnType<typeof setTimeout> | null }>()
+
+function onPress(ev: PointerEvent) {
+  const el = ev.currentTarget as HTMLElement
+  const prev = pressTimers.get(el)
+  if (prev?.timer) clearTimeout(prev.timer)
+  el.classList.add('pressed')
+  pressTimers.set(el, { start: Date.now(), timer: null })
+}
+
+function onRelease(ev: PointerEvent) {
+  const el = ev.currentTarget as HTMLElement
+  const state = pressTimers.get(el)
+  if (!state) {
+    el.classList.remove('pressed')
+    return
+  }
+  const elapsed = Date.now() - state.start
+  const remaining = Math.max(0, MIN_PRESS_MS - elapsed)
+  state.timer = setTimeout(() => {
+    el.classList.remove('pressed')
+    pressTimers.delete(el)
+  }, remaining)
+}
 </script>
 
 <template>
@@ -124,6 +151,9 @@ function onAction(event: string) {
       :key="action.key"
       class="task-item-action"
       :class="[action.cls, { 'is-stopping': action.event === 'stop-seeding' && isStopping }]"
+      @pointerdown="onPress"
+      @pointerup="onRelease"
+      @pointerleave="onRelease"
       @click.stop="onAction(action.event)"
     >
       <NTooltip :delay="500" :style="action.tooltip ? 'max-width: 220px' : ''">
@@ -136,7 +166,9 @@ function onAction(event: string) {
               <NIcon :size="20"><SyncOutline /></NIcon>
             </span>
           </span>
-          <NIcon v-else :size="20"><component :is="action.icon" /></NIcon>
+          <Transition v-else name="icon-swap" mode="out-in">
+            <NIcon :key="action.event" :size="20"><component :is="action.icon" /></NIcon>
+          </Transition>
         </template>
         <template v-if="action.event === 'stop-seeding' && isStopping">
           {{ t('task.stopping-seeding') || 'Stopping…' }}
@@ -185,10 +217,16 @@ function onAction(event: string) {
   border-radius: 50%;
   transition:
     color 0.15s,
-    background-color 0.15s;
+    background-color 0.15s,
+    transform 0.25s cubic-bezier(0.05, 0.7, 0.1, 1);
+  transform-origin: center;
 }
 .task-item-action:hover {
   color: var(--primary-color, #e0a422);
+}
+.task-item-action.pressed {
+  transform: scale(0.85);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 .task-item-action.stop-seeding {
   color: var(--m3-success);
@@ -239,5 +277,25 @@ function onAction(event: string) {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* M3 icon crossfade for play ↔ pause toggle */
+.icon-swap-enter-active {
+  transition:
+    opacity 0.2s cubic-bezier(0.05, 0.7, 0.1, 1),
+    transform 0.2s cubic-bezier(0.05, 0.7, 0.1, 1);
+}
+.icon-swap-leave-active {
+  transition:
+    opacity 0.15s cubic-bezier(0.3, 0, 0.8, 0.15),
+    transform 0.15s cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+.icon-swap-enter-from {
+  opacity: 0;
+  transform: scale(0.6);
+}
+.icon-swap-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
 }
 </style>

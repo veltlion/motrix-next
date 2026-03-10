@@ -141,13 +141,48 @@ function purgeRecord() {
     },
   })
 }
+
+/** M3 press/release animation for toolbar buttons */
+const MIN_PRESS_MS = 200
+const pressTimers = new WeakMap<HTMLElement, { start: number; timer: ReturnType<typeof setTimeout> | null }>()
+
+function onBtnPress(ev: PointerEvent) {
+  const el = ev.currentTarget as HTMLElement
+  const prev = pressTimers.get(el)
+  if (prev?.timer) clearTimeout(prev.timer)
+  el.classList.add('pressed')
+  pressTimers.set(el, { start: Date.now(), timer: null })
+}
+
+function onBtnRelease(ev: PointerEvent) {
+  const el = ev.currentTarget as HTMLElement
+  const state = pressTimers.get(el)
+  if (!state) {
+    el.classList.remove('pressed')
+    return
+  }
+  const elapsed = Date.now() - state.start
+  const remaining = Math.max(0, MIN_PRESS_MS - elapsed)
+  state.timer = setTimeout(() => {
+    el.classList.remove('pressed')
+    pressTimers.delete(el)
+  }, remaining)
+}
 </script>
 
 <template>
   <div class="task-actions">
     <NTooltip>
       <template #trigger>
-        <NButton type="primary" circle size="small" @click="showAddTask">
+        <NButton
+          type="primary"
+          circle
+          size="small"
+          @pointerdown="onBtnPress"
+          @pointerup="onBtnRelease"
+          @pointerleave="onBtnRelease"
+          @click="showAddTask"
+        >
           <template #icon>
             <NIcon><AddOutline /></NIcon>
           </template>
@@ -157,7 +192,15 @@ function purgeRecord() {
     </NTooltip>
     <NTooltip>
       <template #trigger>
-        <NButton quaternary circle size="small" @click="onRefresh">
+        <NButton
+          quaternary
+          circle
+          size="small"
+          @pointerdown="onBtnPress"
+          @pointerup="onBtnRelease"
+          @pointerleave="onBtnRelease"
+          @click="onRefresh"
+        >
           <template #icon>
             <NIcon :class="{ spinning: refreshing }"><RefreshOutline /></NIcon>
           </template>
@@ -167,7 +210,15 @@ function purgeRecord() {
     </NTooltip>
     <NTooltip v-if="currentList !== 'stopped'">
       <template #trigger>
-        <NButton quaternary circle size="small" @click="resumeAll">
+        <NButton
+          quaternary
+          circle
+          size="small"
+          @pointerdown="onBtnPress"
+          @pointerup="onBtnRelease"
+          @pointerleave="onBtnRelease"
+          @click="resumeAll"
+        >
           <template #icon>
             <NIcon><PlayOutline /></NIcon>
           </template>
@@ -177,7 +228,15 @@ function purgeRecord() {
     </NTooltip>
     <NTooltip v-if="currentList !== 'stopped'">
       <template #trigger>
-        <NButton quaternary circle size="small" @click="pauseAll">
+        <NButton
+          quaternary
+          circle
+          size="small"
+          @pointerdown="onBtnPress"
+          @pointerup="onBtnRelease"
+          @pointerleave="onBtnRelease"
+          @click="pauseAll"
+        >
           <template #icon>
             <NIcon><PauseOutline /></NIcon>
           </template>
@@ -187,7 +246,16 @@ function purgeRecord() {
     </NTooltip>
     <NTooltip v-if="currentList !== 'stopped'">
       <template #trigger>
-        <NButton quaternary circle size="small" :disabled="allGids.length === 0" @click="onDeleteAll">
+        <NButton
+          quaternary
+          circle
+          size="small"
+          :disabled="allGids.length === 0"
+          @pointerdown="onBtnPress"
+          @pointerup="onBtnRelease"
+          @pointerleave="onBtnRelease"
+          @click="onDeleteAll"
+        >
           <template #icon>
             <NIcon><CloseOutline /></NIcon>
           </template>
@@ -197,7 +265,15 @@ function purgeRecord() {
     </NTooltip>
     <NTooltip v-if="currentList === 'stopped'">
       <template #trigger>
-        <NButton quaternary circle size="small" @click="purgeRecord">
+        <NButton
+          quaternary
+          circle
+          size="small"
+          @pointerdown="onBtnPress"
+          @pointerup="onBtnRelease"
+          @pointerleave="onBtnRelease"
+          @click="purgeRecord"
+        >
           <template #icon>
             <NIcon><TrashOutline /></NIcon>
           </template>
@@ -214,6 +290,14 @@ function purgeRecord() {
   gap: 4px;
   align-items: center;
 }
+.task-actions :deep(.n-button) {
+  transition: transform 0.25s cubic-bezier(0.05, 0.7, 0.1, 1);
+  transform-origin: center;
+}
+.task-actions :deep(.n-button.pressed) {
+  transform: scale(0.85);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -223,7 +307,7 @@ function purgeRecord() {
   }
 }
 .spinning {
-  animation: spin 0.5s linear;
+  animation: spin 0.6s cubic-bezier(0.2, 0, 0, 1);
   display: inline-block;
   transform-origin: center;
 }

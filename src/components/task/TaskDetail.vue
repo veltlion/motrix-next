@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** @fileoverview Detailed task view with file list, peers, and BT info. */
-import { ref, computed, watch, h, nextTick } from 'vue'
+import { ref, computed, watch, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { TASK_STATUS } from '@shared/constants'
 import {
@@ -187,11 +187,8 @@ const peers = computed(() => {
     host: `${peer.ip}:${peer.port}`,
     client: peerIdParser(peer.peerId),
     percent: peer.bitfield ? bitfieldToPercent(peer.bitfield) + '%' : '-',
-    percentRaw: peer.bitfield ? Number(bitfieldToPercent(peer.bitfield)) : 0,
     uploadSpeed: bytesToSize(peer.uploadSpeed) + '/s',
     downloadSpeed: bytesToSize(peer.downloadSpeed) + '/s',
-    uploadSpeedRaw: Number(peer.uploadSpeed) || 0,
-    downloadSpeedRaw: Number(peer.downloadSpeed) || 0,
     amChoking: peer.amChoking === 'true',
     peerChoking: peer.peerChoking === 'true',
     seeder: peer.seeder === 'true',
@@ -202,11 +199,8 @@ interface PeerRow {
   host: string
   client: string
   percent: string
-  percentRaw: number
   uploadSpeed: string
   downloadSpeed: string
-  uploadSpeedRaw: number
-  downloadSpeedRaw: number
   amChoking: boolean
   peerChoking: boolean
   seeder: boolean
@@ -215,27 +209,9 @@ interface PeerRow {
 const peerColumns = computed(() => [
   { title: t('task.task-peer-host'), key: 'host', minWidth: 140 },
   { title: t('task.task-peer-client'), key: 'client', minWidth: 100, ellipsis: { tooltip: true } },
-  {
-    title: '%',
-    key: 'percent',
-    width: 55,
-    align: 'right' as const,
-    sorter: (a: PeerRow, b: PeerRow) => a.percentRaw - b.percentRaw,
-  },
-  {
-    title: '↓',
-    key: 'downloadSpeed',
-    width: 90,
-    align: 'right' as const,
-    sorter: (a: PeerRow, b: PeerRow) => a.downloadSpeedRaw - b.downloadSpeedRaw,
-  },
-  {
-    title: '↑',
-    key: 'uploadSpeed',
-    width: 90,
-    align: 'right' as const,
-    sorter: (a: PeerRow, b: PeerRow) => a.uploadSpeedRaw - b.uploadSpeedRaw,
-  },
+  { title: '%', key: 'percent', width: 55, align: 'right' as const },
+  { title: '↓', key: 'downloadSpeed', width: 90, align: 'right' as const },
+  { title: '↑', key: 'uploadSpeed', width: 90, align: 'right' as const },
   {
     title: t('task.task-peer-flags'),
     key: 'flags',
@@ -254,11 +230,15 @@ const peerColumns = computed(() => [
     width: 45,
     align: 'center' as const,
     render: (row: PeerRow) => (row.seeder ? '✓' : ''),
-    sorter: (a: PeerRow, b: PeerRow) => Number(a.seeder) - Number(b.seeder),
   },
 ])
 
-const { statuses: trackerStatuses, probing: trackerProbing, probeAll: probeTrackers } = useTrackerProbe()
+const {
+  statuses: trackerStatuses,
+  probing: trackerProbing,
+  probeAll: probeTrackers,
+  cancelProbe: cancelTrackerProbe,
+} = useTrackerProbe()
 
 const trackerRows = computed((): TrackerRow[] => {
   if (!isBT.value || !btInfo.value) return []
@@ -269,14 +249,6 @@ const trackerRows = computed((): TrackerRow[] => {
   }))
 })
 
-/** Status sort priority: online (0) > checking (1) > unknown (2) > offline (3) */
-const TRACKER_STATUS_ORDER: Record<string, number> = {
-  online: 0,
-  checking: 1,
-  unknown: 2,
-  offline: 3,
-}
-
 const trackerColumns = computed(() => [
   { title: t('task.task-tracker-tier'), key: 'tier', width: 55, align: 'center' as const },
   { title: 'URL', key: 'url', ellipsis: { tooltip: true } },
@@ -286,8 +258,6 @@ const trackerColumns = computed(() => [
     key: 'status',
     width: 100,
     align: 'center' as const,
-    sorter: (a: TrackerRow, b: TrackerRow) =>
-      (TRACKER_STATUS_ORDER[a.status] ?? 99) - (TRACKER_STATUS_ORDER[b.status] ?? 99),
     render: (row: TrackerRow) =>
       h(
         NTag,
@@ -295,29 +265,19 @@ const trackerColumns = computed(() => [
           type: row.status === 'online' ? 'success' : row.status === 'offline' ? 'error' : 'default',
           size: 'small',
           round: true,
+          style: 'transition: all 0.3s cubic-bezier(0.05, 0.7, 0.1, 1)',
         },
         () => t(`task.task-tracker-${row.status}`),
       ),
   },
 ])
 
-// Auto-sort trackers by status (online first) after probe completes
-const trackerSortState = ref<{ columnKey: string; order: 'ascend' | 'descend' }>({
-  columnKey: 'status',
-  order: 'ascend',
-})
-
-watch(trackerProbing, (probing, wasProbing) => {
-  if (wasProbing && !probing) {
-    nextTick(() => {
-      trackerSortState.value = { columnKey: 'status', order: 'ascend' }
-    })
-  }
-})
-
 function handleProbeTrackers() {
+  if (trackerProbing.value) {
+    cancelTrackerProbe()
+    return
+  }
   const urls = trackerRows.value.map((r) => r.url)
-  trackerSortState.value = { columnKey: 'status', order: 'ascend' }
   probeTrackers(urls)
 }
 
@@ -467,16 +427,23 @@ function handleClose() {
           </div>
 
           <div v-else-if="activeTab === 'trackers'" key="trackers" class="tab-content">
-            <div style="margin-bottom: 12px">
-              <NButton size="small" type="primary" :loading="trackerProbing" @click="handleProbeTrackers">
-                {{ t('task.task-tracker-probe') }}
+            <div style="margin-bottom: 12px; height: 34px">
+              <NButton
+                size="medium"
+                :type="trackerProbing ? 'default' : 'primary'"
+                class="probe-btn"
+                @click="handleProbeTrackers"
+              >
+                <template v-if="trackerProbing" #icon>
+                  <div class="probe-spinner" />
+                </template>
+                {{ trackerProbing ? t('task.task-tracker-cancel-probe') : t('task.task-tracker-probe') }}
               </NButton>
             </div>
             <NDataTable
               :columns="trackerColumns"
               :data="trackerRows"
               :row-key="(row: TrackerRow) => row.url"
-              :default-sort="trackerSortState ?? undefined"
               size="small"
               :bordered="true"
               :max-height="400"
@@ -598,5 +565,29 @@ function handleClose() {
 .tab-slide-right-leave-to {
   opacity: 0;
   transform: translateX(40px);
+}
+
+/* Probe button M3 transition */
+.probe-btn {
+  transition:
+    background-color 0.3s cubic-bezier(0.2, 0, 0, 1),
+    border-color 0.3s cubic-bezier(0.2, 0, 0, 1),
+    color 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Spinning indicator matching Naive UI's loading style */
+.probe-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: m3-spin 0.8s linear infinite;
+}
+
+@keyframes m3-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

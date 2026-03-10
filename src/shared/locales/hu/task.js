@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'Kliens',
   'task-peer-flags': 'Jelzők',
   'task-tracker-probe': 'Vizsgálat',
+  'task-tracker-cancel-probe': 'Mégse',
   'task-tracker-protocol': 'Protokoll',
   'task-tracker-status': 'Állapot',
   'task-tracker-online': 'Online',

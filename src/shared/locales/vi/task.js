@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'Ứng dụng',
   'task-peer-flags': 'Cờ',
   'task-tracker-probe': 'Kiểm tra',
+  'task-tracker-cancel-probe': 'Hủy',
   'task-tracker-protocol': 'Giao thức',
   'task-tracker-status': 'Trạng thái',
   'task-tracker-online': 'Trực tuyến',

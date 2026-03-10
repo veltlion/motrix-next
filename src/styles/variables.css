@@ -317,6 +317,27 @@ textarea {
   font-size: inherit;
 }
 
+/* ── Global Text Selection ────────────────────────────────────────── */
+/* Native desktop apps do not allow selecting UI labels/headings.     */
+/* Opt-in whitelist preserves text interaction where users expect it.  */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input,
+textarea,
+[contenteditable],
+code,
+pre,
+.n-input,
+.n-input__textarea-el,
+.n-input__input-el,
+.user-selectable {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* ── Draggable Regions ─────────────────────────────────────────────── */
 .draggable {
   -webkit-app-region: drag;

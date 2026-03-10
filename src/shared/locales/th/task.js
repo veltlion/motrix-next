@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'ไคลเอนต์',
   'task-peer-flags': 'แฟล็ก',
   'task-tracker-probe': 'ตรวจสอบ',
+  'task-tracker-cancel-probe': 'ยกเลิก',
   'task-tracker-protocol': 'โปรโตคอล',
   'task-tracker-status': 'สถานะ',
   'task-tracker-online': 'ออนไลน์',

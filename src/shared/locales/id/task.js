@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'Klien',
   'task-peer-flags': 'Tanda',
   'task-tracker-probe': 'Periksa',
+  'task-tracker-cancel-probe': 'Batal',
   'task-tracker-protocol': 'Protokol',
   'task-tracker-status': 'Status',
   'task-tracker-online': 'Online',

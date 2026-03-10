@@ -74,6 +74,7 @@ export default {
   'task-peer-client': '用戶端',
   'task-peer-flags': '標誌',
   'task-tracker-probe': '探測',
+  'task-tracker-cancel-probe': '取消',
   'task-tracker-protocol': '協定',
   'task-tracker-status': '狀態',
   'task-tracker-online': '線上',

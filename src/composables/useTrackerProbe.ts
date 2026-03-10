@@ -54,27 +54,45 @@ export function buildTrackerRows(announceList: string[][] | undefined): TrackerR
 export function useTrackerProbe() {
   const statuses = ref<Record<string, TrackerStatus>>({})
   const probing = ref(false)
+  /** Generation counter to discard results from cancelled probes. */
+  let probeGeneration = 0
 
   async function probeAll(urls: string[]) {
+    const gen = ++probeGeneration
     probing.value = true
     for (const url of urls) {
       statuses.value[url] = 'checking'
     }
     try {
       const result = await invoke<Record<string, string>>('probe_trackers', { urls })
+      // Discard if a newer probe or cancel has occurred
+      if (gen !== probeGeneration) return
       for (const [url, status] of Object.entries(result)) {
         statuses.value[url] = status as TrackerStatus
       }
     } catch {
+      if (gen !== probeGeneration) return
       for (const url of urls) {
         if (statuses.value[url] === 'checking') {
           statuses.value[url] = 'unknown'
         }
       }
     } finally {
-      probing.value = false
+      if (gen === probeGeneration) {
+        probing.value = false
+      }
     }
   }
 
-  return { statuses, probing, probeAll }
+  function cancelProbe() {
+    probeGeneration++
+    for (const url of Object.keys(statuses.value)) {
+      if (statuses.value[url] === 'checking') {
+        statuses.value[url] = 'unknown'
+      }
+    }
+    probing.value = false
+  }
+
+  return { statuses, probing, probeAll, cancelProbe }
 }

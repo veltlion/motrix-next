@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'Client',
   'task-peer-flags': 'Indicadors',
   'task-tracker-probe': 'Sondejar',
+  'task-tracker-cancel-probe': 'Cancel·la',
   'task-tracker-protocol': 'Protocol',
   'task-tracker-status': 'Estat',
   'task-tracker-online': 'En línia',

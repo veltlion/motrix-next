@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'العميل',
   'task-peer-flags': 'الأعلام',
   'task-tracker-probe': 'فحص',
+  'task-tracker-cancel-probe': 'إلغاء',
   'task-tracker-protocol': 'البروتوكول',
   'task-tracker-status': 'الحالة',
   'task-tracker-online': 'متصل',

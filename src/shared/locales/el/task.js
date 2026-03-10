@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'Πελάτης',
   'task-peer-flags': 'Σημαίες',
   'task-tracker-probe': 'Δοκιμή',
+  'task-tracker-cancel-probe': 'Ακύρωση',
   'task-tracker-protocol': 'Πρωτόκολλο',
   'task-tracker-status': 'Κατάσταση',
   'task-tracker-online': 'Συνδεδεμένο',

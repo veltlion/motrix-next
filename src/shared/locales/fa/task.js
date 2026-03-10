@@ -74,6 +74,7 @@ export default {
   'task-peer-client': 'کلاینت',
   'task-peer-flags': 'پرچم‌ها',
   'task-tracker-probe': 'بررسی',
+  'task-tracker-cancel-probe': 'لغو',
   'task-tracker-protocol': 'پروتکل',
   'task-tracker-status': 'وضعیت',
   'task-tracker-online': 'آنلاین',
