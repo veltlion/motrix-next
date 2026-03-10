@@ -614,7 +614,7 @@ onMounted(() => {
 .form-preference {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 24px 64px 24px;
+  padding: 16px 30px 64px 36px;
 }
 .form-preference :deep(.n-form-item) {
   padding-left: 50px;

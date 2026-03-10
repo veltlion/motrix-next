@@ -464,3 +464,9 @@ pre,
   height: 32px;
   padding: 0 16px;
 }
+
+.n-drawer-container,
+.n-modal-mask {
+  border-radius: 12px;
+  overflow: hidden;
+}
