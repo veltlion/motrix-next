@@ -11,20 +11,6 @@
   "app": {
     "windows": [
       {
-        "label": "splashscreen",
-        "url": "splashscreen.html",
-        "title": "Motrix Next",
-        "width": 320,
-        "height": 360,
-        "resizable": false,
-        "decorations": false,
-        "transparent": false,
-        "center": true,
-        "alwaysOnTop": true,
-        "visible": true,
-        "backgroundColor": "#141210"
-      },
-      {
         "label": "main",
         "title": "Motrix Next",
         "width": 1120,
@@ -33,7 +19,7 @@
         "minHeight": 560,
         "transparent": true,
         "decorations": false,
-        "visible": false
+        "visible": true
       }
     ],
     "security": {

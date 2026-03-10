@@ -7,27 +7,6 @@ use tauri::AppHandle;
 use tauri::Manager;
 use tauri_plugin_store::StoreExt;
 
-/// Closes the splash screen window and optionally shows the main window.
-///
-/// Called from the frontend once the critical startup path (preferences,
-/// locale, window setup) is complete.  This is the standard Tauri
-/// multi-window splash screen pattern for masking WebView cold-start latency.
-///
-/// When `show_main` is `false` (autoHideWindow mode), the splash closes
-/// but the main window stays hidden — the user launched straight to the tray.
-#[tauri::command]
-pub async fn close_splashscreen(app: AppHandle, show_main: bool) {
-    if let Some(splash) = app.get_webview_window("splashscreen") {
-        let _ = splash.close();
-    }
-    if show_main {
-        if let Some(main) = app.get_webview_window("main") {
-            let _ = main.show();
-            let _ = main.set_focus();
-        }
-    }
-}
-
 /// Reads all user preferences from the `user.json` store.
 #[tauri::command]
 pub fn get_app_config(app: AppHandle) -> Result<Value, AppError> {

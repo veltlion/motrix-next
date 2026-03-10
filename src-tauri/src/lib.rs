@@ -44,11 +44,7 @@ pub fn run() {
     }
 
     builder = builder.plugin(tauri_plugin_deep_link::init());
-    builder = builder.plugin(
-        tauri_plugin_window_state::Builder::new()
-            .with_denylist(&["splashscreen"])
-            .build(),
-    );
+    builder = builder.plugin(tauri_plugin_window_state::Builder::new().build());
 
     builder
         .manage(EngineState::new())
@@ -77,7 +73,6 @@ pub fn run() {
             commands::get_upnp_status,
             commands::set_dock_visible,
             commands::probe_trackers,
-            commands::close_splashscreen,
         ])
         .setup(|app| {
             let handle = app.handle();
@@ -144,6 +139,24 @@ pub fn run() {
                 if hide_dock {
                     use tauri::ActivationPolicy;
                     let _ = app.set_activation_policy(ActivationPolicy::Accessory);
+                }
+            }
+
+            // Auto-hide the main window on startup when the user has
+            // opted into tray-only mode.  The window is created visible
+            // (tauri.conf.json visible: true) for instant display; calling
+            // hide() in setup() prevents it from ever reaching the screen.
+            {
+                let auto_hide = app
+                    .store("config.json")
+                    .ok()
+                    .and_then(|s| s.get("preferences"))
+                    .and_then(|p| p.get("autoHideWindow")?.as_bool())
+                    .unwrap_or(false);
+                if auto_hide {
+                    if let Some(w) = app.get_webview_window("main") {
+                        let _ = w.hide();
+                    }
                 }
             }
 

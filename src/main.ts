@@ -26,9 +26,6 @@ app.use(i18n)
 
 app.mount('#app')
 
-// Window visibility is deferred until preferences are loaded (see below).
-// This replaces the unconditional show() that ignored autoHideWindow.
-
 const preferenceStore = usePreferenceStore()
 const taskStore = useTaskStore()
 const appStore = useAppStore()
@@ -213,26 +210,6 @@ preferenceStore.loadPreference().then(async () => {
   }
 
   const config = preferenceStore.config
-
-  // Close the splash screen with a M3 fade-out animation, then show main.
-  // Wrapped in try/catch — if IPC fails, fall back to direct window.show()
-  // so the app is never stuck invisible.
-  try {
-    const { invoke } = await import('@tauri-apps/api/core')
-    const { emit } = await import('@tauri-apps/api/event')
-    await emit('splash-close')
-    await new Promise((r) => setTimeout(r, 300))
-    await invoke('close_splashscreen', { showMain: !config.autoHideWindow })
-  } catch (e) {
-    logger.warn('Splash', 'close_splashscreen failed, falling back: ' + e)
-    try {
-      const mainWindow = getCurrentWindow()
-      await mainWindow.show()
-      await mainWindow.setFocus()
-    } catch {
-      /* window already visible or unavailable — nothing we can do */
-    }
-  }
 
   // ── Phase 2: engine startup (non-blocking) ────────────────────────────
   const port = config.rpcListenPort || ENGINE_RPC_PORT
