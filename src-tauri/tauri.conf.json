@@ -14,8 +14,8 @@
         "title": "Motrix Next",
         "width": 1120,
         "height": 700,
-        "minWidth": 800,
-        "minHeight": 540,
+        "minWidth": 970,
+        "minHeight": 560,
         "transparent": true,
         "decorations": false,
         "visible": false
