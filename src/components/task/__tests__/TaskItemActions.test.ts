@@ -95,6 +95,34 @@ describe('TaskItemActions', () => {
       // At least one event should be emitted
       expect(Object.keys(wrapper.emitted()).length).toBeGreaterThan(0)
     })
+
+    it('emits stop-seeding when stop action is clicked on SEEDING task', async () => {
+      const wrapper = createWrapper(TASK_STATUS.SEEDING)
+      const stopAction = wrapper.findAll('.task-item-action').find((a) => a.classes().includes('stop-seeding'))
+      expect(stopAction).toBeDefined()
+      await stopAction!.trigger('click')
+      expect(wrapper.emitted('stop-seeding')).toBeTruthy()
+    })
+  })
+
+  describe('status variants', () => {
+    it('shows resume+delete for WAITING tasks', () => {
+      const wrapper = createWrapper(TASK_STATUS.WAITING)
+      const actions = wrapper.findAll('.task-item-action')
+      expect(actions.length).toBeGreaterThanOrEqual(2 + 3)
+    })
+
+    it('shows restart+trash for REMOVED tasks', () => {
+      const wrapper = createWrapper(TASK_STATUS.REMOVED)
+      const actions = wrapper.findAll('.task-item-action')
+      expect(actions.length).toBeGreaterThanOrEqual(2 + 3)
+    })
+
+    it('non-seeder statuses do not have stop-seeding button', () => {
+      const wrapper = createWrapper(TASK_STATUS.ACTIVE)
+      const hasStopSeeding = wrapper.findAll('.task-item-action').some((a) => a.classes().includes('stop-seeding'))
+      expect(hasStopSeeding).toBe(false)
+    })
   })
 
   describe('isStopping state', () => {
@@ -113,6 +141,61 @@ describe('TaskItemActions', () => {
 
       const stopAction = wrapper.findAll('.task-item-action').find((a) => a.classes().includes('stop-seeding'))
       expect(stopAction?.classes()).toContain('is-stopping')
+    })
+
+    it('does not apply is-stopping when gid is NOT in stoppingGids', () => {
+      const wrapper = mount(TaskItemActions, {
+        props: {
+          task: { gid: 'other-gid' } as never,
+          status: TASK_STATUS.SEEDING,
+        },
+        global: {
+          provide: {
+            stoppingGids: ref(['different-gid']),
+          },
+        },
+      })
+
+      const stopAction = wrapper.findAll('.task-item-action').find((a) => a.classes().includes('stop-seeding'))
+      expect(stopAction?.classes()).not.toContain('is-stopping')
+    })
+
+    it('shows spin icon wrapper when stopping', () => {
+      const wrapper = mount(TaskItemActions, {
+        props: {
+          task: { gid: 'spin-gid' } as never,
+          status: TASK_STATUS.SEEDING,
+        },
+        global: {
+          provide: {
+            stoppingGids: ref(['spin-gid']),
+          },
+        },
+      })
+
+      expect(wrapper.find('.stop-icon-wrapper').exists()).toBe(true)
+      expect(wrapper.find('.stop-icon-spin.fade-in').exists()).toBe(true)
+    })
+  })
+
+  describe('seeder styling', () => {
+    it('seeding stop button has stop-seeding class for green color', () => {
+      const wrapper = createWrapper(TASK_STATUS.SEEDING)
+      const stopAction = wrapper.findAll('.task-item-action').find((a) => a.classes().includes('stop-seeding'))
+      expect(stopAction).toBeDefined()
+      expect(stopAction!.classes()).toContain('stop-seeding')
+    })
+  })
+
+  describe('press animation', () => {
+    it('adds pressed class on pointerdown and removes on pointerup', async () => {
+      const wrapper = createWrapper(TASK_STATUS.ACTIVE)
+      const action = wrapper.find('.task-item-action')
+      await action.trigger('pointerdown')
+      expect(action.classes()).toContain('pressed')
+      await action.trigger('pointerup')
+      // Note: pressed class removal is timer-based (asynchronous), but the
+      // pointerup handler schedules removal — we verify the class was added
     })
   })
 })

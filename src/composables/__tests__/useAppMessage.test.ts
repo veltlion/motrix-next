@@ -113,4 +113,10 @@ describe('useAppMessage', () => {
     expect(options.closable).toBe(true)
     expect(options.keepAliveOnHover).toBe(true)
   })
+
+  it('handles empty string content without crashing', () => {
+    const msg = useAppMessage()
+    expect(() => msg.info('')).not.toThrow()
+    expect(mockMessageApi.info).toHaveBeenCalledOnce()
+  })
 })

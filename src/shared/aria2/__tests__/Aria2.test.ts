@@ -230,4 +230,45 @@ describe('Aria2', () => {
       superCall.mockRestore()
     })
   })
+
+  describe('edge cases', () => {
+    it('call with only method name sends just the secret token', async () => {
+      const superCall = vi.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(client)), 'call').mockResolvedValue('ok')
+
+      await client.call('getVersion')
+
+      const params = superCall.mock.calls[0][1] as unknown[]
+      expect(params).toEqual(['token:mysecret'])
+
+      superCall.mockRestore()
+    })
+
+    it('call with multiple params preserves order after secret', async () => {
+      const superCall = vi.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(client)), 'call').mockResolvedValue('ok')
+
+      await client.call('changeOption', 'gid1', { seedTime: '0' })
+
+      const params = superCall.mock.calls[0][1] as unknown[]
+      expect(params[0]).toBe('token:mysecret')
+      expect(params[1]).toBe('gid1')
+      expect(params[2]).toEqual({ seedTime: '0' })
+
+      superCall.mockRestore()
+    })
+
+    it('no-secret client omits token entirely', async () => {
+      const noSecretClient = new Aria2({ secret: '' })
+      const superCall = vi
+        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(noSecretClient)), 'call')
+        .mockResolvedValue('ok')
+
+      await noSecretClient.call('getVersion')
+
+      const params = superCall.mock.calls[0][1] as unknown[]
+      // No token should be present
+      expect(params.every((p) => typeof p !== 'string' || !p.startsWith('token:'))).toBe(true)
+
+      superCall.mockRestore()
+    })
+  })
 })

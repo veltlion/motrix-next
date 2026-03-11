@@ -149,4 +149,34 @@ describe('PreferenceStore', () => {
     expect(store.config.favoriteDirectories).not.toContain('/a')
     expect(store.config.historyDirectories).toContain('/b')
   })
+
+  // ── fetchPreference ───────────────────────────────────────
+
+  it('fetchPreference merges remote config into state', async () => {
+    const api = {
+      fetchPreference: vi.fn().mockResolvedValue({ theme: 'dark', split: '8' }),
+    }
+    const result = await store.fetchPreference(api)
+    expect(store.config.theme).toBe('dark')
+    expect(result).toMatchObject({ theme: 'dark', split: '8' })
+  })
+
+  // ── save ──────────────────────────────────────────────────
+
+  it('save calls savePreference API and session saver', async () => {
+    const savePreference = vi.fn().mockResolvedValue(undefined)
+    const saveSession = vi.fn()
+    const cfg = { theme: 'light' as const }
+    await store.save(cfg, { savePreference }, saveSession)
+    expect(saveSession).toHaveBeenCalledOnce()
+    expect(savePreference).toHaveBeenCalledWith(cfg)
+    expect(store.config.theme).toBe('light')
+  })
+
+  // ── direction edge cases ──────────────────────────────────
+
+  it('direction returns rtl for Farsi locale', () => {
+    store.updatePreference({ locale: 'fa' })
+    expect(store.direction).toBe('rtl')
+  })
 })
