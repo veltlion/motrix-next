@@ -132,6 +132,15 @@ pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::
                 }
             }
             "tray-new-task" => {
+                #[cfg(target_os = "macos")]
+                {
+                    use tauri::ActivationPolicy;
+                    let _ = app.set_activation_policy(ActivationPolicy::Regular);
+                }
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
                 let _ = app.emit("menu-event", "new-task");
             }
             "tray-resume-all" => {

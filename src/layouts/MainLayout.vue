@@ -207,6 +207,8 @@ onMounted(async () => {
     const action = event.payload
     switch (action) {
       case 'new-task':
+        await getCurrentWindow().show()
+        await getCurrentWindow().setFocus()
         appStore.showAddTaskDialog()
         break
       case 'open-torrent': {
