@@ -95,10 +95,10 @@ async function handleExitConfirm() {
   rememberChoice.value = false
   appReady.value = false
   await new Promise((r) => setTimeout(r, 250))
-  const appWindow = getCurrentWindow()
-  await appWindow.destroy()
-  // Terminate the Tauri process. destroy() only closes the webview;
-  // without exit(), the tray icon and aria2 sidecar stay alive.
+  // Terminate the Tauri process BEFORE destroying the webview.
+  // exit(0) sends an IPC call to Rust — if we destroy() first,
+  // the webview is gone and the IPC silently fails, leaving the
+  // tray-menu window alive as a zombie process.
   const { exit } = await import('@tauri-apps/plugin-process')
   await exit(0)
 }
@@ -268,16 +268,50 @@ onMounted(async () => {
         appStore.showAddTaskDialog()
         break
       case 'resume-all':
-        taskStore.resumeAllTask().catch(console.error)
+        await mainWindow.show()
+        await mainWindow.setFocus()
+        if (!isEngineReady()) {
+          message.warning(t('app.engine-not-ready'))
+        } else {
+          navDialog.warning({
+            title: t('task.resume-all-task'),
+            content: t('task.resume-all-task-confirm') || 'Resume all tasks?',
+            positiveText: t('app.yes'),
+            negativeText: t('app.no'),
+            onPositiveClick: async () => {
+              await taskStore
+                .resumeAllTask()
+                .then(() => message.success(t('task.resume-all-task-success')))
+                .catch(() => message.error(t('task.resume-all-task-fail')))
+            },
+          })
+        }
         break
       case 'pause-all':
-        taskStore.pauseAllTask().catch(console.error)
+        await mainWindow.show()
+        await mainWindow.setFocus()
+        if (!isEngineReady()) {
+          message.warning(t('app.engine-not-ready'))
+        } else {
+          navDialog.warning({
+            title: t('task.pause-all-task'),
+            content: t('task.pause-all-task-confirm') || 'Pause all tasks?',
+            positiveText: t('app.yes'),
+            negativeText: t('app.no'),
+            onPositiveClick: async () => {
+              await taskStore
+                .pauseAllTask()
+                .then(() => message.success(t('task.pause-all-task-success')))
+                .catch(() => message.error(t('task.pause-all-task-fail')))
+            },
+          })
+        }
         break
-      case 'quit': {
-        const window = getCurrentWindow()
-        await window.destroy()
+      case 'quit':
+        await mainWindow.show()
+        await mainWindow.setFocus()
+        showExitDialog.value = true
         break
-      }
     }
   })
 

@@ -11,6 +11,9 @@
     "core:window:allow-hide",
     "core:window:allow-set-focus",
     "core:window:allow-close",
-    "core:window:allow-destroy"
+    "core:window:allow-destroy",
+    "store:default",
+    "notification:default",
+    "locale:default"
   ]
 }

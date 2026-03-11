@@ -212,13 +212,18 @@ pub fn run() {
             // On Linux/Wayland with decorations:false, the frontend
             // onCloseRequested listener may not fire for all close
             // paths (e.g. Alt+F4, GNOME overview ×, taskbar close).
-            // This handler ensures the window is hidden rather than
-            // destroyed when the setting is enabled.
+            // This handler ensures the main window is hidden rather
+            // than destroyed when the setting is enabled.
+            // Non-main windows (e.g. tray-menu) are never intercepted.
             tauri::RunEvent::WindowEvent {
                 event: tauri::WindowEvent::CloseRequested { api, .. },
                 label,
                 ..
             } => {
+                if label != "main" {
+                    return;
+                }
+
                 let should_hide = app
                     .store("config.json")
                     .ok()
@@ -233,7 +238,7 @@ pub fn run() {
 
                 if should_hide {
                     api.prevent_close();
-                    if let Some(window) = app.get_webview_window(&label) {
+                    if let Some(window) = app.get_webview_window("main") {
                         let _ = window.hide();
                     }
 

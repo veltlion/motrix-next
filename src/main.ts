@@ -32,7 +32,29 @@ app.mount('#app')
 // stores, WebSocket, deep-link, UPnP, clipboard monitor) to let
 // TrayMenu.vue mount instantly without blocking or focus conflicts.
 if (getCurrentWindow().label === 'tray-menu') {
-  // Nothing else to initialize — TrayMenu.vue handles everything.
+  // Lightweight locale-only init — TrayMenu.vue needs i18n but nothing else.
+  const preferenceStore = usePreferenceStore()
+  preferenceStore.loadPreference().then(async () => {
+    let locale = preferenceStore.locale
+    if (!locale) {
+      try {
+        const raw = (await getLocale()) || 'en-US'
+        const sysLang = raw.replace('-Hans', '').replace('-Hant', '')
+        const available = i18n.global.availableLocales
+        if (available.includes(sysLang)) {
+          locale = sysLang
+        } else {
+          const prefix = sysLang.split('-')[0]
+          locale = available.find((l) => l === prefix || l.startsWith(prefix + '-')) || 'en-US'
+        }
+      } catch {
+        locale = 'en-US'
+      }
+    }
+    if (locale && i18n.global.locale) {
+      setI18nLocale(i18n, locale)
+    }
+  })
 } else {
   // ── Main window initialization below ──────────────────────────────
 

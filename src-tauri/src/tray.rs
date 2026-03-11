@@ -121,6 +121,11 @@ pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::
 
     let _tray = builder.build(app)?;
 
+    // Pre-create the popup window (hidden) so the WebView pre-loads the SPA.
+    // Without this, the first right-click has a multi-second delay while the
+    // JS bundle is fetched and compiled.  Subsequent shows are instant.
+    ensure_tray_popup(app);
+
     Ok(TrayMenuState {
         items: Mutex::new(items_map),
     })

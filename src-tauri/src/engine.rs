@@ -91,11 +91,17 @@ pub fn start_engine(app: &tauri::AppHandle, config: &serde_json::Value) -> Resul
             match event {
                 CommandEvent::Stdout(line) => {
                     let text = String::from_utf8_lossy(&line);
-                    eprintln!("[aria2c] stdout: {}", text.trim());
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        eprintln!("[aria2c] stdout: {}", trimmed);
+                    }
                 }
                 CommandEvent::Stderr(line) => {
                     let text = String::from_utf8_lossy(&line);
-                    eprintln!("[aria2c] stderr: {}", text.trim());
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        eprintln!("[aria2c] stderr: {}", trimmed);
+                    }
                 }
                 CommandEvent::Terminated(payload) => {
                     let exit_code = payload.code.unwrap_or(-1);
@@ -236,11 +242,17 @@ pub fn restart_engine(app: &tauri::AppHandle, config: &serde_json::Value) -> Res
             match event {
                 CommandEvent::Stdout(line) => {
                     let text = String::from_utf8_lossy(&line);
-                    eprintln!("[aria2c] stdout: {}", text.trim());
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        eprintln!("[aria2c] stdout: {}", trimmed);
+                    }
                 }
                 CommandEvent::Stderr(line) => {
                     let text = String::from_utf8_lossy(&line);
-                    eprintln!("[aria2c] stderr: {}", text.trim());
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        eprintln!("[aria2c] stderr: {}", trimmed);
+                    }
                 }
                 CommandEvent::Terminated(payload) => {
                     let exit_code = payload.code.unwrap_or(-1);
