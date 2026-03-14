@@ -10,4 +10,5 @@ export default {
   'version-copied': 'Versiunea {label} copiată',
   'app-version': 'Versiune Motrix Next',
   'aria2-version': 'Versiune aria2',
+  'loading': 'Se încarcă…',
 }

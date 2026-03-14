@@ -10,4 +10,5 @@ export default {
   'version-copied': 'Η έκδοση {label} αντιγράφηκε',
   'app-version': 'Έκδοση Motrix Next',
   'aria2-version': 'Έκδοση aria2',
+  'loading': 'Φόρτωση…',
 }

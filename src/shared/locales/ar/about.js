@@ -10,4 +10,5 @@ export default {
   'version-copied': 'تم نسخ رقم إصدار {label}',
   'app-version': 'إصدار Motrix Next',
   'aria2-version': 'إصدار aria2',
+  'loading': 'جارٍ التحميل…',
 }

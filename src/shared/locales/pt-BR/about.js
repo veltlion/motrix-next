@@ -10,4 +10,5 @@ export default {
   'version-copied': 'Versão do {label} copiada',
   'app-version': 'Versão do Motrix Next',
   'aria2-version': 'Versão do aria2',
+  'loading': 'Carregando…',
 }

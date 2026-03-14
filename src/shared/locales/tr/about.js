@@ -10,4 +10,5 @@ export default {
   'version-copied': '{label} sürümü kopyalandı',
   'app-version': 'Motrix Next Sürümü',
   'aria2-version': 'aria2 Sürümü',
+  'loading': 'Yükleniyor…',
 }

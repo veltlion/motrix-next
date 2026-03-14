@@ -10,4 +10,5 @@ export default {
   'version-copied': '已複製 {label} 版本號',
   'app-version': 'Motrix Next 版本',
   'aria2-version': 'aria2 版本',
+  'loading': '載入中…',
 }

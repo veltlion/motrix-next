@@ -10,4 +10,5 @@ export default {
   'version-copied': 'Đã sao chép phiên bản {label}',
   'app-version': 'Phiên bản Motrix Next',
   'aria2-version': 'Phiên bản aria2',
+  'loading': 'Đang tải…',
 }

@@ -10,4 +10,5 @@ export default {
   'version-copied': 'Versi {label} disalin',
   'app-version': 'Versi Motrix Next',
   'aria2-version': 'Versi aria2',
+  'loading': 'Memuat…',
 }

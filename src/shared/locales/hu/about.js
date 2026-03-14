@@ -10,4 +10,5 @@ export default {
   'version-copied': '{label} verziószám másolva',
   'app-version': 'Motrix Next verzió',
   'aria2-version': 'aria2 verzió',
+  'loading': 'Betöltés…',
 }

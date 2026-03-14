@@ -10,4 +10,5 @@ export default {
   'version-copied': '{label} のバージョンをコピーしました',
   'app-version': 'Motrix Next バージョン',
   'aria2-version': 'aria2 バージョン',
+  'loading': '読み込み中…',
 }

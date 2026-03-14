@@ -10,4 +10,5 @@ export default {
   'version-copied': 'Версію {label} скопійовано',
   'app-version': 'Версія Motrix Next',
   'aria2-version': 'Версія aria2',
+  'loading': 'Завантаження…',
 }

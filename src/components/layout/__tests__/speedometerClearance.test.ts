@@ -22,12 +22,12 @@ describe('Conditional Speedometer clearance spacer', () => {
     speedometerSource = fs.readFileSync(SPEEDOMETER_VUE, 'utf-8')
   })
 
-  it('Speedometer occlusion zone is 64px', () => {
+  it('Speedometer occlusion zone is 60px', () => {
     const bottom = speedometerSource.match(/bottom:\s*(\d+)px/)
     const height = speedometerSource.match(/height:\s*(\d+)px/)
     expect(bottom).not.toBeNull()
     expect(height).not.toBeNull()
-    expect(parseInt(bottom![1], 10) + parseInt(height![1], 10)).toBe(64)
+    expect(parseInt(bottom![1], 10) + parseInt(height![1], 10)).toBe(60)
   })
 
   it('spacer only applies when cards are present (not .is-empty)', () => {

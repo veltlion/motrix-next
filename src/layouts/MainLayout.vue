@@ -183,7 +183,7 @@ onMounted(async () => {
 
   // Notify user when the engine is intentionally stopped (restart, update, relaunch).
   listen('engine-stopped', () => {
-    message.info(t('app.engine-stopped'))
+    message.warning(t('app.engine-stopped'))
   })
 
   router.beforeEach((to, from) => {

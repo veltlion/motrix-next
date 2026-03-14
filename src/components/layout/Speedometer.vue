@@ -38,8 +38,8 @@ const uploadSpeed = computed(() => bytesToSize(String(stat.value.uploadSpeed)))
 .speedometer {
   font-size: 12px;
   position: fixed;
-  right: 36px;
-  bottom: 24px;
+  right: 20px;
+  bottom: 20px;
   z-index: 20;
   display: inline-block;
   box-sizing: border-box;

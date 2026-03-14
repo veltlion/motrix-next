@@ -125,7 +125,7 @@
   --task-action-hover-border: var(--m3-outline);
   --task-action-hover-color: var(--m3-on-surface);
 
-  --speedometer-bg: var(--m3-surface-container-lowest);
+  --speedometer-bg: var(--m3-surface-container);
   --speedometer-border: var(--m3-outline-variant);
   --speedometer-hover-border: var(--m3-outline);
   --speedometer-primary: var(--color-primary);

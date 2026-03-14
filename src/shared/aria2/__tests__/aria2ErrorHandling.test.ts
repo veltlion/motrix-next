@@ -403,10 +403,10 @@ describe('MainLayout.vue — engine event listeners', () => {
       expect(layoutSource).toContain('engine-stopped')
     })
 
-    it('shows an info notification (message.info)', () => {
+    it('shows a warning notification (message.warning)', () => {
       const listenerBlock = extractListenerBlock(layoutSource, 'engine-stopped')
       expect(listenerBlock).toBeTruthy()
-      expect(listenerBlock).toContain('message.info')
+      expect(listenerBlock).toContain('message.warning')
     })
   })
 })

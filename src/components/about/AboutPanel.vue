@@ -16,6 +16,7 @@ const { t } = useI18n()
 const message = useAppMessage()
 const appVersion = ref('')
 const aria2Version = ref('')
+const aria2Loading = ref(true)
 const year = new Date().getFullYear()
 const animate = ref(false)
 
@@ -26,6 +27,8 @@ onMounted(async () => {
     aria2Version.value = info.version
   } catch {
     aria2Version.value = '—'
+  } finally {
+    aria2Loading.value = false
   }
 })
 
@@ -43,30 +46,10 @@ watch(
 )
 
 const techStack = [
-  {
-    name: 'Tauri v2',
-    color: '#FFC131',
-    /* Tauri shield — simplified from official logo */
-    svg: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" fill="currentColor"/>',
-  },
-  {
-    name: 'Rust',
-    color: '#DE5623',
-    /* Rust gear — simplified */
-    svg: '<path d="M12 2a1 1 0 011 1v1.07A7.97 7.97 0 0116.93 7H18a1 1 0 110 2h-1.07A7.97 7.97 0 0114 12.93V14a1 1 0 11-2 0v-1.07A7.97 7.97 0 018 9.07V8a1 1 0 010-2h1.07A7.97 7.97 0 0112 2zm0 5a3 3 0 100 6 3 3 0 000-6z" fill="currentColor"/>',
-  },
-  {
-    name: 'Vue 3',
-    color: '#42b883',
-    /* Vue chevron */
-    svg: '<path d="M2 3h3.5L12 14.5 18.5 3H22L12 21 2 3zm5 0h3l2 3.5L14 3h3L12 14 7 3z" fill="currentColor"/>',
-  },
-  {
-    name: 'Naive UI',
-    color: '#63e2b7',
-    /* Leaf / diamond */
-    svg: '<path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z" fill="currentColor"/>',
-  },
+  { name: 'Tauri v2', color: '#FFC131' },
+  { name: 'Rust', color: '#DE5623' },
+  { name: 'Vue 3', color: '#42b883' },
+  { name: 'Naive UI', color: '#63e2b7' },
 ]
 
 const links = [
@@ -150,18 +133,32 @@ function openUrl(url: string) {
             <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" />
           </svg>
         </button>
-        <button
-          class="version-badge"
-          :title="t('about.click-to-copy')"
-          @click="copyToClipboard(`aria2 v${aria2Version}`, 'aria2')"
-        >
-          <span class="version-label">{{ t('about.aria2-version') }}</span>
-          <span class="version-value">v{{ aria2Version }}</span>
-          <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" />
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" />
-          </svg>
-        </button>
+        <Transition name="version-swap" mode="out-in">
+          <div v-if="aria2Loading" key="loading" class="version-badge version-badge--loading">
+            <span class="version-label">{{ t('about.aria2-version') }}</span>
+            <span class="version-loading">
+              <svg class="spinner" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5" opacity="0.2" />
+                <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+              </svg>
+              {{ t('about.loading') }}
+            </span>
+          </div>
+          <button
+            v-else
+            key="loaded"
+            class="version-badge"
+            :title="t('about.click-to-copy')"
+            @click="copyToClipboard(`aria2 v${aria2Version}`, 'aria2')"
+          >
+            <span class="version-label">{{ t('about.aria2-version') }}</span>
+            <span class="version-value">v{{ aria2Version }}</span>
+            <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" />
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </button>
+        </Transition>
       </div>
 
       <!-- Description -->
@@ -171,7 +168,6 @@ function openUrl(url: string) {
       <div class="about-section-label stagger stagger-4">Tech Stack</div>
       <div class="about-tags stagger stagger-4">
         <span v-for="tech in techStack" :key="tech.name" class="about-tag" :style="{ '--tag-color': tech.color }">
-          <svg width="14" height="14" viewBox="0 0 24 24" v-html="tech.svg" />
           {{ tech.name }}
         </span>
       </div>
@@ -429,5 +425,53 @@ function openUrl(url: string) {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ── Spinner ──────────────────────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+.version-loading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--m3-outline);
+  letter-spacing: 0.3px;
+}
+.version-badge--loading {
+  cursor: default;
+}
+.version-badge--loading:hover {
+  border-color: var(--m3-outline-variant);
+  background: var(--about-card-bg);
+}
+
+/* ── Version Swap Transition ──────────────────────────────────────── */
+.version-swap-enter-active {
+  transition:
+    opacity 0.25s cubic-bezier(0.2, 0, 0, 1),
+    transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+.version-swap-leave-active {
+  transition:
+    opacity 0.15s cubic-bezier(0.3, 0, 0.8, 0.15),
+    transform 0.15s cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+.version-swap-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.version-swap-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
