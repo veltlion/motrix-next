@@ -39,33 +39,30 @@ describe('tray.rs — quit emits tray-menu-action', () => {
     expect(source).toContain('"tray-quit"')
   })
 
-  it('emits tray-menu-action with "quit" payload', () => {
-    // Extract the on_menu_event block
+  it('maps tray-quit to "quit" in resolve_tray_action', () => {
+    // After extracting resolve_tray_action(), the quit mapping lives
+    // in the resolver function, not directly in on_menu_event.
+    const resolverBody = extractResolverBody(source)
+    expect(resolverBody).toBeTruthy()
+    expect(resolverBody).toContain('"tray-quit"')
+    expect(resolverBody).toContain('"quit"')
+
+    // on_menu_event dispatches through resolve_tray_action
     const menuEventBlock = extractOnMenuEvent(source)
     expect(menuEventBlock).toBeTruthy()
-
-    // Find the tray-quit arm
-    const quitIdx = menuEventBlock!.indexOf('"tray-quit"')
-    expect(quitIdx).toBeGreaterThan(-1)
-
-    // Extract from tray-quit to the next match arm (or end of block)
-    const nextArmOrEnd = menuEventBlock!.indexOf('_ =>', quitIdx)
-    const endIdx = nextArmOrEnd !== -1 ? nextArmOrEnd : menuEventBlock!.length
-    const afterQuit = menuEventBlock!.slice(quitIdx, endIdx)
-    expect(afterQuit).toContain('tray-menu-action')
-    expect(afterQuit).toContain('"quit"')
+    expect(menuEventBlock).toContain('resolve_tray_action')
+    expect(menuEventBlock).toContain('tray-menu-action')
   })
 
-  it('does NOT call app.exit() directly in quit handler', () => {
+  it('does NOT call app.exit() directly', () => {
+    // Neither on_menu_event nor resolve_tray_action should call app.exit()
     const menuEventBlock = extractOnMenuEvent(source)
     expect(menuEventBlock).toBeTruthy()
+    expect(menuEventBlock).not.toMatch(/app\.exit\(/)
 
-    const quitIdx = menuEventBlock!.indexOf('"tray-quit"')
-    // Find the next match arm or closing brace to scope the check
-    const nextArmIdx = menuEventBlock!.indexOf('_ =>', quitIdx)
-    const quitSlice = menuEventBlock!.slice(quitIdx, nextArmIdx !== -1 ? nextArmIdx : quitIdx + 300)
-
-    expect(quitSlice).not.toMatch(/app\.exit\(/)
+    const resolverBody = extractResolverBody(source)
+    expect(resolverBody).toBeTruthy()
+    expect(resolverBody).not.toMatch(/app\.exit\(/)
   })
 })
 
@@ -155,6 +152,24 @@ function extractCloseRequestedHandler(source: string): string | null {
  */
 function extractOnMenuEvent(source: string): string | null {
   const marker = '.on_menu_event('
+  const idx = source.indexOf(marker)
+  if (idx === -1) return null
+  const braceStart = source.indexOf('{', idx)
+  if (braceStart === -1) return null
+  let depth = 0
+  for (let i = braceStart; i < source.length; i++) {
+    if (source[i] === '{') depth++
+    if (source[i] === '}') depth--
+    if (depth === 0) return source.slice(idx, i + 1)
+  }
+  return null
+}
+
+/**
+ * Extract the resolve_tray_action function body.
+ */
+function extractResolverBody(source: string): string | null {
+  const marker = 'fn resolve_tray_action'
   const idx = source.indexOf(marker)
   if (idx === -1) return null
   const braceStart = source.indexOf('{', idx)

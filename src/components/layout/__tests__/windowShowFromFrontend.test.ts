@@ -183,7 +183,9 @@ function extractFunctionBody(source: string, fnName: string): string | null {
 }
 
 function extractSetupBlock(source: string): string | null {
-  const marker = '.setup(|app|'
+  // After the run() refactor, setup logic lives in a standalone fn setup_app
+  // instead of an inline .setup(|app| { ... }) closure.
+  const marker = 'fn setup_app'
   const idx = source.indexOf(marker)
   if (idx === -1) return null
   const braceStart = source.indexOf('{', idx)

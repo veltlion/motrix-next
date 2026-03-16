@@ -5,8 +5,8 @@
  * They define the behavioral contract that implementation MUST satisfy.
  *
  * Test groups:
- * 1. engine.rs — Terminated handlers emit engine-crashed for any non-intentional exit
- * 2. engine.rs — Terminated handlers no longer gate on exit_code != 0
+ * 1. engine/lifecycle.rs — Terminated handlers emit engine-crashed for any non-intentional exit
+ * 2. engine/lifecycle.rs — Terminated handlers no longer gate on exit_code != 0
  * 3. MainLayout.vue — engine-crashed listener drives overlay
  * 4. EngineOverlay.vue — component structure and state management
  * 5. i18n — crash recovery keys exist in all 26 locales
@@ -50,7 +50,7 @@ const EXPECTED_LOCALE_DIRS = [
 
 /**
  * Extract the handler body for a specific CommandEvent variant within a
- * specific function scope in engine.rs.
+ * specific function scope in engine/lifecycle.rs.
  */
 function extractEventHandler(
   source: string,
@@ -107,14 +107,14 @@ function extractListenerBlock(source: string, eventName: string): string | null 
   return source.slice(braceStart, end + 1)
 }
 
-// ─── Test Group 1: engine.rs — crash event emission ───────────────────
+// ─── Test Group 1: engine/ — crash event emission ────────────────────
 
-describe('engine.rs — crash recovery event emission', () => {
+describe('engine/ — crash recovery event emission', () => {
   let engineSource: string
 
   beforeAll(() => {
-    const enginePath = path.join(TAURI_ROOT, 'src', 'engine.rs')
-    engineSource = fs.readFileSync(enginePath, 'utf-8')
+    const lifecyclePath = path.join(TAURI_ROOT, 'src', 'engine', 'lifecycle.rs')
+    engineSource = fs.readFileSync(lifecyclePath, 'utf-8')
   })
 
   describe('start_engine Terminated handler emits engine-crashed', () => {

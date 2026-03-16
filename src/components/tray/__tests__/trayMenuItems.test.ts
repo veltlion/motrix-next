@@ -119,27 +119,36 @@ describe('tray.rs — on_menu_event unified handler', () => {
     expect(menuEventBlock).toContain('ActivationPolicy')
   })
 
-  it('emits tray-menu-action for new-task, resume-all, pause-all', () => {
+  it('dispatches to resolve_tray_action for new-task, resume-all, pause-all, quit', () => {
+    // After extracting resolve_tray_action(), the on_menu_event handler uses
+    // a wildcard `_ => resolve_tray_action(id)` pattern.  Menu ID literals
+    // now live in the resolve_tray_action function.
     const menuEventBlock = extractOnMenuEvent(source)
     expect(menuEventBlock).toBeTruthy()
+    expect(menuEventBlock).toContain('resolve_tray_action')
     expect(menuEventBlock).toContain('tray-menu-action')
-    expect(menuEventBlock).toContain('tray-new-task')
-    expect(menuEventBlock).toContain('tray-resume-all')
-    expect(menuEventBlock).toContain('tray-pause-all')
+
+    // Verify the resolve_tray_action function maps all expected IDs
+    const resolverBody = extractResolverBody(source)
+    expect(resolverBody).toBeTruthy()
+    expect(resolverBody).toContain('tray-new-task')
+    expect(resolverBody).toContain('tray-resume-all')
+    expect(resolverBody).toContain('tray-pause-all')
   })
 
-  it('emits tray-menu-action for quit (not app.exit)', () => {
-    // Quit must go through Vue handleExitConfirm() for consistent exit animation
+  it('maps tray-quit to "quit" action (not app.exit)', () => {
+    // Quit must go through Vue handleExitConfirm() for consistent exit animation.
+    // After the resolve_tray_action extraction, the quit mapping lives in
+    // the resolver function, not directly in on_menu_event.
+    const resolverBody = extractResolverBody(source)
+    expect(resolverBody).toBeTruthy()
+    expect(resolverBody).toContain('"tray-quit"')
+    expect(resolverBody).toContain('"quit"')
+
+    // Must NOT directly call app.exit in on_menu_event
     const menuEventBlock = extractOnMenuEvent(source)
     expect(menuEventBlock).toBeTruthy()
-    expect(menuEventBlock).toContain('"tray-quit"')
-    expect(menuEventBlock).toContain('tray-menu-action')
-
-    // Extract the tray-quit arm specifically
-    const quitIdx = menuEventBlock!.indexOf('"tray-quit"')
-    const afterQuit = menuEventBlock!.slice(quitIdx, quitIdx + 200)
-    // Must NOT directly call app.exit — that skips Vue exit animation
-    expect(afterQuit).not.toMatch(/app\.exit\(/)
+    expect(menuEventBlock).not.toMatch(/app\.exit\(/)
   })
 
   it('on_menu_event is NOT cfg-gated to Linux only', () => {
@@ -198,6 +207,24 @@ function extractMenuWithItems(source: string): string | null {
  */
 function extractOnMenuEvent(source: string): string | null {
   const marker = '.on_menu_event('
+  const idx = source.indexOf(marker)
+  if (idx === -1) return null
+  const braceStart = source.indexOf('{', idx)
+  if (braceStart === -1) return null
+  let depth = 0
+  for (let i = braceStart; i < source.length; i++) {
+    if (source[i] === '{') depth++
+    if (source[i] === '}') depth--
+    if (depth === 0) return source.slice(idx, i + 1)
+  }
+  return null
+}
+
+/**
+ * Extract the resolve_tray_action function body.
+ */
+function extractResolverBody(source: string): string | null {
+  const marker = 'fn resolve_tray_action'
   const idx = source.indexOf(marker)
   if (idx === -1) return null
   const braceStart = source.indexOf('{', idx)

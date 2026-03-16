@@ -7,7 +7,7 @@
  *
  * Test groups:
  * 1. aria2ErrorCodes.ts — mapping completeness and correctness
- * 2. engine.rs — stdout/stderr logging and exit code event emission
+ * 2. engine/lifecycle.rs + engine/state.rs — stdout/stderr logging and exit code event emission
  * 3. MainLayout.vue — engine-error crash listener
  * 4. i18n coverage — all error keys exist in all 26 locales
  */
@@ -230,14 +230,19 @@ describe('i18n — all error keys exist in all 26 locales', () => {
   }
 })
 
-// ─── Test Group 3: engine.rs — error handling behavior ────────────────
+// ─── Test Group 3: engine/ — error handling behavior ──────────────────
 
-describe('engine.rs — stdout/stderr logging and exit code events', () => {
+describe('engine/ — stdout/stderr logging and exit code events', () => {
   let engineSource: string
 
   beforeAll(() => {
-    const enginePath = path.join(TAURI_ROOT, 'src', 'engine.rs')
-    engineSource = fs.readFileSync(enginePath, 'utf-8')
+    // After the engine.rs → engine/ directory split, lifecycle functions
+    // (start_engine, stop_engine, restart_engine) live in lifecycle.rs
+    // while EngineState lives in state.rs.  Concatenate both to maintain
+    // the same assertion surface for the helper functions below.
+    const lifecyclePath = path.join(TAURI_ROOT, 'src', 'engine', 'lifecycle.rs')
+    const statePath = path.join(TAURI_ROOT, 'src', 'engine', 'state.rs')
+    engineSource = fs.readFileSync(lifecyclePath, 'utf-8') + '\n' + fs.readFileSync(statePath, 'utf-8')
   })
 
   // ── EngineState intentional_stop flag ────────────────────────────
@@ -423,7 +428,7 @@ describe('MainLayout.vue — engine event listeners', () => {
 
 /**
  * Extract the handler body for a specific CommandEvent variant within a
- * specific function scope in engine.rs.
+ * specific function scope in engine/lifecycle.rs.
  *
  * Matches: `CommandEvent::Stdout(xxx) => { ... }` within the function body.
  */
