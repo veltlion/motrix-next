@@ -8,7 +8,6 @@
   ![Total Downloads](https://img.shields.io/github/downloads/AnInsomniacy/motrix-next/total.svg)
   <br>
   ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue.svg)
-  ![License](https://img.shields.io/github/license/AnInsomniacy/motrix-next.svg)
   ![Bundle Size](https://img.shields.io/badge/bundle%20size-~20MB-brightgreen.svg)
 
   [![Website](https://img.shields.io/badge/Website-E0A422?style=for-the-badge&logo=safari&logoColor=white)](https://motrix-next.pages.dev)
@@ -158,11 +157,12 @@ motrix-next/
 │   └── views/                  # Page-level route views
 ├── src-tauri/                  # Backend (Rust + Tauri 2)
 │   ├── src/
-│   │   ├── commands/           #   app.rs, updater.rs
-│   │   ├── engine.rs           #   Aria2 sidecar lifecycle
+│   │   ├── commands/           #   app.rs, updater.rs, upnp.rs
+│   │   ├── engine/             #   Aria2 sidecar lifecycle (args, state, cleanup)
 │   │   ├── error.rs            #   AppError enum
 │   │   ├── menu.rs             #   Native menu builder
 │   │   ├── tray.rs             #   System tray setup
+│   │   ├── upnp.rs             #   UPnP/IGD port mapping
 │   │   └── lib.rs              #   Tauri builder & plugin registration
 │   └── binaries/               # Aria2 sidecar binaries (6 platforms)
 ├── scripts/                    # bump-version.sh
@@ -170,9 +170,6 @@ motrix-next/
 └── website/                    # Landing page (static HTML)
 ```
 
-### Versioning & Release
-
-See [AGENTS.md](AGENTS.md) for detailed version management, release workflow, and CI/CD documentation.
 
 
 ## Acknowledgements
