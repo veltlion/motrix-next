@@ -456,7 +456,7 @@ onMounted(async () => {
         <NInputNumber v-model:value="form.maxConcurrentDownloads" :min="1" :max="10" style="width: 120px" />
       </NFormItem>
       <NFormItem :label="t('preferences.max-connection-per-server')">
-        <NInputNumber v-model:value="form.maxConnectionPerServer" :min="1" :max="64" style="width: 120px" />
+        <NInputNumber v-model:value="form.maxConnectionPerServer" :min="1" :max="128" style="width: 120px" />
       </NFormItem>
       <NFormItem :show-label="false">
         <NCheckbox v-model:checked="form.continue">{{ t('preferences.continue') }}</NCheckbox>

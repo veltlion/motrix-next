@@ -4,12 +4,12 @@
  * Key business logic:
  * - btAutoDownloadContent ↔ followTorrent/followMetalink/pauseMetadata
  * - split must be synced to maxConnectionPerServer in system config
- * - Defaults must match legacy Motrix (ENGINE_MAX_CONNECTION_PER_SERVER = 64)
+ * - Defaults must match ENGINE_DEFAULT_CONNECTION_PER_SERVER (64)
  */
 import { describe, it, expect } from 'vitest'
 import { buildBasicForm, buildBasicSystemConfig, transformBasicForStore, type BasicForm } from '../useBasicPreference'
 import type { AppConfig } from '@shared/types'
-import { DEFAULT_APP_CONFIG, ENGINE_MAX_CONNECTION_PER_SERVER } from '@shared/constants'
+import { DEFAULT_APP_CONFIG, ENGINE_DEFAULT_CONNECTION_PER_SERVER } from '@shared/constants'
 
 // ── buildBasicForm ──────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ describe('buildBasicForm', () => {
     expect(form.locale).toBe('en-US')
     expect(form.theme).toBe('auto')
     expect(form.maxConcurrentDownloads).toBe(5)
-    expect(form.maxConnectionPerServer).toBe(ENGINE_MAX_CONNECTION_PER_SERVER)
+    expect(form.maxConnectionPerServer).toBe(ENGINE_DEFAULT_CONNECTION_PER_SERVER)
     expect(form.keepSeeding).toBe(false)
     expect(form.seedRatio).toBe(1)
     expect(form.seedTime).toBe(60)
@@ -92,19 +92,17 @@ describe('buildBasicForm', () => {
     expect(form.maxOverallUploadLimit).toBe('512')
   })
 
-  it('defaults maxConnectionPerServer to ENGINE_MAX_CONNECTION_PER_SERVER (64)', () => {
+  it('defaults maxConnectionPerServer to ENGINE_DEFAULT_CONNECTION_PER_SERVER', () => {
     const form = buildBasicForm({} as AppConfig)
-    expect(form.maxConnectionPerServer).toBe(64)
+    expect(form.maxConnectionPerServer).toBe(ENGINE_DEFAULT_CONNECTION_PER_SERVER)
   })
 
-  it('DEFAULT_APP_CONFIG.maxConnectionPerServer matches legacy Motrix', () => {
-    expect(DEFAULT_APP_CONFIG.maxConnectionPerServer).toBe(ENGINE_MAX_CONNECTION_PER_SERVER)
-    expect(DEFAULT_APP_CONFIG.maxConnectionPerServer).toBe(64)
+  it('DEFAULT_APP_CONFIG.maxConnectionPerServer matches ENGINE_DEFAULT_CONNECTION_PER_SERVER', () => {
+    expect(DEFAULT_APP_CONFIG.maxConnectionPerServer).toBe(ENGINE_DEFAULT_CONNECTION_PER_SERVER)
   })
 
-  it('DEFAULT_APP_CONFIG.split matches legacy Motrix', () => {
-    expect(DEFAULT_APP_CONFIG.split).toBe(ENGINE_MAX_CONNECTION_PER_SERVER)
-    expect(DEFAULT_APP_CONFIG.split).toBe(64)
+  it('DEFAULT_APP_CONFIG.split matches ENGINE_DEFAULT_CONNECTION_PER_SERVER', () => {
+    expect(DEFAULT_APP_CONFIG.split).toBe(ENGINE_DEFAULT_CONNECTION_PER_SERVER)
   })
 
   it('DEFAULT_APP_CONFIG.engineMaxConnectionPerServer matches maxConnectionPerServer', () => {

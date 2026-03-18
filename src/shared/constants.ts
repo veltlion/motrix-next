@@ -36,7 +36,8 @@ export const MAX_NUM_OF_DIRECTORIES = 5
 export const ENGINE_RPC_HOST = '127.0.0.1'
 export const ENGINE_RPC_PORT = 16800
 export const ENGINE_MAX_CONCURRENT_DOWNLOADS = 10
-export const ENGINE_MAX_CONNECTION_PER_SERVER = 64
+export const ENGINE_MAX_CONNECTION_PER_SERVER = 128
+export const ENGINE_DEFAULT_CONNECTION_PER_SERVER = 64
 
 export const UNKNOWN_PEERID = '%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00'
 export const UNKNOWN_PEERID_NAME = 'unknown'
@@ -79,9 +80,9 @@ export const DEFAULT_APP_CONFIG = {
 
   // ── Download Core (aria2 defaults: concurrent=5, split=5, conn/server=1) ──
   dir: '',
-  split: ENGINE_MAX_CONNECTION_PER_SERVER, // legacy Motrix default; custom aria2c supports 1-*
+  split: ENGINE_DEFAULT_CONNECTION_PER_SERVER, // legacy Motrix default; UI allows up to ENGINE_MAX_CONNECTION_PER_SERVER
   maxConcurrentDownloads: 5, // aria2 default; IDM=4, FDM=3~12
-  maxConnectionPerServer: ENGINE_MAX_CONNECTION_PER_SERVER, // legacy Motrix default; custom aria2c supports 1-*
+  maxConnectionPerServer: ENGINE_DEFAULT_CONNECTION_PER_SERVER, // legacy Motrix default; UI allows up to ENGINE_MAX_CONNECTION_PER_SERVER
   maxOverallDownloadLimit: '0',
   maxOverallUploadLimit: '0',
   maxDownloadLimit: '',
@@ -134,7 +135,7 @@ export const DEFAULT_APP_CONFIG = {
   cookie: '',
   runMode: '',
   engineBinPath: '',
-  engineMaxConnectionPerServer: ENGINE_MAX_CONNECTION_PER_SERVER, // mirrors maxConnectionPerServer
+  engineMaxConnectionPerServer: ENGINE_DEFAULT_CONNECTION_PER_SERVER, // mirrors maxConnectionPerServer
 
   // ── Tracker ───────────────────────────────────────────────────
   autoSyncTracker: true,
