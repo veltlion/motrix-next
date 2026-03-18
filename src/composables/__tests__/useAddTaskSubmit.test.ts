@@ -63,6 +63,18 @@ describe('buildEngineOptions', () => {
     expect(opts.split).toBe('16')
   })
 
+  it('always includes max-connection-per-server synced to split', () => {
+    const opts = buildEngineOptions(baseForm)
+    expect(opts['max-connection-per-server']).toBe('16')
+    expect(opts['max-connection-per-server']).toBe(opts.split)
+  })
+
+  it('syncs max-connection-per-server when split changes', () => {
+    const opts = buildEngineOptions({ ...baseForm, split: 64 })
+    expect(opts.split).toBe('64')
+    expect(opts['max-connection-per-server']).toBe('64')
+  })
+
   it('includes out when non-empty', () => {
     const opts = buildEngineOptions({ ...baseForm, out: 'file.zip' })
     expect(opts.out).toBe('file.zip')

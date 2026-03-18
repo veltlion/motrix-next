@@ -79,9 +79,9 @@ export const DEFAULT_APP_CONFIG = {
 
   // ── Download Core (aria2 defaults: concurrent=5, split=5, conn/server=1) ──
   dir: '',
-  split: 16, // aria2 default=5; 16 segments balances modern bandwidth
+  split: ENGINE_MAX_CONNECTION_PER_SERVER, // legacy Motrix default; custom aria2c supports 1-*
   maxConcurrentDownloads: 5, // aria2 default; IDM=4, FDM=3~12
-  maxConnectionPerServer: 16, // aria2 default=1 (too conservative); IDM=8; 16 is community sweet spot
+  maxConnectionPerServer: ENGINE_MAX_CONNECTION_PER_SERVER, // legacy Motrix default; custom aria2c supports 1-*
   maxOverallDownloadLimit: '0',
   maxOverallUploadLimit: '0',
   maxDownloadLimit: '',
@@ -134,7 +134,7 @@ export const DEFAULT_APP_CONFIG = {
   cookie: '',
   runMode: '',
   engineBinPath: '',
-  engineMaxConnectionPerServer: 16, // mirrors maxConnectionPerServer
+  engineMaxConnectionPerServer: ENGINE_MAX_CONNECTION_PER_SERVER, // mirrors maxConnectionPerServer
 
   // ── Tracker ───────────────────────────────────────────────────
   autoSyncTracker: true,

@@ -47,6 +47,7 @@ export function buildEngineOptions(form: AddTaskForm): Aria2EngineOptions {
   const options: Aria2EngineOptions = {
     dir: form.dir,
     split: String(form.split),
+    'max-connection-per-server': String(form.split),
   }
   if (form.out) options.out = form.out
   if (form.userAgent) options['user-agent'] = form.userAgent

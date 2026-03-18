@@ -1,13 +1,15 @@
 /**
  * @fileoverview Tests for useBasicPreference pure functions.
  *
- * Key business logic: btAutoDownloadContent ↔ followTorrent/followMetalink/pauseMetadata.
- * This is the most important mapping to test — it bridges a single UI toggle
- * to three separate aria2 engine options.
+ * Key business logic:
+ * - btAutoDownloadContent ↔ followTorrent/followMetalink/pauseMetadata
+ * - split must be synced to maxConnectionPerServer in system config
+ * - Defaults must match legacy Motrix (ENGINE_MAX_CONNECTION_PER_SERVER = 64)
  */
 import { describe, it, expect } from 'vitest'
 import { buildBasicForm, buildBasicSystemConfig, transformBasicForStore, type BasicForm } from '../useBasicPreference'
 import type { AppConfig } from '@shared/types'
+import { DEFAULT_APP_CONFIG, ENGINE_MAX_CONNECTION_PER_SERVER } from '@shared/constants'
 
 // ── buildBasicForm ──────────────────────────────────────────────────
 
@@ -22,7 +24,7 @@ describe('buildBasicForm', () => {
     expect(form.locale).toBe('en-US')
     expect(form.theme).toBe('auto')
     expect(form.maxConcurrentDownloads).toBe(5)
-    expect(form.maxConnectionPerServer).toBe(16)
+    expect(form.maxConnectionPerServer).toBe(ENGINE_MAX_CONNECTION_PER_SERVER)
     expect(form.keepSeeding).toBe(false)
     expect(form.seedRatio).toBe(1)
     expect(form.seedTime).toBe(60)
@@ -89,6 +91,25 @@ describe('buildBasicForm', () => {
     expect(form.maxOverallDownloadLimit).toBe('1024')
     expect(form.maxOverallUploadLimit).toBe('512')
   })
+
+  it('defaults maxConnectionPerServer to ENGINE_MAX_CONNECTION_PER_SERVER (64)', () => {
+    const form = buildBasicForm({} as AppConfig)
+    expect(form.maxConnectionPerServer).toBe(64)
+  })
+
+  it('DEFAULT_APP_CONFIG.maxConnectionPerServer matches legacy Motrix', () => {
+    expect(DEFAULT_APP_CONFIG.maxConnectionPerServer).toBe(ENGINE_MAX_CONNECTION_PER_SERVER)
+    expect(DEFAULT_APP_CONFIG.maxConnectionPerServer).toBe(64)
+  })
+
+  it('DEFAULT_APP_CONFIG.split matches legacy Motrix', () => {
+    expect(DEFAULT_APP_CONFIG.split).toBe(ENGINE_MAX_CONNECTION_PER_SERVER)
+    expect(DEFAULT_APP_CONFIG.split).toBe(64)
+  })
+
+  it('DEFAULT_APP_CONFIG.engineMaxConnectionPerServer matches maxConnectionPerServer', () => {
+    expect(DEFAULT_APP_CONFIG.engineMaxConnectionPerServer).toBe(DEFAULT_APP_CONFIG.maxConnectionPerServer)
+  })
 })
 
 // ── buildBasicSystemConfig ──────────────────────────────────────────
@@ -115,7 +136,7 @@ describe('buildBasicSystemConfig', () => {
     newTaskShowDownloading: true,
     noConfirmBeforeDeleteTask: false,
     maxConcurrentDownloads: 5,
-    maxConnectionPerServer: 16,
+    maxConnectionPerServer: 64,
     maxOverallDownloadLimit: '0',
     maxOverallUploadLimit: '0',
     btSaveMetadata: false,
@@ -133,10 +154,22 @@ describe('buildBasicSystemConfig', () => {
     const config = buildBasicSystemConfig(baseForm)
     expect(config.dir).toBe('/downloads')
     expect(config['max-concurrent-downloads']).toBe('5')
-    expect(config['max-connection-per-server']).toBe('16')
+    expect(config['max-connection-per-server']).toBe('64')
     expect(config['seed-ratio']).toBe('1')
     expect(config['seed-time']).toBe('60')
     expect(config.continue).toBe('true')
+  })
+
+  it('includes split synced to maxConnectionPerServer', () => {
+    const config = buildBasicSystemConfig({ ...baseForm, maxConnectionPerServer: 32 })
+    expect(config.split).toBe('32')
+    expect(config['max-connection-per-server']).toBe('32')
+  })
+
+  it('always includes split field in output', () => {
+    const config = buildBasicSystemConfig(baseForm)
+    expect(config).toHaveProperty('split')
+    expect(config.split).toBe(String(baseForm.maxConnectionPerServer))
   })
 
   it('sets follow-torrent=true and pause-metadata=false when auto-content ON', () => {

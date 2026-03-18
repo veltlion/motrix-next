@@ -105,6 +105,7 @@ export function buildBasicSystemConfig(f: BasicForm): Record<string, string> {
     dir: f.dir,
     'max-concurrent-downloads': String(f.maxConcurrentDownloads),
     'max-connection-per-server': String(f.maxConnectionPerServer),
+    split: String(f.maxConnectionPerServer),
     'max-overall-download-limit': f.maxOverallDownloadLimit,
     'max-overall-upload-limit': f.maxOverallUploadLimit,
     'bt-save-metadata': String(!!f.btSaveMetadata),
