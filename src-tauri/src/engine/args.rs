@@ -159,7 +159,6 @@ pub(crate) fn build_start_args(
                 continue;
             }
 
-
             // Handle keep-seeding: skip seed-time if keep_seeding is true
             if keep_seeding && key == "seed-time" {
                 continue;
@@ -336,7 +335,6 @@ mod tests {
         let args = build_start_args(&json!({}), None, "/tmp/s", false);
         assert!(!args.iter().any(|a| a.starts_with("--conf-path")));
     }
-
 
     #[test]
     fn build_args_null_and_array_values_skipped() {
