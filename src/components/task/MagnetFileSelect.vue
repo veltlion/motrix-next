@@ -26,12 +26,29 @@ const { t } = useI18n()
 
 const checkedKeys = ref<DataTableRowKey[]>([])
 
+// ── Directional animation state ─────────────────────────────────────
+// Track previous values to determine slide direction:
+//   value increased → new value slides UP   (counter feels like it "grows")
+//   value decreased → new value slides DOWN (counter feels like it "shrinks")
+const prevCount = ref(0)
+const prevSize = ref(0)
+const countDirection = ref<'val-up' | 'val-down'>('val-up')
+const sizeDirection = ref<'val-up' | 'val-down'>('val-up')
+
 watch(
   () => props.files,
   (files) => {
     checkedKeys.value = files.map((f) => f.index)
   },
   { immediate: true },
+)
+
+watch(
+  () => checkedKeys.value.length,
+  (cur, prev) => {
+    countDirection.value = cur >= prev ? 'val-up' : 'val-down'
+    prevCount.value = prev
+  },
 )
 
 const columns = computed<DataTableColumns>(() => [
@@ -59,6 +76,11 @@ const columns = computed<DataTableColumns>(() => [
 const totalSize = computed(() => {
   const selected = new Set(checkedKeys.value)
   return props.files.filter((f) => selected.has(f.index)).reduce((sum, f) => sum + f.length, 0)
+})
+
+watch(totalSize, (cur, prev) => {
+  sizeDirection.value = cur >= prev ? 'val-up' : 'val-down'
+  prevSize.value = prev
 })
 
 const hasSelection = computed(() => checkedKeys.value.length > 0)
@@ -100,13 +122,13 @@ function handleCancel() {
       <template #footer>
         <NSpace justify="space-between" align="center">
           <span class="file-summary">
-            <Transition name="val" mode="out-in">
+            <Transition :name="countDirection" mode="out-in">
               <span :key="checkedKeys.length" class="file-summary-count"
                 >{{ checkedKeys.length }}/{{ files.length }}</span
               >
             </Transition>
             <span class="file-summary-sep">—</span>
-            <Transition name="val" mode="out-in">
+            <Transition :name="sizeDirection" mode="out-in">
               <span :key="bytesToSize(totalSize)" class="file-summary-size">{{ bytesToSize(totalSize) }}</span>
             </Transition>
           </span>
@@ -133,7 +155,7 @@ function handleCancel() {
 .task-name-subtitle {
   margin-bottom: 12px;
   font-size: 13px;
-  color: var(--n-text-color-3, rgba(255, 255, 255, 0.38));
+  color: var(--n-text-color-3, var(--m3-on-surface-variant));
   line-height: 1.4;
 }
 
@@ -144,7 +166,7 @@ function handleCancel() {
   font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--n-text-color-2, rgba(255, 255, 255, 0.82));
+  color: var(--n-text-color-2, var(--m3-on-surface));
 }
 
 .file-summary-count,
@@ -156,19 +178,35 @@ function handleCancel() {
   opacity: 0.5;
 }
 
-/* Value change transition — fade + slight vertical slide */
-.val-enter-active,
-.val-leave-active {
+/* Value change transition — directional vertical slide.
+ * val-up:   new value rises from below  (used when count increases)
+ * val-down: new value drops from above  (used when count decreases) */
+.val-up-enter-active,
+.val-up-leave-active,
+.val-down-enter-active,
+.val-down-leave-active {
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
 }
-.val-enter-from {
+
+/* ↑ increase: enter from below, leave upward */
+.val-up-enter-from {
   opacity: 0;
   transform: translateY(4px);
 }
-.val-leave-to {
+.val-up-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+/* ↓ decrease: enter from above, leave downward */
+.val-down-enter-from {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.val-down-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
 }
 </style>

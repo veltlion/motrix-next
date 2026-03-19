@@ -498,7 +498,7 @@ function kindTagType(kind: string): 'info' | 'success' | 'warning' {
   position: relative;
   margin-bottom: 8px;
   border-radius: 6px;
-  border: 1px solid var(--n-border-color, rgba(255, 255, 255, 0.09));
+  border: 1px solid var(--n-border-color, var(--m3-outline-variant));
   overflow: hidden;
 }
 </style>
@@ -548,13 +548,13 @@ function kindTagType(kind: string): 'info' | 'success' | 'warning' {
   transition: background-color 0.15s;
 }
 .batch-item:hover {
-  background: var(--n-color-hover, rgba(255, 255, 255, 0.04));
+  background: var(--n-color-hover, var(--m3-surface-container-high));
 }
 .batch-item-selected {
-  background: var(--n-color-hover, rgba(255, 255, 255, 0.06));
+  background: var(--n-color-hover, var(--m3-surface-container-highest));
 }
 .batch-item + .batch-item {
-  border-top: 1px solid var(--n-border-color, rgba(255, 255, 255, 0.06));
+  border-top: 1px solid var(--n-border-color, var(--m3-outline-variant));
 }
 .batch-item-main {
   display: flex;

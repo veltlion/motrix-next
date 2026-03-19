@@ -331,7 +331,7 @@ defineExpose({ open })
 <style scoped>
 .update-dialog {
   width: 460px;
-  background: var(--n-color, #1e1e2e);
+  background: var(--n-color, var(--m3-surface-container-high));
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 12px 40px var(--m3-shadow);
@@ -346,12 +346,12 @@ defineExpose({ open })
 .update-dialog-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--n-text-color, #fff);
+  color: var(--n-text-color, var(--m3-on-surface));
 }
 .update-dialog-close {
   background: none;
   border: none;
-  color: var(--n-text-color, #aaa);
+  color: var(--n-text-color, var(--m3-outline));
   font-size: 20px;
   cursor: pointer;
   padding: 0 4px;
@@ -466,7 +466,7 @@ defineExpose({ open })
 }
 .version-old {
   background: color-mix(in srgb, var(--n-text-color, #666) 12%, transparent);
-  color: var(--n-text-color, #999);
+  color: var(--n-text-color, var(--m3-outline));
   opacity: 0.7;
 }
 .version-new {
@@ -496,7 +496,7 @@ defineExpose({ open })
   font-size: 12.5px;
   line-height: 1.6;
   opacity: 0.65;
-  color: var(--n-text-color, #ccc);
+  color: var(--n-text-color, var(--m3-on-surface-variant));
 }
 .update-notes-text :deep(h2) {
   font-size: 13px;
@@ -603,7 +603,7 @@ defineExpose({ open })
   color: var(--m3-error);
 }
 .update-notes-text :deep(.markdown-alert p:not(.markdown-alert-title)) {
-  color: var(--n-text-color, #ccc);
+  color: var(--n-text-color, var(--m3-on-surface-variant));
 }
 
 /* ── Horizontal rule ───────────────────────────────────────────────── */
@@ -646,7 +646,7 @@ defineExpose({ open })
 /* ── Emphasis ──────────────────────────────────────────────────────── */
 .update-notes-text :deep(strong) {
   font-weight: 600;
-  color: var(--n-text-color, #eee);
+  color: var(--n-text-color, var(--m3-on-surface));
 }
 
 .update-error-detail {
