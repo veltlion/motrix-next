@@ -639,7 +639,9 @@ pub async fn export_diagnostic_logs(app: AppHandle, save_path: String) -> Result
 /// any mounted volume, scope-free existence checks are essential.
 #[tauri::command]
 pub fn check_path_exists(path: String) -> bool {
-    std::path::Path::new(&path).exists()
+    let result = std::path::Path::new(&path).exists();
+    log::debug!("check_path_exists: path={path:?} result={result}");
+    result
 }
 
 /// Returns `true` when the given path exists **and** is a directory.
@@ -649,7 +651,9 @@ pub fn check_path_exists(path: String) -> bool {
 /// a file). Same scope-bypass rationale applies.
 #[tauri::command]
 pub fn check_path_is_dir(path: String) -> bool {
-    std::path::Path::new(&path).is_dir()
+    let result = std::path::Path::new(&path).is_dir();
+    log::debug!("check_path_is_dir: path={path:?} result={result}");
+    result
 }
 
 /// Moves a file to the OS trash / recycle bin.
