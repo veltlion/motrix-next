@@ -178,7 +178,7 @@ h3 {
 h2 {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.015em;
   margin-bottom: 1rem;
 }
 
@@ -455,7 +455,7 @@ code {
   z-index: 1;
   font-size: clamp(2.75rem, 7vw, 4.5rem);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   margin-bottom: 0.75rem;
   background: linear-gradient(180deg, var(--text) 40%, var(--text-muted));
   -webkit-background-clip: text;
