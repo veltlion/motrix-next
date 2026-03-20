@@ -20,6 +20,7 @@ import {
   ArrowDownCircleOutline,
 } from '@vicons/ionicons5'
 import { usePreferenceStore } from '@/stores/preference'
+import { logger } from '@shared/logger'
 import {
   isActionDisabled,
   getActionLabel,
@@ -127,6 +128,7 @@ async function open(channel?: string) {
       phase.value = 'up-to-date'
     }
   } catch (e) {
+    logger.error('Updater', e)
     errorMsg.value = formatUpdateError(e)
     phase.value = 'error'
   } finally {
@@ -161,6 +163,7 @@ async function startDownload() {
     }
   } catch (e) {
     if (!downloadCancelled.value) {
+      logger.error('Updater', e)
       errorMsg.value = formatUpdateError(e)
       phase.value = 'error'
     }
@@ -185,6 +188,7 @@ async function handleInstallAndRelaunch() {
     await invoke('apply_update', { channel: ch, proxy: getUpdateProxy() })
     relaunch()
   } catch (e) {
+    logger.error('Updater', e)
     errorMsg.value = formatUpdateError(e)
     phase.value = 'error'
   }

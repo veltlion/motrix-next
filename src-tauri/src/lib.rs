@@ -18,7 +18,7 @@ use upnp::UpnpState;
 /// `tauri-plugin-store` isn't available until after `Builder.build()`, so we
 /// read the raw JSON file directly.  Falls back to `Debug` if absent so that
 /// first-run users get full diagnostic output for bug reports.
-fn read_log_level() -> log::LevelFilter {
+pub(crate) fn read_log_level() -> log::LevelFilter {
     (|| -> Option<log::LevelFilter> {
         let data_dir = dirs::data_dir()?.join("com.motrix.next");
         let store_path = data_dir.join("config.json");
@@ -364,8 +364,24 @@ pub fn run() {
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview),
                 ])
-                .max_file_size(5_000_000)
-                .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
+                .format(|out, message, record| {
+                    let now = chrono::Local::now();
+                    let source =
+                        if record.target().starts_with(tauri_plugin_log::WEBVIEW_TARGET) {
+                            "webview"
+                        } else {
+                            "rust"
+                        };
+                    out.finish(format_args!(
+                        "{} [{:<5}] [{}] {}",
+                        now.format("%Y-%m-%dT%H:%M:%S%.3f%:z"),
+                        record.level(),
+                        source,
+                        message
+                    ))
+                })
+                .max_file_size(10_000_000)
+                .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepOne)
                 .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
                 .level(log_level)
                 .filter(|metadata| {

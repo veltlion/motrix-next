@@ -131,7 +131,7 @@ export function useAppEvents(deps: AppEventsDeps): AppEventsReturn {
                 preferenceStore.pendingChanges = false
                 resolve(true)
               } catch (e) {
-                console.error('Save before leave failed:', e)
+                logger.error('NavGuard', e)
                 resolve(false)
               }
             },

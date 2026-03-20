@@ -44,6 +44,8 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 chrono = "0.4"
 trash = "5"
 dunce = "1"
+os_info = "3"
+sys-locale = "0.3"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = [

@@ -33,6 +33,7 @@ pub fn save_preference(app: AppHandle, config: Value) -> Result<(), AppError> {
             store.set(key.clone(), value.clone());
         }
     }
+    log::debug!("config:save-preference keys={}", config.as_object().map_or(0, |o| o.len()));
     Ok(())
 }
 
@@ -61,6 +62,7 @@ pub fn save_system_config(app: AppHandle, config: Value) -> Result<(), AppError>
             store.set(key.clone(), value.clone());
         }
     }
+    log::debug!("config:save-system keys={}", config.as_object().map_or(0, |o| o.len()));
     Ok(())
 }
 
@@ -68,6 +70,7 @@ pub fn save_system_config(app: AppHandle, config: Value) -> Result<(), AppError>
 /// Runs on a background thread to avoid blocking the WebView main thread.
 #[tauri::command]
 pub async fn start_engine_command(app: AppHandle) -> Result<(), AppError> {
+    log::info!("engine:start-command");
     tokio::task::spawn_blocking(move || {
         let config = get_system_config(app.clone())?;
         engine::start_engine(&app, &config).map_err(AppError::Engine)
@@ -80,6 +83,7 @@ pub async fn start_engine_command(app: AppHandle) -> Result<(), AppError> {
 /// Runs on a background thread to avoid blocking the WebView main thread.
 #[tauri::command]
 pub async fn stop_engine_command(app: AppHandle) -> Result<(), AppError> {
+    log::info!("engine:stop-command");
     tokio::task::spawn_blocking(move || engine::stop_engine(&app).map_err(AppError::Engine))
         .await
         .map_err(|e| AppError::Engine(e.to_string()))?
@@ -90,6 +94,7 @@ pub async fn stop_engine_command(app: AppHandle) -> Result<(), AppError> {
 /// during the kill → sleep → cleanup → spawn sequence.
 #[tauri::command]
 pub async fn restart_engine_command(app: AppHandle) -> Result<(), AppError> {
+    log::info!("engine:restart-command");
     tokio::task::spawn_blocking(move || {
         let config = get_system_config(app.clone())?;
         engine::restart_engine(&app, &config).map_err(AppError::Engine)
@@ -102,6 +107,7 @@ pub async fn restart_engine_command(app: AppHandle) -> Result<(), AppError> {
 /// Also removes the aria2 session file to prevent tasks from resurrecting.
 #[tauri::command]
 pub fn factory_reset(app: AppHandle) -> Result<(), AppError> {
+    log::warn!("config:factory-reset");
     let user_store = app
         .store("user.json")
         .map_err(|e| AppError::Store(e.to_string()))?;
@@ -137,6 +143,7 @@ fn clear_session_file_inner(app: &AppHandle) -> Result<(), AppError> {
         .join("download.session");
     if session_path.exists() {
         std::fs::remove_file(&session_path).map_err(|e| AppError::Io(e.to_string()))?;
+        log::info!("engine:clear-session path={}", session_path.display());
     }
     Ok(())
 }
@@ -332,6 +339,7 @@ fn classify_tracker_protocol(url: &str) -> &'static str {
 #[tauri::command]
 pub async fn probe_trackers(urls: Vec<String>) -> Result<Value, AppError> {
     use std::collections::HashMap;
+    log::debug!("tracker:probe urls={}", urls.len());
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
@@ -942,8 +950,11 @@ pub fn clear_log_file(app: AppHandle) -> Result<(), AppError> {
 
 /// Collects all log files from the app log directory and compresses them
 /// into a ZIP archive at the user-specified path (chosen via a save dialog
-/// on the frontend). Includes a `system-info.json` with OS, architecture,
-/// and app version for diagnostic context.
+/// on the frontend). Includes:
+/// - `system-info.json` with enriched machine/runtime context for diagnostics
+/// - All log files from the app log directory
+/// - `config.json` user configuration snapshot for issue reproduction
+///
 /// Returns the full path to the created ZIP file.
 #[tauri::command]
 pub async fn export_diagnostic_logs(app: AppHandle, save_path: String) -> Result<String, AppError> {
@@ -964,13 +975,26 @@ pub async fn export_diagnostic_logs(app: AppHandle, save_path: String) -> Result
     let options = zip::write::SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated);
 
-    // ── System info: embed machine context for diagnostics ──────────
+    // ── System info: enriched machine context for diagnostics ────────
     let pkg = app.package_info();
+    let engine_pid = app
+        .state::<crate::engine::EngineState>()
+        .child
+        .lock()
+        .unwrap()
+        .as_ref()
+        .map(|c| c.pid());
     let system_info = serde_json::json!({
         "os": std::env::consts::OS,
+        "os_version": os_info::get().version().to_string(),
         "arch": std::env::consts::ARCH,
+        "locale": sys_locale::get_locale().unwrap_or_default(),
         "app_version": pkg.version.to_string(),
         "app_name": pkg.name,
+        "log_level": format!("{}", crate::read_log_level()),
+        "engine_pid": engine_pid,
+        "webkit_dmabuf_disabled": std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER")
+            .unwrap_or_default(),
         "exported_at": chrono::Local::now().to_rfc3339(),
     });
     let info_bytes = serde_json::to_vec_pretty(&system_info)
@@ -997,6 +1021,22 @@ pub async fn export_diagnostic_logs(app: AppHandle, save_path: String) -> Result
             std::io::Write::write_all(&mut zip_writer, &content)
                 .map_err(|e| AppError::Io(format!("Failed to write {}: {}", name, e)))?;
         }
+    }
+
+    // ── Config snapshot: user preferences for issue reproduction ─────
+    let data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| AppError::Io(e.to_string()))?;
+    let config_path = data_dir.join("config.json");
+    if config_path.exists() {
+        let config_content = std::fs::read(&config_path)
+            .map_err(|e| AppError::Io(format!("Failed to read config: {}", e)))?;
+        zip_writer
+            .start_file("config.json", options)
+            .map_err(|e| AppError::Io(format!("Failed to add config.json: {}", e)))?;
+        std::io::Write::write_all(&mut zip_writer, &config_content)
+            .map_err(|e| AppError::Io(format!("Failed to write config.json: {}", e)))?;
     }
 
     zip_writer
@@ -1230,6 +1270,7 @@ fn to_wide(s: &str) -> Vec<u16> {
 #[tauri::command]
 pub fn open_path_normalized(app: AppHandle, path: String) -> Result<(), AppError> {
     use tauri_plugin_opener::OpenerExt;
+    log::debug!("file:open path={path:?}");
     let normalized = normalize_path(&path);
     app.opener()
         .open_path(&normalized, None::<&str>)
@@ -1244,6 +1285,7 @@ pub fn open_path_normalized(app: AppHandle, path: String) -> Result<(), AppError
 /// - Linux: FreeDesktop Trash spec (XDG_DATA_HOME/Trash)
 #[tauri::command]
 pub fn trash_file(path: String) -> Result<(), AppError> {
+    log::info!("file:trash path={path:?}");
     trash::delete(&path).map_err(|e| AppError::Io(e.to_string()))
 }
 

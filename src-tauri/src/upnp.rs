@@ -148,6 +148,11 @@ pub async fn start_mapping(
         return Err(errors.join("; "));
     }
 
+    log::info!(
+        "upnp:mapped ports={:?}",
+        mapped.iter().map(|p| p.internal).collect::<Vec<_>>()
+    );
+
     // Spawn the renewal background task.
     let renewal_ports = mapped.clone();
     let renewal_handle = tokio::spawn(async move {
@@ -206,6 +211,10 @@ pub async fn stop_mapping(state: &UpnpState) {
         for port in &ports {
             let _ = unmap_port(&gw, port.internal, port.protocol).await;
         }
+        log::info!(
+            "upnp:unmapped ports={:?}",
+            ports.iter().map(|p| p.internal).collect::<Vec<_>>()
+        );
     }
 }
 

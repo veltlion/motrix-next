@@ -84,7 +84,7 @@ describe('open function error handling (regression)', () => {
   it('has try/catch around check_for_update invoke', () => {
     const start = SOURCE.indexOf('async function open')
     expect(start).toBeGreaterThanOrEqual(0)
-    const snippet = SOURCE.slice(start, start + 800)
+    const snippet = SOURCE.slice(start, start + 900)
     expect(snippet).toContain('try')
     expect(snippet).toContain('catch')
     expect(snippet).toContain("phase.value = 'error'")

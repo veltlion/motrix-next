@@ -141,15 +141,19 @@ pub async fn check_for_update(
     channel: String,
     proxy: Option<String>,
 ) -> Result<Option<UpdateMetadata>, AppError> {
+    log::info!("updater:check channel={channel} proxy={proxy:?}");
     let update = build_updater(&app, &channel, &proxy)?
         .check()
         .await
         .map_err(|e| AppError::Updater(e.to_string()))?;
 
-    Ok(update.map(|u| UpdateMetadata {
-        version: u.version.clone(),
-        body: u.body.clone(),
-        date: u.date.map(|d| d.to_string()),
+    Ok(update.map(|u| {
+        log::info!("updater:check result=found version={}", u.version);
+        UpdateMetadata {
+            version: u.version.clone(),
+            body: u.body.clone(),
+            date: u.date.map(|d| d.to_string()),
+        }
     }))
 }
 
@@ -167,6 +171,7 @@ pub async fn download_update(
     channel: String,
     proxy: Option<String>,
 ) -> Result<(), AppError> {
+    log::info!("updater:download channel={channel} proxy={proxy:?}");
     let cancel_state = app.state::<Arc<UpdateCancelState>>();
     cancel_state.reset();
 
@@ -217,18 +222,22 @@ pub async fn download_update(
     let bytes = tokio::select! {
         result = download_fut => {
             if cancel_state.is_cancelled() {
+                log::warn!("updater:download cancelled by user");
                 return Err(AppError::Updater("Update cancelled by user".into()));
             }
             result.map_err(|e| AppError::Updater(e.to_string()))?
         }
         _ = cancel_state.notify.notified() => {
+            log::warn!("updater:download cancelled by user (via notify)");
             return Err(AppError::Updater("Update cancelled by user".into()));
         }
     };
 
     // Store downloaded bytes for later installation
     let dl_state = app.state::<Arc<DownloadedUpdate>>();
+    let byte_count = bytes.len();
     *dl_state.bytes.lock().await = Some(bytes);
+    log::info!("updater:download complete bytes={byte_count}");
 
     // Emit download-finished (NOT Finished — that signals post-install)
     if !cancel_state.is_cancelled() {
@@ -252,6 +261,7 @@ pub async fn apply_update(
     channel: String,
     proxy: Option<String>,
 ) -> Result<(), AppError> {
+    log::info!("updater:apply channel={channel}");
     // Take the downloaded bytes from shared state
     let dl_state = app.state::<Arc<DownloadedUpdate>>();
     let bytes = dl_state
@@ -279,11 +289,13 @@ pub async fn apply_update(
         .await
         .map_err(|e| AppError::Engine(e.to_string()))?;
     }
+    log::info!("updater:apply phase=engine-stopped");
 
     // ── Phase 2: Install (NSIS / tar.gz replacement) ────────────────
     update
         .install(bytes)
         .map_err(|e| AppError::Updater(e.to_string()))?;
+    log::info!("updater:apply phase=installed");
 
     // macOS: flush icon cache after OTA bundle replacement.
     #[cfg(target_os = "macos")]
@@ -309,6 +321,7 @@ pub async fn apply_update(
 /// Cancels an in-progress update download.
 #[tauri::command]
 pub fn cancel_update(app: AppHandle) -> Result<(), AppError> {
+    log::info!("updater:cancel");
     let cancel_state = app.state::<Arc<UpdateCancelState>>();
     cancel_state.cancel();
     Ok(())
