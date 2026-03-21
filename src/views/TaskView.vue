@@ -116,7 +116,7 @@ onMounted(() => {
     const i18nKey = task.errorCode ? ARIA2_ERROR_CODES[task.errorCode] : undefined
     const taskName = getTaskDisplayName(task, { defaultName: 'Unknown' })
     const errorText = i18nKey ? t(i18nKey) : task.errorMessage || t('task.error-unknown')
-    message.error(`${taskName}: ${errorText}`, { duration: 8000, closable: true })
+    message.error(`${taskName}: ${errorText}`)
     // OS notification for errors (already past the taskNotification guard above)
     handleTaskError(task, `${taskName}: ${errorText}`, {
       messageSuccess: message.success,
