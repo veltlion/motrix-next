@@ -35,7 +35,7 @@ pub fn save_preference(app: AppHandle, config: Value) -> Result<(), AppError> {
     }
     log::debug!(
         "config:save-preference keys={}",
-        config.as_object().map_or(0, |o| o.len())
+        config.as_object().map_or(0, serde_json::Map::len)
     );
     Ok(())
 }
@@ -67,7 +67,7 @@ pub fn save_system_config(app: AppHandle, config: Value) -> Result<(), AppError>
     }
     log::debug!(
         "config:save-system keys={}",
-        config.as_object().map_or(0, |o| o.len())
+        config.as_object().map_or(0, serde_json::Map::len)
     );
     Ok(())
 }
@@ -987,9 +987,9 @@ pub async fn export_diagnostic_logs(app: AppHandle, save_path: String) -> Result
         .state::<crate::engine::EngineState>()
         .child
         .lock()
-        .unwrap()
+        .expect("engine state lock poisoned")
         .as_ref()
-        .map(|c| c.pid());
+        .map(tauri_plugin_shell::process::CommandChild::pid);
     let system_info = serde_json::json!({
         "os": std::env::consts::OS,
         "os_version": os_info::get().version().to_string(),
