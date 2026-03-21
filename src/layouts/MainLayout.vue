@@ -56,7 +56,7 @@ let unlistenResize: (() => void) | null = null
 let unlistenExitDialog: (() => void) | null = null
 let globalStatTimer: ReturnType<typeof setTimeout> | null = null
 
-import aria2Api, { isEngineReady } from '@/api/aria2'
+import aria2Api, { isEngineReady, purgeTaskRecord, saveSession } from '@/api/aria2'
 
 const { setupListeners } = useAppEvents({
   t,
@@ -124,6 +124,19 @@ async function handleExitConfirm() {
   showExitDialog.value = false
   rememberChoice.value = false
   appReady.value = false
+  // Purge completed/errored tasks from aria2's stopped list, then save
+  // a clean session. Without this, force-save=true persists completed
+  // HTTP tasks to download.session — aria2 reloads them on restart and
+  // immediately re-downloads (infinite completion loop). Best-effort:
+  // if aria2 is already unreachable we still proceed with exit.
+  if (isEngineReady()) {
+    try {
+      await purgeTaskRecord()
+      await saveSession()
+    } catch (e) {
+      logger.debug('handleExitConfirm.sessionCleanup', e)
+    }
+  }
   await new Promise((r) => setTimeout(r, 250))
   // exit(0) sends an IPC call to Rust — if we destroy() first,
   // the webview is gone and the IPC silently fails.

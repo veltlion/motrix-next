@@ -117,19 +117,13 @@ onMounted(() => {
     const errorText = i18nKey ? t(i18nKey) : task.errorMessage || t('task.error-unknown')
     message.error(`${taskName}: ${errorText}`, { duration: 8000, closable: true })
   })
-  // Wire task completion lifecycle: history recording + session purge.
-  // Without the removeTaskRecord call, force-save=true persists completed
-  // HTTP tasks to download.session — aria2 reloads and re-downloads them
-  // on every restart (infinite completion loop).
+  // Wire task completion lifecycle: history recording.
   taskStore.setOnTaskComplete((task) => {
     // Skip BT metadata-only downloads — they are intermediate steps
     if (isMetadataTask(task)) return
     // Record to history DB (fire-and-forget)
     const record = buildHistoryRecord(task)
     historyStore.addRecord(record).catch((e) => logger.debug('TaskView.historyRecord', e))
-    // Purge from aria2's stopped list so force-save won't persist it to
-    // the session file (same pattern as stopSeeding in taskOperations).
-    taskStore.removeTaskRecord(task).catch((e) => logger.debug('TaskView.purgeCompleted', e))
   })
   // Wire BT completion lifecycle: trash original .torrent source file + clean aria2 metadata.
   taskStore.setOnBtComplete(async (task) => {
