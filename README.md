@@ -89,7 +89,7 @@ Download the latest release from [GitHub Releases](https://github.com/AnInsomnia
 ```bash
 brew tap AnInsomniacy/motrix-next
 brew install --cask motrix-next
-xattr -cr "$(brew --caskroom)/motrix-next"  # remove quarantine (app is unsigned)
+xattr -cr /Applications/MotrixNext.app  # remove quarantine (app is unsigned)
 ```
 
 Or download `MotrixNext_aarch64.app.tar.gz` (Apple Silicon) / `MotrixNext_x64.app.tar.gz` (Intel) from [Releases](https://github.com/AnInsomniacy/motrix-next/releases) and drag to `/Applications`.
