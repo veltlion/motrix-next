@@ -6,11 +6,11 @@
 //!
 //! ## Strategy
 //!
-//! **Default safe:** hardware rendering is OFF (`WEBKIT_DISABLE_DMABUF_RENDERER=1`).
-//! Users who want GPU-accelerated rendering can opt in via the Advanced
-//! preferences toggle.  If the opt-in causes a crash, the next launch
-//! detects the crash via a sentinel file and automatically reverts the
-//! preference to `false`.
+//! **Default ON:** hardware rendering is enabled for best performance.
+//! If the DMA-BUF renderer causes a crash, the next launch detects it
+//! via a sentinel file and automatically reverts the preference to
+//! `false`, falling back to software compositing.  Users can also
+//! manually disable it via the Advanced preferences toggle.
 //!
 //! ### Sentinel protocol
 //!
@@ -48,8 +48,9 @@ fn data_dir() -> Option<std::path::PathBuf> {
 /// Same pattern as [`crate::read_log_level`] — direct JSON file read because
 /// `tauri-plugin-store` isn't available yet.
 ///
-/// Returns `false` (safe default) if the file is absent, unparseable, or the
-/// key is missing.
+/// Returns `true` (hardware acceleration ON) if the file is absent,
+/// unparseable, or the key is missing — matching the default in
+/// `DEFAULT_APP_CONFIG`.
 fn read_hardware_rendering_from_config(data_dir: &std::path::Path) -> bool {
     (|| -> Option<bool> {
         let path = data_dir.join("config.json");
@@ -57,7 +58,7 @@ fn read_hardware_rendering_from_config(data_dir: &std::path::Path) -> bool {
         let json: serde_json::Value = serde_json::from_str(&content).ok()?;
         json.get("preferences")?.get("hardwareRendering")?.as_bool()
     })()
-    .unwrap_or(false)
+    .unwrap_or(true)
 }
 
 /// Writes `hardwareRendering = false` back into raw `config.json`.
@@ -99,11 +100,25 @@ fn write_back_hardware_rendering_disabled(data_dir: &std::path::Path) {
 /// or any secondary threads.
 #[cfg(target_os = "linux")]
 pub fn pre_flight() -> bool {
-    // Respect user-set env var — never override explicit configuration.
+    // Respect user-set env var — it takes precedence over config.
+    // When the env var disables DMA-BUF, sync that into config.json so the
+    // UI toggle reflects reality.  This makes the env var a "one-time import":
+    // after the first launch the preference is persisted and the env var is
+    // no longer required.
     if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_ok() {
-        return std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER")
+        let disabled = std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER")
             .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
             .unwrap_or(false);
+        if disabled {
+            if let Some(dir) = data_dir() {
+                write_back_hardware_rendering_disabled(&dir);
+                eprintln!(
+                    "[motrix-next] gpu_guard: env override detected — \
+                     synced hardwareRendering=false to config"
+                );
+            }
+        }
+        return disabled;
     }
 
     let Some(dir) = data_dir() else {
@@ -225,13 +240,13 @@ mod tests {
     // ── read_hardware_rendering_from_config ─────────────────────────
 
     #[test]
-    fn read_hw_rendering_returns_false_when_config_absent() {
+    fn read_hw_rendering_returns_true_when_config_absent() {
         let dir = test_dir("read_absent");
-        assert!(!read_hardware_rendering_from_config(&dir));
+        assert!(read_hardware_rendering_from_config(&dir));
     }
 
     #[test]
-    fn read_hw_rendering_returns_false_when_key_missing() {
+    fn read_hw_rendering_returns_true_when_key_missing() {
         let dir = test_dir("read_missing_key");
         let config = serde_json::json!({
             "preferences": { "logLevel": "debug" }
@@ -241,7 +256,7 @@ mod tests {
             serde_json::to_string_pretty(&config).unwrap(),
         )
         .unwrap();
-        assert!(!read_hardware_rendering_from_config(&dir));
+        assert!(read_hardware_rendering_from_config(&dir));
     }
 
     #[test]
@@ -259,17 +274,17 @@ mod tests {
     }
 
     #[test]
-    fn read_hw_rendering_returns_false_when_json_malformed() {
+    fn read_hw_rendering_returns_true_when_json_malformed() {
         let dir = test_dir("read_malformed");
         fs::write(dir.join("config.json"), "not json at all").unwrap();
-        assert!(!read_hardware_rendering_from_config(&dir));
+        assert!(read_hardware_rendering_from_config(&dir));
     }
 
     #[test]
-    fn read_hw_rendering_returns_false_when_preferences_missing() {
+    fn read_hw_rendering_returns_true_when_preferences_missing() {
         let dir = test_dir("read_no_prefs");
         fs::write(dir.join("config.json"), r#"{ "other": 42 }"#).unwrap();
-        assert!(!read_hardware_rendering_from_config(&dir));
+        assert!(read_hardware_rendering_from_config(&dir));
     }
 
     // ── write_back_hardware_rendering_disabled ──────────────────────
@@ -385,6 +400,24 @@ mod tests {
         assert!(!hw);
         // No sentinel should be written when hw rendering is disabled
         assert!(!sentinel_path(&dir).exists());
+    }
+
+    // ── env var → config sync ───────────────────────────────────────
+
+    #[test]
+    fn env_var_override_syncs_config_to_false() {
+        // Simulates: user had hardwareRendering=true in config, then launched
+        // with WEBKIT_DISABLE_DMABUF_RENDERER=1.  pre_flight() should write
+        // back false so the UI toggle reflects the override.
+        let dir = test_dir("env_sync");
+        write_config(&dir, true);
+        assert!(read_hardware_rendering_from_config(&dir));
+
+        // Simulate what pre_flight() does when env var is detected:
+        write_back_hardware_rendering_disabled(&dir);
+
+        // Config should now be false — toggle will show OFF
+        assert!(!read_hardware_rendering_from_config(&dir));
     }
 
     // ── data_dir resolution ─────────────────────────────────────────

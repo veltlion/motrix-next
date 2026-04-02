@@ -168,9 +168,9 @@ export const DEFAULT_APP_CONFIG = {
   // ── Auto Update ───────────────────────────────────────────────
   autoCheckUpdate: true, // qBT checks every launch; security best practice
   autoCheckUpdateInterval: 24, // 24h (daily) is standard check frequency
-  /** Linux-only: DMA-BUF GPU rendering OFF by default for maximum compatibility.
-   *  Users can enable via Advanced settings; crash → auto-reverted by gpu_guard. */
-  hardwareRendering: false,
+  /** Linux-only: DMA-BUF GPU rendering ON by default for best performance.
+   *  Crash sentinel in gpu_guard auto-reverts to software rendering on failure. */
+  hardwareRendering: true,
   updateChannel: 'stable' as const,
   lastCheckUpdateTime: 0,
 

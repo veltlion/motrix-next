@@ -659,9 +659,9 @@ describe('proxy configuration invariants', () => {
 // ── hardwareRendering — Linux GPU toggle ────────────────────────────
 
 describe('buildAdvancedForm — hardwareRendering', () => {
-  it('defaults hardwareRendering to false when absent', () => {
+  it('defaults hardwareRendering to true (GPU acceleration ON)', () => {
     const { form } = buildAdvancedForm({} as AppConfig)
-    expect(form.hardwareRendering).toBe(false)
+    expect(form.hardwareRendering).toBe(true)
   })
 
   it('preserves hardwareRendering=true from config', () => {
@@ -701,7 +701,7 @@ describe('transformAdvancedForStore — hardwareRendering', () => {
 })
 
 describe('DEFAULT_APP_CONFIG — hardwareRendering', () => {
-  it('defaults to false (safe mode)', () => {
-    expect(DEFAULT_APP_CONFIG.hardwareRendering).toBe(false)
+  it('defaults to true (GPU acceleration ON)', () => {
+    expect(DEFAULT_APP_CONFIG.hardwareRendering).toBe(true)
   })
 })
