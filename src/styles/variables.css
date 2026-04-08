@@ -114,13 +114,6 @@
   --about-card-bg: var(--m3-surface-container-lowest);
   --about-card-hover-bg: var(--m3-surface-container-high);
 
-  --window-ctrl-border: rgba(0, 0, 0, 0.15);
-  --window-ctrl-bg: rgba(0, 0, 0, 0.05);
-  --window-ctrl-color: rgba(0, 0, 0, 0.55);
-  --window-ctrl-hover-bg: rgba(0, 0, 0, 0.1);
-  --window-ctrl-hover-border: rgba(0, 0, 0, 0.25);
-  --window-ctrl-hover-color: rgba(0, 0, 0, 0.85);
-
   /* macOS traffic light — inactive (unfocused) */
   --tl-inactive: #d4d4d4;
 
@@ -225,13 +218,6 @@
   --main-bg: var(--m3-surface-container-high);
   --task-item-bg: var(--m3-surface-container);
   --task-action-bg: var(--m3-surface-container);
-
-  --window-ctrl-border: rgba(255, 255, 255, 0.12);
-  --window-ctrl-bg: rgba(255, 255, 255, 0.06);
-  --window-ctrl-color: rgba(255, 255, 255, 0.55);
-  --window-ctrl-hover-bg: rgba(255, 255, 255, 0.12);
-  --window-ctrl-hover-border: rgba(255, 255, 255, 0.2);
-  --window-ctrl-hover-color: rgba(255, 255, 255, 0.9);
 
   /* macOS traffic light — inactive (unfocused) */
   --tl-inactive: #4a4a4a;
