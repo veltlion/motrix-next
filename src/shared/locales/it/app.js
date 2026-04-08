@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Riduci a icona',
   'menu-zoom': 'Ridimensiona',
   'menu-close-window': 'Chiudi finestra',
+  'window-maximize': 'Ingrandisci',
+  'window-restore': 'Ripristina',
   'menu-undo': 'Annulla',
   'menu-redo': 'Ripristina',
   'menu-cut': 'Taglia',

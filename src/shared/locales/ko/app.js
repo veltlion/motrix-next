@@ -59,6 +59,8 @@ export default {
   'menu-minimize': '최소화',
   'menu-zoom': '확대/축소',
   'menu-close-window': '윈도우 닫기',
+  'window-maximize': '최대화',
+  'window-restore': '복원',
   'menu-undo': '실행 취소',
   'menu-redo': '실행 복귀',
   'menu-cut': '오려두기',

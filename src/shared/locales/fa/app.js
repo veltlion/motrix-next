@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'کوچک‌سازی',
   'menu-zoom': 'بزرگ‌نمایی',
   'menu-close-window': 'بستن پنجره',
+  'window-maximize': 'بزرگ‌نمایی',
+  'window-restore': 'بازگردانی',
   'menu-undo': 'واگرد',
   'menu-redo': 'باز‌انجام',
   'menu-cut': 'برش',

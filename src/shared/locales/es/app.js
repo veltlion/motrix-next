@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Minimizar',
   'menu-zoom': 'Zoom',
   'menu-close-window': 'Cerrar ventana',
+  'window-maximize': 'Maximizar',
+  'window-restore': 'Restaurar',
   'menu-undo': 'Deshacer',
   'menu-redo': 'Rehacer',
   'menu-cut': 'Cortar',

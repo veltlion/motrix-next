@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Ελαχιστοποίηση',
   'menu-zoom': 'Ζουμ',
   'menu-close-window': 'Κλείσιμο παραθύρου',
+  'window-maximize': 'Μεγιστοποίηση',
+  'window-restore': 'Επαναφορά',
   'menu-undo': 'Αναίρεση',
   'menu-redo': 'Επανάληψη',
   'menu-cut': 'Αποκοπή',

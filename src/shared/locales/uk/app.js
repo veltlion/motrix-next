@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Згорнути',
   'menu-zoom': 'Масштаб',
   'menu-close-window': 'Закрити вікно',
+  'window-maximize': 'Розгорнути',
+  'window-restore': 'Відновити',
   'menu-undo': 'Скасувати',
   'menu-redo': 'Повторити',
   'menu-cut': 'Вирізати',

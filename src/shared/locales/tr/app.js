@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Simge Durumuna Küçült',
   'menu-zoom': 'Yakınlaştır',
   'menu-close-window': 'Pencereyi Kapat',
+  'window-maximize': 'Ekranı Kapla',
+  'window-restore': 'Geri Yükle',
   'menu-undo': 'Geri Al',
   'menu-redo': 'Yinele',
   'menu-cut': 'Kes',

@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'しまう',
   'menu-zoom': '拡大/縮小',
   'menu-close-window': 'ウインドウを閉じる',
+  'window-maximize': '最大化',
+  'window-restore': '元に戻す',
   'menu-undo': '取り消す',
   'menu-redo': 'やり直す',
   'menu-cut': 'カット',

@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Thu nhỏ',
   'menu-zoom': 'Thu phóng',
   'menu-close-window': 'Đóng cửa sổ',
+  'window-maximize': 'Phóng to',
+  'window-restore': 'Khôi phục',
   'menu-undo': 'Hoàn tác',
   'menu-redo': 'Làm lại',
   'menu-cut': 'Cắt',

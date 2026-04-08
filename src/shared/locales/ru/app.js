@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Свернуть',
   'menu-zoom': 'Масштаб',
   'menu-close-window': 'Закрыть окно',
+  'window-maximize': 'Развернуть',
+  'window-restore': 'Восстановить',
   'menu-undo': 'Отменить',
   'menu-redo': 'Повторить',
   'menu-cut': 'Вырезать',

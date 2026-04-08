@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Kis méret',
   'menu-zoom': 'Nagyítás',
   'menu-close-window': 'Ablak bezárása',
+  'window-maximize': 'Teljes méret',
+  'window-restore': 'Visszaállítás',
   'menu-undo': 'Visszavonás',
   'menu-redo': 'Újra',
   'menu-cut': 'Kivágás',

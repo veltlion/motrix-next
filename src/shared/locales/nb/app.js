@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Minimer',
   'menu-zoom': 'Zoom',
   'menu-close-window': 'Lukk vindu',
+  'window-maximize': 'Maksimer',
+  'window-restore': 'Gjenopprett',
   'menu-undo': 'Angre',
   'menu-redo': 'Gjør om',
   'menu-cut': 'Klipp ut',

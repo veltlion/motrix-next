@@ -6,17 +6,18 @@
  * `titleBarStyle: "Overlay"` in tauri.macos.conf.json — this component
  * renders nothing.
  *
- * On Windows/Linux, renders circular icon-only buttons that share the
- * same visual language as the sidebar navigation icons (32 px circles,
- * transparent background, M3 state-layer hover).  Close uses the M3
- * `error` role on hover for semantic consistency with destructive
- * actions throughout the app.
+ * On Windows/Linux, renders caption-style buttons matching the Windows 11
+ * Fluent Design specification: 46×32px borderless rectangles with inline
+ * SVG symbols, transparent by default, with hover/unfocused states.
+ * The close button uses the official Windows 11 red (#C42B1C) on hover.
  *
- * Icons are inline SVG (10 × 10 viewport, 1.2 px stroke, round caps)
- * instead of Ionicons — thinner, crisper, and zero external dependency.
+ * Colors derive from --m3-on-surface so they automatically adapt to the
+ * active color scheme (10 presets) and light/dark mode without hardcoding.
  */
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { useI18n } from 'vue-i18n'
+import MTooltip from '@/components/common/MTooltip.vue'
 import { usePreferenceStore } from '@/stores/preference'
 
 const props = defineProps<{
@@ -30,6 +31,7 @@ const emit = defineEmits<{
   'maximize-toggled': []
 }>()
 
+const { t } = useI18n()
 const appWindow = getCurrentWindow()
 const preferenceStore = usePreferenceStore()
 
@@ -76,115 +78,137 @@ async function close() {
 
 <template>
   <!-- macOS: native traffic lights provided by OS, render nothing -->
-  <div v-if="!isMac" class="caption-bar">
-    <button class="caption-btn" :class="{ unfocused: !isFocused }" title="Minimize" @click="minimize">
-      <!-- Minimize: horizontal stroke -->
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-        <path d="M2 5h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-      </svg>
-    </button>
-    <button
-      class="caption-btn"
-      :class="{ unfocused: !isFocused }"
-      :title="isMaximized ? 'Restore' : 'Maximize'"
-      @click="toggleMaximize"
-    >
-      <!-- Maximize ↔ Restore: rounded rect vs stacked rects -->
-      <Transition name="icon-swap" mode="out-in">
-        <svg v-if="isMaximized" key="restore" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-          <rect x="2.6" y="0.6" width="6.8" height="6.8" rx="1" stroke="currentColor" stroke-width="1.2" />
-          <path
-            d="M0.6 3.2v4.7a1.5 1.5 0 001.5 1.5H6.8"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-          />
-        </svg>
-        <svg v-else key="maximize" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-          <rect x="0.6" y="0.6" width="8.8" height="8.8" rx="1.5" stroke="currentColor" stroke-width="1.2" />
-        </svg>
-      </Transition>
-    </button>
-    <button class="caption-btn caption-close" :class="{ unfocused: !isFocused }" title="Close" @click="close">
-      <!-- Close: diagonal cross -->
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-        <path d="M2 2l6 6M8 2L2 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-      </svg>
-    </button>
+  <div v-if="!isMac" class="caption-bar" :class="{ unfocused: !isFocused }">
+    <MTooltip placement="bottom">
+      <template #trigger>
+        <button class="caption-btn" :aria-label="t('app.menu-minimize')" @click="minimize">
+          <!-- Minimize: horizontal line -->
+          <svg width="10" height="1" viewBox="0 0 10 1" fill="none" aria-hidden="true">
+            <path d="M0 .5h10" stroke="currentColor" stroke-width="1" />
+          </svg>
+        </button>
+      </template>
+      {{ t('app.menu-minimize') }}
+    </MTooltip>
+
+    <MTooltip placement="bottom">
+      <template #trigger>
+        <button
+          class="caption-btn"
+          :aria-label="isMaximized ? t('app.window-restore') : t('app.window-maximize')"
+          @click="toggleMaximize"
+        >
+          <Transition name="icon-swap" mode="out-in">
+            <!-- Restore: two overlapping rectangles -->
+            <svg
+              v-if="isMaximized"
+              key="restore"
+              width="10"
+              height="10"
+              viewBox="0 0 10 10"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d="M3.5 0.5h6v6M0.5 3.5h6v6h-6z" stroke="currentColor" stroke-width="1" />
+            </svg>
+            <!-- Maximize: single rectangle -->
+            <svg v-else key="maximize" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="9" height="9" stroke="currentColor" stroke-width="1" />
+            </svg>
+          </Transition>
+        </button>
+      </template>
+      {{ isMaximized ? t('app.window-restore') : t('app.window-maximize') }}
+    </MTooltip>
+
+    <MTooltip placement="bottom-end">
+      <template #trigger>
+        <button class="caption-btn caption-close" :aria-label="t('app.menu-close-window')" @click="close">
+          <!-- Close: X -->
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M0 0l10 10M10 0L0 10" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+        </button>
+      </template>
+      {{ t('app.menu-close-window') }}
+    </MTooltip>
   </div>
 </template>
 
 <style scoped>
-/* ─────────────────────────────────────────────────────────────────────
- * Window caption buttons — same design family as AsideBar .menu-button:
- *   32 px circle · transparent bg · M3 on-surface-variant icon color
- *   hover: M3 state-layer 8% · close: M3 error role
- * ────────────────────────────────────────────────────────────────── */
+/* ── Windows 11 Fluent Design caption buttons ──────────────────────── */
+/* Spec: 46×32px, borderless, transparent bg, hover reveals surface.   */
+/* Close hover: #C42B1C (Windows 11 official red).                     */
+/* Colors use --m3-on-surface for automatic color scheme adaptation.   */
+
 .caption-bar {
   position: fixed;
-  top: 8px;
-  right: 10px;
+  top: 0;
+  right: 0;
   display: flex;
-  align-items: center;
-  gap: 4px;
+  height: 32px;
   z-index: 9999;
 }
 
 .caption-btn {
-  width: 32px;
+  width: 46px;
   height: 32px;
   border: none;
-  border-radius: 16px;
+  border-radius: 0;
   background: transparent;
-  color: var(--m3-on-surface-variant);
+  color: var(--m3-on-surface);
+  opacity: 0.7;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition:
-    background-color 0.2s cubic-bezier(0.2, 0, 0, 1),
-    color 0.2s cubic-bezier(0.2, 0, 0, 1);
+    background-color 0.2s ease,
+    opacity 0.2s ease;
   outline: none;
   padding: 0;
 }
 
 .caption-btn:hover {
+  opacity: 1;
   background: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
-  color: var(--m3-on-surface);
 }
 
-/* Close button: M3 error role for semantic destructive action */
-.caption-btn.caption-close:hover {
-  background: var(--m3-error);
-  color: var(--m3-on-error);
+.caption-btn:active {
+  background: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
 }
 
-/* ── Unfocused state — dim icons to match OS convention ─────────── */
-.caption-btn.unfocused {
-  color: var(--m3-outline);
+.caption-close:hover {
+  background: #c42b1c;
+  color: #fff;
+  opacity: 1;
 }
 
-.caption-btn.unfocused:hover {
-  color: var(--m3-on-surface);
+.caption-close:active {
+  background: #b22a1b;
+  color: #fff;
 }
 
-.caption-btn.caption-close.unfocused:hover {
-  color: var(--m3-on-error);
+/* Diminish button visibility when the window loses focus (Win11 behavior) */
+.unfocused .caption-btn {
+  opacity: 0.4;
 }
 
-/* ── Maximize ↔ Restore icon cross-fade ─────────────────────────── */
+.unfocused .caption-btn:hover {
+  opacity: 1;
+}
+
+/* Icon cross-fade animation for maximize ↔ restore toggle */
 .icon-swap-enter-active,
 .icon-swap-leave-active {
   transition:
     opacity 150ms ease,
     transform 150ms ease;
 }
-
 .icon-swap-enter-from {
   opacity: 0;
   transform: scale(0.75);
 }
-
 .icon-swap-leave-to {
   opacity: 0;
   transform: scale(0.75);

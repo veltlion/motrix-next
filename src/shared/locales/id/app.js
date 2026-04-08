@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Perkecil',
   'menu-zoom': 'Zoom',
   'menu-close-window': 'Tutup Jendela',
+  'window-maximize': 'Perbesar',
+  'window-restore': 'Pulihkan',
   'menu-undo': 'Urung',
   'menu-redo': 'Ulangi',
   'menu-cut': 'Potong',

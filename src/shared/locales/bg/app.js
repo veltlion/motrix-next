@@ -59,6 +59,8 @@ export default {
   'menu-minimize': 'Минимизиране',
   'menu-zoom': 'Мащабиране',
   'menu-close-window': 'Затваряне на прозореца',
+  'window-maximize': 'Максимизиране',
+  'window-restore': 'Възстановяване',
   'menu-undo': 'Отмяна',
   'menu-redo': 'Повтори',
   'menu-cut': 'Изрежи',

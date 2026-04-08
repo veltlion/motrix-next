@@ -59,6 +59,8 @@ export default {
   'menu-minimize': '縮小',
   'menu-zoom': '縮放',
   'menu-close-window': '關閉視窗',
+  'window-maximize': '最大化',
+  'window-restore': '還原',
   'menu-undo': '還原',
   'menu-redo': '重做',
   'menu-cut': '剪下',
