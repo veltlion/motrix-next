@@ -22,12 +22,15 @@ import { extractExtension, resolveCategory } from './fileCategory'
  * @param task       - Completed aria2 task with resolved file paths
  * @param enabled    - Whether file classification is enabled
  * @param categories - Classification rules with absolute directory paths
+ * @param baseDir    - Default download directory — only files here are candidates for archiving.
+ *                     Files in user-specified custom paths are left untouched.
  * @returns `{ source, targetDir }` if archiving is needed, `null` otherwise
  */
 export function resolveArchiveAction(
   task: Aria2Task,
   enabled: boolean,
   categories: FileCategory[],
+  baseDir: string,
 ): { source: string; targetDir: string } | null {
   if (!enabled) return null
   if (categories.length === 0) return null
@@ -44,16 +47,16 @@ export function resolveArchiveAction(
   const fileName = filePath.split(/[/\\]/).pop()
   if (!fileName) return null
 
+  // Only archive files that are in the default download directory.
+  // Files in user-specified custom paths were intentionally placed there — leave untouched.
+  const fileDir = filePath.substring(0, filePath.length - fileName.length).replace(/[\\/]+$/, '')
+  const normalizedBase = baseDir.replace(/[\\/]+$/, '')
+  if (fileDir !== normalizedBase) return null
+
   // Determine category from real filename extension
   const ext = extractExtension(fileName)
   const category = resolveCategory(ext, categories)
   if (!category) return null
-
-  // Skip if file is already in the target directory
-  // Normalize: extract the directory portion of the file path
-  const fileDir = filePath.substring(0, filePath.length - fileName.length).replace(/[\\/]+$/, '')
-  const targetDir = category.directory.replace(/[\\/]+$/, '')
-  if (fileDir === targetDir) return null
 
   return { source: filePath, targetDir: category.directory }
 }

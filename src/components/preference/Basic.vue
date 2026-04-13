@@ -862,13 +862,13 @@ onMounted(async () => {
                   @update:value="(v: string) => handleCategoryLabelChange(idx, v)"
                 />
                 <NButton
+                  class="ghost-btn--danger"
                   size="tiny"
-                  quaternary
-                  type="error"
+                  ghost
                   style="margin-left: auto"
                   @click="handleDeleteCategory(idx)"
                 >
-                  ✕
+                  {{ t('edit.delete') }}
                 </NButton>
               </div>
               <NDynamicTags
@@ -1263,5 +1263,24 @@ onMounted(async () => {
   gap: 8px;
   align-items: center;
   margin-top: 4px;
+}
+
+/* ── Ghost button danger — tinted hover for dark mode (matches Advanced.vue) ── */
+.ghost-btn--danger {
+  --btn-tint: var(--m3-error, #c97070);
+  color: var(--btn-tint) !important;
+  border-color: var(--btn-tint) !important;
+  transition:
+    color 0.35s cubic-bezier(0.2, 0, 0, 1),
+    background-color 0.35s cubic-bezier(0.2, 0, 0, 1),
+    border-color 0.35s cubic-bezier(0.2, 0, 0, 1);
+}
+.ghost-btn--danger:hover {
+  background-color: color-mix(in srgb, var(--btn-tint) 12%, transparent) !important;
+}
+.ghost-btn--danger :deep(.n-button__border),
+.ghost-btn--danger :deep(.n-button__state-border) {
+  border-color: var(--btn-tint) !important;
+  transition: border-color 0.35s cubic-bezier(0.2, 0, 0, 1);
 }
 </style>

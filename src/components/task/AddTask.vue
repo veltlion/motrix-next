@@ -431,18 +431,24 @@ async function handleSubmit() {
       }
     }
 
-    const options = buildEngineOptions({
+    // When dir field is empty (user left it blank for auto-classification),
+    // fall back to the global default dir so aria2 always has a valid path.
+    const effectiveForm = {
       ...form.value,
+      dir: form.value.dir.trim() || preferenceStore.config.dir,
       globalProxyServer: globalProxyServer.value,
-    })
+    }
+    const options = buildEngineOptions(effectiveForm)
     let manualResult = { magnetGids: [] as string[], magnetFailures: [] as { uri: string; error: string }[] }
 
     if (hasBatch.value) {
       await submitBatchItems(batch.value, options, taskStore)
     }
     if (form.value.uris.trim()) {
-      manualResult = await submitManualUris(form.value, options, taskStore, {
-        enabled: preferenceStore.config.fileCategoryEnabled,
+      // User's custom path takes highest priority — skip classification when overridden
+      const shouldClassify = preferenceStore.config.fileCategoryEnabled && !dirUserModified.value
+      manualResult = await submitManualUris(effectiveForm, options, taskStore, {
+        enabled: shouldClassify,
         categories: preferenceStore.config.fileCategories,
       })
     }
@@ -640,8 +646,10 @@ function kindTagType(kind: string): 'info' | 'success' | 'warning' {
                   </template>
                 </NButton>
               </NInputGroup>
-              <Transition name="category-hint">
-                <div v-if="categoryEnabled" class="category-hint-text">ⓘ {{ t(categoryHintKey) }}</div>
+              <Transition name="category-hint" mode="out-in">
+                <div v-if="categoryEnabled" :key="categoryHintKey" class="category-hint-text">
+                  ⓘ {{ t(categoryHintKey) }}
+                </div>
               </Transition>
             </div>
           </NFormItem>

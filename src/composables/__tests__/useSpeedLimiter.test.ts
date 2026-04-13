@@ -102,41 +102,41 @@ describe('buildSpeedLimitString', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('formatLimitBadge', () => {
-  it('returns "∞ K" for "0" (unlimited)', () => {
-    expect(formatLimitBadge('0')).toBe('∞ K')
+  it('returns "∞" for "0" (unlimited)', () => {
+    expect(formatLimitBadge('0')).toBe('∞')
   })
 
-  it('returns "∞ K" for empty string (unlimited)', () => {
-    expect(formatLimitBadge('')).toBe('∞ K')
+  it('returns "∞" for empty string (unlimited)', () => {
+    expect(formatLimitBadge('')).toBe('∞')
   })
 
-  it('returns "512 K" for "512K"', () => {
-    expect(formatLimitBadge('512K')).toBe('512 K')
+  it('returns "512 K/s" for "512K"', () => {
+    expect(formatLimitBadge('512K')).toBe('512 K/s')
   })
 
-  it('returns "10 M" for "10M"', () => {
-    expect(formatLimitBadge('10M')).toBe('10 M')
+  it('returns "10 M/s" for "10M"', () => {
+    expect(formatLimitBadge('10M')).toBe('10 M/s')
   })
 
-  it('returns "1 G" for "1G"', () => {
-    expect(formatLimitBadge('1G')).toBe('1 G')
+  it('returns "1 G/s" for "1G"', () => {
+    expect(formatLimitBadge('1G')).toBe('1 G/s')
   })
 
-  it('converts "1024K" to "1 M" for cleaner display', () => {
-    expect(formatLimitBadge('1024K')).toBe('1 M')
+  it('converts "1024K" to "1 M/s" for cleaner display', () => {
+    expect(formatLimitBadge('1024K')).toBe('1 M/s')
   })
 
-  it('converts "1024M" to "1 G" for cleaner display', () => {
-    expect(formatLimitBadge('1024M')).toBe('1 G')
+  it('converts "1024M" to "1 G/s" for cleaner display', () => {
+    expect(formatLimitBadge('1024M')).toBe('1 G/s')
   })
 
-  it('does not convert non-round values (e.g., "500K" stays "500 K")', () => {
-    expect(formatLimitBadge('500K')).toBe('500 K')
+  it('does not convert non-round values (e.g., "500K" stays "500 K/s")', () => {
+    expect(formatLimitBadge('500K')).toBe('500 K/s')
   })
 
   it('handles bare bytes value gracefully', () => {
     // '100' = 100 bytes/s — too small for practical display
-    expect(formatLimitBadge('100')).toBe('∞ K')
+    expect(formatLimitBadge('100')).toBe('∞')
   })
 })
 

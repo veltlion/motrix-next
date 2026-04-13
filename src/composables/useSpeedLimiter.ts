@@ -60,22 +60,22 @@ export function buildSpeedLimitString(num: number, unit: string): string {
 /**
  * Formats a speed limit config value as a compact badge for the Speedometer.
  *
- * Examples: '10M' → '10M', '512K' → '512K', '0' → '∞', '1024K' → '1M'.
- * Auto-promotes round values (1024K → 1M, 1024M → 1G) for cleaner display.
+ * Examples: '10M' → '10 M/s', '512K' → '512 K/s', '0' → '∞', '1024K' → '1 M/s'.
+ * Auto-promotes round values (1024K → 1 M/s, 1024M → 1 G/s) for cleaner display.
  */
 export function formatLimitBadge(value: string): string {
   const parsed = parseSpeedLimitValue(value)
-  if (parsed.num <= 0) return '∞ K'
+  if (parsed.num <= 0) return '∞'
 
-  // Auto-promote: 1024K → 1 M, 1024M → 1 G
+  // Auto-promote: 1024K → 1 M/s, 1024M → 1 G/s
   if (parsed.unit === 'K' && parsed.num >= 1024 && parsed.num % 1024 === 0) {
-    return `${parsed.num / 1024} M`
+    return `${parsed.num / 1024} M/s`
   }
   if (parsed.unit === 'M' && parsed.num >= 1024 && parsed.num % 1024 === 0) {
-    return `${parsed.num / 1024} G`
+    return `${parsed.num / 1024} G/s`
   }
 
-  return `${parsed.num} ${parsed.unit}`
+  return `${parsed.num} ${parsed.unit}/s`
 }
 
 /**

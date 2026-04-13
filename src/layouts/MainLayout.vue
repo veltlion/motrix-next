@@ -605,6 +605,7 @@ onMounted(async () => {
         task,
         preferenceStore.config.fileCategoryEnabled,
         preferenceStore.config.fileCategories,
+        preferenceStore.config.dir,
       )
       if (archiveAction) {
         try {

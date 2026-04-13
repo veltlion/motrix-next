@@ -49,12 +49,14 @@ function makeTask(filePath: string, dir: string): Aria2Task {
 // resolveArchiveAction
 // ════════════════════════════════════════════════════════════════════
 
+const BASE_DIR = '/Users/test/Downloads'
+
 describe('resolveArchiveAction', () => {
   // ── Positive cases: should archive ─────────────────────────────
 
   it('returns archive action for video file in default directory', () => {
     const task = makeTask('/Users/test/Downloads/movie.mp4', '/Users/test/Downloads')
-    const result = resolveArchiveAction(task, true, CATEGORIES)
+    const result = resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.source).toBe('/Users/test/Downloads/movie.mp4')
     expect(result!.targetDir).toBe('/Users/test/Downloads/Videos')
@@ -62,21 +64,21 @@ describe('resolveArchiveAction', () => {
 
   it('returns archive action for document downloaded without pre-classification', () => {
     const task = makeTask('/Users/test/Downloads/report.pdf', '/Users/test/Downloads')
-    const result = resolveArchiveAction(task, true, CATEGORIES)
+    const result = resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.targetDir).toBe('/Users/test/Downloads/Documents')
   })
 
   it('returns archive action for music file', () => {
     const task = makeTask('/Users/test/Downloads/song.flac', '/Users/test/Downloads')
-    const result = resolveArchiveAction(task, true, CATEGORIES)
+    const result = resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.targetDir).toBe('/Users/test/Downloads/Music')
   })
 
   it('returns archive action for archive file', () => {
     const task = makeTask('/Users/test/Downloads/backup.zip', '/Users/test/Downloads')
-    const result = resolveArchiveAction(task, true, CATEGORIES)
+    const result = resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.targetDir).toBe('/Users/test/Downloads/Archives')
   })
@@ -85,18 +87,24 @@ describe('resolveArchiveAction', () => {
 
   it('returns null when classification is disabled', () => {
     const task = makeTask('/Users/test/Downloads/movie.mp4', '/Users/test/Downloads')
-    expect(resolveArchiveAction(task, false, CATEGORIES)).toBeNull()
+    expect(resolveArchiveAction(task, false, CATEGORIES, BASE_DIR)).toBeNull()
   })
 
   it('returns null when extension does not match any category', () => {
     const task = makeTask('/Users/test/Downloads/readme.txt', '/Users/test/Downloads')
-    expect(resolveArchiveAction(task, true, CATEGORIES)).toBeNull()
+    expect(resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)).toBeNull()
   })
 
   it('returns null when file is already in the target category directory', () => {
     // Pre-download classification already placed it correctly
     const task = makeTask('/Users/test/Downloads/Videos/movie.mp4', '/Users/test/Downloads/Videos')
-    expect(resolveArchiveAction(task, true, CATEGORIES)).toBeNull()
+    expect(resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)).toBeNull()
+  })
+
+  it('returns null when file is in a user-specified custom path', () => {
+    // User intentionally chose Desktop — auto-archive must NOT move it
+    const task = makeTask('/Users/test/Desktop/movie.mp4', '/Users/test/Desktop')
+    expect(resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)).toBeNull()
   })
 
   it('returns null when task has no files', () => {
@@ -112,17 +120,17 @@ describe('resolveArchiveAction', () => {
       dir: '/Users/test/Downloads',
       files: [],
     }
-    expect(resolveArchiveAction(task, true, CATEGORIES)).toBeNull()
+    expect(resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)).toBeNull()
   })
 
   it('returns null when file path is empty', () => {
     const task = makeTask('', '/Users/test/Downloads')
-    expect(resolveArchiveAction(task, true, CATEGORIES)).toBeNull()
+    expect(resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)).toBeNull()
   })
 
   it('returns null when categories array is empty', () => {
     const task = makeTask('/Users/test/Downloads/movie.mp4', '/Users/test/Downloads')
-    expect(resolveArchiveAction(task, true, [])).toBeNull()
+    expect(resolveArchiveAction(task, true, [], BASE_DIR)).toBeNull()
   })
 
   // ── BT multi-file tasks ───────────────────────────────────────
@@ -130,7 +138,7 @@ describe('resolveArchiveAction', () => {
   it('returns null for BT task (multi-file downloads have own directory structure)', () => {
     const task = makeTask('/Users/test/Downloads/torrent-name/video.mp4', '/Users/test/Downloads')
     task.bittorrent = { info: { name: 'torrent-name' } }
-    expect(resolveArchiveAction(task, true, CATEGORIES)).toBeNull()
+    expect(resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)).toBeNull()
   })
 
   // ── Custom absolute path categories ────────────────────────────
@@ -140,7 +148,7 @@ describe('resolveArchiveAction', () => {
       { label: 'NAS Videos', extensions: ['mp4'], directory: '/Volumes/NAS/Videos', builtIn: false },
     ]
     const task = makeTask('/Users/test/Downloads/movie.mp4', '/Users/test/Downloads')
-    const result = resolveArchiveAction(task, true, customCats)
+    const result = resolveArchiveAction(task, true, customCats, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.targetDir).toBe('/Volumes/NAS/Videos')
   })
@@ -149,7 +157,7 @@ describe('resolveArchiveAction', () => {
 
   it('handles file path with spaces and special characters', () => {
     const task = makeTask('/Users/test/Downloads/my movie (2024).mp4', '/Users/test/Downloads')
-    const result = resolveArchiveAction(task, true, CATEGORIES)
+    const result = resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.source).toBe('/Users/test/Downloads/my movie (2024).mp4')
     expect(result!.targetDir).toBe('/Users/test/Downloads/Videos')
@@ -157,7 +165,7 @@ describe('resolveArchiveAction', () => {
 
   it('handles case-insensitive extension matching on real filename', () => {
     const task = makeTask('/Users/test/Downloads/Photo.MP4', '/Users/test/Downloads')
-    const result = resolveArchiveAction(task, true, CATEGORIES)
+    const result = resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.targetDir).toBe('/Users/test/Downloads/Videos')
   })
@@ -174,7 +182,7 @@ describe('resolveArchiveAction', () => {
       uris: [],
     })
     // Should still return action for first file only
-    const result = resolveArchiveAction(task, true, CATEGORIES)
+    const result = resolveArchiveAction(task, true, CATEGORIES, BASE_DIR)
     expect(result).not.toBeNull()
     expect(result!.source).toBe('/Users/test/Downloads/part1.mp4')
   })

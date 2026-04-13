@@ -252,7 +252,7 @@ async function handleScheduleToggle(enabled: boolean) {
                 <span class="limit-sep">┊</span>
                 <Transition name="limit-fade" mode="out-in">
                   <span v-if="isLimited" :key="'ul-' + ulLimitBadge" class="limit-value">{{ ulLimitBadge }}</span>
-                  <span v-else key="ul-inf" class="limit-value limit-inf">∞ K</span>
+                  <span v-else key="ul-inf" class="limit-value limit-inf">∞</span>
                 </Transition>
               </div>
             </div>
@@ -265,7 +265,7 @@ async function handleScheduleToggle(enabled: boolean) {
                 <span class="limit-sep">┊</span>
                 <Transition name="limit-fade" mode="out-in">
                   <span v-if="isLimited" :key="'dl-' + dlLimitBadge" class="limit-value">{{ dlLimitBadge }}</span>
-                  <span v-else key="dl-inf" class="limit-value limit-inf">∞ K</span>
+                  <span v-else key="dl-inf" class="limit-value limit-inf">∞</span>
                 </Transition>
               </div>
             </div>
@@ -322,14 +322,16 @@ async function handleScheduleToggle(enabled: boolean) {
         </div>
         <NSwitch :value="isScheduleActive" size="small" @update:value="handleScheduleToggle" />
       </div>
-      <NText
-        v-if="isScheduleActive && !isLimited"
-        depth="3"
-        type="warning"
-        style="font-size: 11px; margin-top: 4px; display: block"
-      >
-        {{ t('preferences.schedule-needs-limit') }}
-      </NText>
+      <Transition name="hint-slide">
+        <NText
+          v-if="isScheduleActive && !isLimited"
+          depth="3"
+          type="warning"
+          style="font-size: 11px; margin-top: 4px; display: block"
+        >
+          {{ t('preferences.schedule-needs-limit') }}
+        </NText>
+      </Transition>
 
       <NButton type="primary" size="small" block style="margin-top: 12px" @click="handleApply">
         {{ t('app.speedometer-apply') }}
@@ -609,5 +611,25 @@ async function handleScheduleToggle(enabled: boolean) {
   align-items: center;
   gap: 4px;
   flex: 1;
+}
+
+/* ── Hint slide-fade transition ───────────────────────────────────── */
+.hint-slide-enter-active,
+.hint-slide-leave-active {
+  transition:
+    opacity 0.25s cubic-bezier(0.2, 0, 0, 1),
+    transform 0.25s cubic-bezier(0.2, 0, 0, 1),
+    max-height 0.25s cubic-bezier(0.2, 0, 0, 1);
+  overflow: hidden;
+}
+.hint-slide-enter-from,
+.hint-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+  max-height: 0;
+}
+.hint-slide-enter-to,
+.hint-slide-leave-from {
+  max-height: 40px;
 }
 </style>

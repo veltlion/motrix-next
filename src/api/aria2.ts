@@ -204,8 +204,8 @@ export async function addUri(params: {
     if (outs[index]) opts.out = outs[index]
 
     // Smart file classification: resolve per-URI download directory
-    if (fileCategory?.enabled && opts.dir) {
-      opts.dir = resolveDownloadDir(uri, opts.dir, true, fileCategory.categories)
+    if (fileCategory?.enabled && fileCategory.categories.length > 0) {
+      opts.dir = resolveDownloadDir(uri, opts.dir || '', true, fileCategory.categories)
     }
 
     return getClient().call<string>('addUri', [uri], opts)
