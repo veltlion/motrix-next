@@ -4,10 +4,6 @@ ignoredBuiltDependencies:
 supportedArchitectures:
   os:
     - current
-    - win32
-    - darwin
-    - linux
   cpu:
-    - current
     - x64
     - arm64
