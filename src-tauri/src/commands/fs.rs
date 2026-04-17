@@ -44,7 +44,16 @@ fn sanitize_config_snapshot(raw: &Value) -> Value {
 }
 
 /// Returns `true` when the current process was launched by the OS
-/// autostart mechanism (the Tauri autostart plugin appends `--autostart`).
+/// autostart mechanism (the Tauri autostart plugin appends `--autostart`)
+/// **and** the app is still in the initial cold-start phase.
+///
+/// Once the user first dismisses the window (triggering
+/// `handle_minimize_to_tray`), the lifecycle transitions to runtime
+/// and this function always returns `false`.  This prevents lightweight
+/// mode window recreations from incorrectly re-applying autostart-hide
+/// logic — the recreated frontend calls this again, but the argv
+/// `--autostart` flag is a process-level constant that never changes.
+/// See issue #206.
 ///
 /// Checks for both exact `--autostart` and prefix `--autostart=` variants
 /// to tolerate edge cases from the auto-launch crate's Windows registry
@@ -56,7 +65,16 @@ fn sanitize_config_snapshot(raw: &Value) -> Value {
 ///   because the default log level is `Debug` and diagnostic exports bundle
 ///   all log files into user-submitted ZIPs
 #[tauri::command]
-pub fn is_autostart_launch() -> bool {
+pub fn is_autostart_launch(lifecycle: tauri::State<'_, crate::AppLifecycleState>) -> bool {
+    // After the cold-start phase ends (user dismissed the window at least
+    // once), always return false.  Window recreations in lightweight mode
+    // are user-initiated — they must NOT trigger autostart-hide.  #206.
+    if !lifecycle.is_cold_start() {
+        log::info!("is_autostart_launch: post-cold-start phase → false");
+        return false;
+    }
+
+    // Cold start: check argv as before.
     let args: Vec<String> = std::env::args().collect();
     let matched_exact = args.iter().any(|a| a == "--autostart");
     let matched_prefixed = args.iter().any(|a| a.starts_with("--autostart="));

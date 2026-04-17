@@ -48,6 +48,53 @@ pub(crate) fn read_log_level() -> log::LevelFilter {
     .unwrap_or(log::LevelFilter::Debug)
 }
 
+/// Tracks the application lifecycle phase for window visibility decisions.
+///
+/// During the cold-start phase (`is_cold_start = true`), the autostart
+/// silent-mode guard may hide the window.  Once the user first dismisses
+/// the window (via close button, Cmd+W, or any minimize-to-tray path),
+/// the phase transitions to runtime (`is_cold_start = false`).
+/// This transition is **irreversible** within the process lifetime.
+///
+/// After the transition, `is_autostart_launch()` always returns `false`
+/// so that window recreations in lightweight mode correctly show the
+/// window instead of re-applying autostart-hide logic.
+///
+/// Fixes issue #206: without this, `is_autostart_launch()` reads process
+/// argv (which never changes), causing recreated windows to incorrectly
+/// call `window.hide()` via the frontend's MainLayout.windowVisibility
+/// defence-in-depth check.
+pub struct AppLifecycleState {
+    is_cold_start: std::sync::atomic::AtomicBool,
+}
+
+impl Default for AppLifecycleState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl AppLifecycleState {
+    pub fn new() -> Self {
+        Self {
+            is_cold_start: std::sync::atomic::AtomicBool::new(true),
+        }
+    }
+
+    /// Returns `true` during the initial cold-start phase (before the
+    /// user first dismisses the window).
+    pub fn is_cold_start(&self) -> bool {
+        self.is_cold_start.load(std::sync::atomic::Ordering::SeqCst)
+    }
+
+    /// Ends the cold-start phase.  Called once by `handle_minimize_to_tray()`
+    /// when the user first dismisses the window.  Irreversible.
+    pub fn end_cold_start(&self) {
+        self.is_cold_start
+            .store(false, std::sync::atomic::Ordering::SeqCst);
+    }
+}
+
 /// Minimizes the main window to tray, either by destroying the WebView
 /// (lightweight mode — reduces memory usage) or by
 /// hiding it (standard mode — instant show on tray click).
@@ -55,6 +102,16 @@ pub(crate) fn read_log_level() -> log::LevelFilter {
 /// Shared by `on_window_event(CloseRequested)` and `on_menu_event("close-window")`
 /// to keep the two close paths consistent.
 fn handle_minimize_to_tray(app: &tauri::AppHandle, window: &tauri::WebviewWindow) {
+    // End the cold-start phase on the first window dismissal.
+    // After this point, is_autostart_launch() returns false so that
+    // window recreations in lightweight mode show the window instead
+    // of re-applying autostart-hide logic.  Issue #206.
+    if let Some(lifecycle) = app.try_state::<AppLifecycleState>() {
+        if lifecycle.is_cold_start() {
+            lifecycle.end_cold_start();
+            log::info!("lifecycle: cold-start phase ended");
+        }
+    }
     let store_prefs = app
         .store("config.json")
         .ok()
@@ -113,6 +170,10 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app.manage(services::stat::StatServiceState::new());
     app.manage(services::speed::SpeedSchedulerState::new());
     app.manage(services::monitor::TaskMonitorState::new());
+
+    // App lifecycle — tracks cold-start vs runtime phase for autostart
+    // visibility decisions.  See AppLifecycleState doc and issue #206.
+    app.manage(AppLifecycleState::new());
 
     // History database — opens the same DB as tauri-plugin-sql migrations.
     {

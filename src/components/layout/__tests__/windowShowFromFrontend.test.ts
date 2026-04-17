@@ -85,7 +85,7 @@ describe('commands/fs.rs — is_autostart_launch command', () => {
   it('defines is_autostart_launch as a tauri command', () => {
     expect(source).toContain('is_autostart_launch')
     // Must return a bool
-    expect(source).toMatch(/fn is_autostart_launch.*bool/)
+    expect(source).toMatch(/fn is_autostart_launch.*bool/s)
   })
 
   it('checks for --autostart in command line args', () => {
