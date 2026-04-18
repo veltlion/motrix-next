@@ -913,6 +913,14 @@
               onload="this.closest('.star-history-frame').classList.add('loaded')"
             />
           </a>
+          <!-- Preload alternate theme so theme switch is instant (no network stall) -->
+          <img
+            id="star-history-preload"
+            aria-hidden="true"
+            style="display:none"
+            loading="lazy"
+            src="https://api.star-history.com/chart?repos=AnInsomniacy/motrix-next&type=date&legend=top-left"
+          />
         </div>
       </section>
     </main>
@@ -1444,13 +1452,24 @@
           // Swap hero watermark asset to match theme
           const wm = document.getElementById('hero-watermark-img')
           if (wm) wm.src = 'assets/logo-bolt-' + (effective === 'light' ? 'dark' : 'light') + '.png'
-          // Swap star history chart to match theme
+          // Swap star history chart to match theme.
+          // Both images are preloaded at page init (visible + hidden <img>),
+          // so the browser serves them from cache — no shimmer, no stall.
           const sh = document.getElementById('star-history-chart')
-          if (sh) {
-            const frame = sh.closest('.star-history-frame')
-            if (frame) frame.classList.remove('loaded')
+          const shPreload = document.getElementById('star-history-preload')
+          if (sh && shPreload) {
             const base = 'https://api.star-history.com/chart?repos=AnInsomniacy/motrix-next&type=date&legend=top-left'
-            sh.src = effective === 'dark' ? base + '&theme=dark' : base
+            const darkUrl = base + '&theme=dark'
+            const lightUrl = base
+            const wantDark = effective === 'dark'
+            // Swap visible ↔ preload src (both are already cached)
+            sh.src = wantDark ? darkUrl : lightUrl
+            shPreload.src = wantDark ? lightUrl : darkUrl
+            // If the image is already cached, onload won't re-fire, so ensure loaded state
+            const frame = sh.closest('.star-history-frame')
+            if (frame && sh.complete && sh.naturalWidth > 0) {
+              frame.classList.add('loaded')
+            }
           }
         }
 
