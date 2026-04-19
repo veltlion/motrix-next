@@ -460,16 +460,77 @@ describe('useAppStore', () => {
       store.hideAddTaskDialog()
       expect(store.pendingReferer).toBe('')
     })
+
+    // ── Cookie extraction (mirrors referer tests above) ────────────
+
+    it('extracts cookie from motrixnext://new deep link', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://cdn.quark.cn/file.zip')
+      const cookie = encodeURIComponent('session=abc123; token=xyz')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}&cookie=${cookie}`])
+
+      expect(store.pendingBatch).toHaveLength(1)
+      expect(store.pendingBatch[0].source).toBe('https://cdn.quark.cn/file.zip')
+      expect(store.pendingCookie).toBe('session=abc123; token=xyz')
+    })
+
+    it('sets pendingCookie to empty when deep link has no cookie param', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://example.com/file.zip')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}`])
+
+      expect(store.pendingBatch).toHaveLength(1)
+      expect(store.pendingCookie).toBe('')
+    })
+
+    it('uses last cookie when multiple deep links arrive', () => {
+      const store = useAppStore()
+      const url1 = encodeURIComponent('https://cdn.a.com/file.zip')
+      const c1 = encodeURIComponent('sid=aaa')
+      const url2 = encodeURIComponent('https://cdn.b.com/file.zip')
+      const c2 = encodeURIComponent('sid=bbb')
+      store.handleDeepLinkUrls([
+        `motrixnext://new?url=${url1}&cookie=${c1}`,
+        `motrixnext://new?url=${url2}&cookie=${c2}`,
+      ])
+
+      expect(store.pendingBatch).toHaveLength(2)
+      expect(store.pendingCookie).toBe('sid=bbb')
+    })
+
+    it('clears pendingCookie when hideAddTaskDialog is called', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://example.com/file.zip')
+      const cookie = encodeURIComponent('auth=secret')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}&cookie=${cookie}`])
+      expect(store.pendingCookie).toBe('auth=secret')
+
+      store.hideAddTaskDialog()
+      expect(store.pendingCookie).toBe('')
+    })
+
+    it('extracts both referer and cookie from same deep link', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://cdn.quark.cn/file.zip')
+      const referer = encodeURIComponent('https://pan.quark.cn')
+      const cookie = encodeURIComponent('__puus=abc; __pus=def')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}&referer=${referer}&cookie=${cookie}`])
+
+      expect(store.pendingBatch).toHaveLength(1)
+      expect(store.pendingReferer).toBe('https://pan.quark.cn')
+      expect(store.pendingCookie).toBe('__puus=abc; __pus=def')
+    })
   })
 
   // ── autoSubmitFromExtension ───────────────────────────────────────
 
   describe('autoSubmitFromExtension', () => {
     // Helper: build a motrixnext://new deep link
-    function buildDeepLink(downloadUrl: string, referer = ''): string {
+    function buildDeepLink(downloadUrl: string, referer = '', cookie = ''): string {
       const u = encodeURIComponent(downloadUrl)
       const r = referer ? `&referer=${encodeURIComponent(referer)}` : ''
-      return `motrixnext://new?url=${u}${r}`
+      const c = cookie ? `&cookie=${encodeURIComponent(cookie)}` : ''
+      return `motrixnext://new?url=${u}${r}${c}`
     }
 
     it('auto-submits HTTP URI when master toggle and http sub-toggle are enabled', async () => {
@@ -632,6 +693,24 @@ describe('useAppStore', () => {
 
       // referer should still be extracted (used in auto-submit form)
       expect(store.pendingReferer).toBe('https://example.com')
+    })
+
+    it('forwards cookie to aria2 header when auto-submitting', async () => {
+      const store = useAppStore()
+      const { usePreferenceStore } = await import('@/stores/preference')
+      const prefStore = usePreferenceStore()
+      prefStore.config.autoSubmitFromExtension = {
+        enable: true,
+        http: true,
+        magnet: true,
+        torrent: true,
+        metalink: true,
+      }
+
+      store.handleDeepLinkUrls([buildDeepLink('https://cdn.quark.cn/file.zip', 'https://pan.quark.cn', 'auth=secret')])
+
+      // Cookie should be extracted even during auto-submit
+      expect(store.pendingCookie).toBe('auth=secret')
     })
 
     it('non-extension deep links (file://, http://) are unaffected by auto-submit', async () => {

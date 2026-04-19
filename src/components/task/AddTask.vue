@@ -175,6 +175,17 @@ watch(
       form.value.split = preferenceStore.config.split ?? form.value.split
       // Reset the manual-override flag each time the dialog opens
       dirUserModified.value = false
+
+      // Pre-fill referer and cookie from browser extension deep-link.
+      // These are extracted by handleDeepLinkUrls() and stored as pending
+      // values. Without this, the manual-submit path silently discards
+      // them — causing cookie-gated CDNs (Quark, Baidu) to return 412.
+      if (appStore.pendingReferer) {
+        form.value.referer = appStore.pendingReferer
+      }
+      if (appStore.pendingCookie) {
+        form.value.cookie = appStore.pendingCookie
+      }
     }
   },
 )
