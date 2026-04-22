@@ -89,6 +89,8 @@
   "footer.ack": "Takk til {link} for grunnlaget",
   "footer.contributing": "Bidra",
   "footer.coc": "Atferdskodeks",
+  "footer.privacy": "Personvernerklæring",
+  "footer.signing": "Signeringspolicy",
   "footer.license": "MIT — Copyright © 2025-nåværende AnInsomniacy",
   "dl.modal.title": "Last ned for {os}",
   "dl.modal.download": "Last ned",

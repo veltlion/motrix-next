@@ -89,6 +89,8 @@
   "footer.ack": "Temelleri atan {link}'e teşekkürler",
   "footer.contributing": "Katkıda Bulun",
   "footer.coc": "Davranış Kuralları",
+  "footer.privacy": "Gizlilik Politikası",
+  "footer.signing": "İmzalama Politikası",
   "footer.license": "MIT — Telif Hakkı © 2025-günümüz AnInsomniacy",
   "dl.modal.title": "{os} için indir",
   "dl.modal.download": "İndir",

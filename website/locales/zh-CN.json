@@ -89,6 +89,8 @@
   "footer.ack": "感谢 {link} 奠定基础",
   "footer.contributing": "参与贡献",
   "footer.coc": "行为准则",
+  "footer.privacy": "隐私政策",
+  "footer.signing": "签名策略",
   "footer.license": "MIT — 版权所有 © 2025-至今 AnInsomniacy",
   "dl.modal.title": "下载 {os} 版",
   "dl.modal.download": "下载",

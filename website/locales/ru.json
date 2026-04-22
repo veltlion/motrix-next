@@ -89,6 +89,8 @@
   "footer.ack": "Благодарность {link} за основу",
   "footer.contributing": "Внести вклад",
   "footer.coc": "Кодекс поведения",
+  "footer.privacy": "Политика конфиденциальности",
+  "footer.signing": "Политика подписи",
   "footer.license": "MIT — Copyright © 2025-настоящее AnInsomniacy",
   "dl.modal.title": "Скачать для {os}",
   "dl.modal.download": "Скачать",

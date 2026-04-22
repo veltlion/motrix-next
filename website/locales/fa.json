@@ -89,6 +89,8 @@
   "footer.ack": "سپاس از {link} برای پی‌ریزی",
   "footer.contributing": "مشارکت",
   "footer.coc": "آیین‌نامه رفتار",
+  "footer.privacy": "سیاست حفظ حریم خصوصی",
+  "footer.signing": "سیاست امضای کد",
   "footer.license": "MIT — حق نشر © ۲۰۲۵-اکنون AnInsomniacy",
   "dl.modal.title": "دانلود برای {os}",
   "dl.modal.download": "دانلود",

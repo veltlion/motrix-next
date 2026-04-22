@@ -89,6 +89,8 @@
   "footer.ack": "Dank an {link} für die Grundlagen",
   "footer.contributing": "Mitwirken",
   "footer.coc": "Verhaltenskodex",
+  "footer.privacy": "Datenschutzrichtlinie",
+  "footer.signing": "Signaturrichtlinie",
   "footer.license": "MIT — Copyright © 2025-heute AnInsomniacy",
   "dl.modal.title": "Download für {os}",
   "dl.modal.download": "Download",

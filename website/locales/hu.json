@@ -89,6 +89,8 @@
   "footer.ack": "Köszönet a {link}-nek az alapokért",
   "footer.contributing": "Közreműködés",
   "footer.coc": "Magatartási kódex",
+  "footer.privacy": "Adatvédelmi irányelvek",
+  "footer.signing": "Aláírási szabályzat",
   "footer.license": "MIT — Copyright © 2025-jelen AnInsomniacy",
   "dl.modal.title": "Letöltés {os} rendszerre",
   "dl.modal.download": "Letöltés",
