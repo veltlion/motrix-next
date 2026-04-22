@@ -50,6 +50,7 @@ pub struct RuntimeConfig {
     pub extension_api_port: u16,
 }
 
+#[cfg(target_os = "macos")]
 fn default_true() -> bool {
     true
 }
