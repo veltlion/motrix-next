@@ -360,13 +360,6 @@ describe('useAppStore', () => {
   // ── handleDeepLinkUrls ──────────────────────────────────────────
 
   describe('handleDeepLinkUrls', () => {
-    // These tests verify dialog-mode behavior — disable auto-submit so
-    // motrixnext://new items land in pendingBatch instead of being dispatched.
-    beforeEach(async () => {
-      const { usePreferenceStore } = await import('@/stores/preference')
-      const prefStore = usePreferenceStore()
-      prefStore.config.autoSubmitFromExtension = false
-    })
     it('detects remote .torrent and .metalink URLs with correct kind', () => {
       const store = useAppStore()
       store.handleDeepLinkUrls([
@@ -565,11 +558,9 @@ describe('useAppStore', () => {
       expect(store.addTaskVisible).toBe(false)
     })
 
-    it('falls back to AddTask dialog when disabled', async () => {
+    it('falls back to AddTask dialog when disabled', () => {
       const store = useAppStore()
-      const { usePreferenceStore } = await import('@/stores/preference')
-      const prefStore = usePreferenceStore()
-      prefStore.config.autoSubmitFromExtension = false
+      // Default config has autoSubmitFromExtension = false
 
       store.handleDeepLinkUrls([buildDeepLink('https://example.com/file.zip')])
 

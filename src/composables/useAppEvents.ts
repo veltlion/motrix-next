@@ -238,6 +238,7 @@ export function useAppEvents(deps: AppEventsDeps): AppEventsReturn {
             deps.onAbout()
             break
           case 'new-task':
+            await getCurrentWindow().unminimize()
             await getCurrentWindow().show()
             await getCurrentWindow().setFocus()
             appStore.showAddTaskDialog()
@@ -401,6 +402,7 @@ export function useAppEvents(deps: AppEventsDeps): AppEventsReturn {
    */
   async function processIncomingDeepLinks(urls: string[]) {
     const mainWindow = getCurrentWindow()
+    await mainWindow.unminimize()
     await mainWindow.show()
     await mainWindow.setFocus()
 

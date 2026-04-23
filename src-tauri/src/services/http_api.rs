@@ -378,6 +378,7 @@ fn route_to_frontend(app: &AppHandle, req: &AddRequest) {
         let _ = app.set_activation_policy(ActivationPolicy::Regular);
     }
     if let Some(window) = crate::tray::get_or_create_main_window(app) {
+        let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
     }

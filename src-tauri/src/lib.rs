@@ -237,6 +237,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             // exists before emitting. In lightweight mode the WebView may
             // have been destroyed, making emit a no-op.
             if let Some(window) = tray::get_or_create_main_window(app) {
+                let _ = window.unminimize();
                 let _ = window.show();
                 let _ = window.set_focus();
             }
@@ -275,6 +276,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             use tauri::ActivationPolicy;
             let _ = app_handle.set_activation_policy(ActivationPolicy::Regular);
             if let Some(w) = tray::get_or_create_main_window(&app_handle) {
+                let _ = w.unminimize();
                 let _ = w.show();
                 let _ = w.set_focus();
             }
@@ -612,6 +614,7 @@ fn handle_run_event(app: &tauri::AppHandle, event: tauri::RunEvent) {
             use tauri::ActivationPolicy;
             let _ = app.set_activation_policy(ActivationPolicy::Regular);
             if let Some(window) = tray::get_or_create_main_window(app) {
+                let _ = window.unminimize();
                 let _ = window.show();
                 let _ = window.set_focus();
             }

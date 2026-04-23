@@ -489,12 +489,10 @@ function startShutdownCountdown() {
   showShutdownCountdown.value = true
 
   // Bring window to front so the user sees the countdown
-  getCurrentWindow()
-    .show()
-    .catch(() => {})
-  getCurrentWindow()
-    .setFocus()
-    .catch(() => {})
+  const countdownWindow = getCurrentWindow()
+  countdownWindow.unminimize().catch(() => {})
+  countdownWindow.show().catch(() => {})
+  countdownWindow.setFocus().catch(() => {})
 
   shutdownTimer = setInterval(async () => {
     shutdownCountdown.value--
