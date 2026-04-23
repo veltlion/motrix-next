@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'ไม่สามารถผูกพอร์ต {port} สำหรับ API ส่วนขยาย พอร์ตอาจถูกใช้งานอยู่แล้ว',
   'extension-section': 'ส่วนขยายเบราว์เซอร์',
   'shutdown-when-complete': 'ปิดเครื่องหลังดาวน์โหลดทั้งหมดเสร็จสิ้น',
+  'keep-awake': 'ป้องกันการพักหน้าจอขณะดาวน์โหลด',
   'max-tries': 'จำนวนลองใหม่สูงสุด',
   'max-tries-hint': '0 = ไม่จำกัด',
   'retry-wait': 'เวลารอลองใหม่',

@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Не вдалося прив\'язати порт {port} для API розширення. Порт може бути вже зайнятий.',
   'extension-section': 'Розширення браузера',
   'shutdown-when-complete': 'Вимкнути після завершення всіх завантажень',
+  'keep-awake': 'Запобігати сну під час завантаження',
   'max-tries': 'Максимум спроб',
   'max-tries-hint': '0 = Необмежено',
   'retry-wait': 'Очікування між спробами',

@@ -303,6 +303,7 @@ export const DEFAULT_APP_CONFIG = {
 
   // ── Power Management ────────────────────────────────────────────
   shutdownWhenComplete: false,
+  keepAwake: false,
 
   // ── Retry & Timeout (matches aria2.conf defaults) ──────────────
   maxTries: 0, // 0 = unlimited retries

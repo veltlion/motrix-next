@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Impossible de lier le port {port} pour l\'API d\'extension. Le port est peut-être déjà utilisé.',
   'extension-section': 'Extension de navigateur',
   'shutdown-when-complete': 'Éteindre après la fin de tous les téléchargements',
+  'keep-awake': 'Empêcher la mise en veille pendant les téléchargements',
   'max-tries': 'Tentatives maximales',
   'max-tries-hint': '0 = Illimité',
   'retry-wait': 'Attente entre tentatives',

@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Kan poort {port} niet binden voor de extensie-API. De poort is mogelijk al in gebruik.',
   'extension-section': 'Browserextensie',
   'shutdown-when-complete': 'Afsluiten na voltooiing van alle downloads',
+  'keep-awake': 'Voorkom slaapstand tijdens downloaden',
   'max-tries': 'Max pogingen',
   'max-tries-hint': '0 = Onbeperkt',
   'retry-wait': 'Wachttijd tussen pogingen',

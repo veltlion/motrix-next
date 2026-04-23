@@ -8,6 +8,7 @@
 
 use super::config::RuntimeConfigState;
 use crate::aria2::client::Aria2Client;
+use keepawake::KeepAwake;
 use std::sync::Arc;
 use std::time::Duration;
 use tauri::Emitter;
@@ -362,6 +363,13 @@ async fn stat_loop(
 ) {
     let mut interval_state = IntervalState::new();
 
+    // Keep-awake RAII guard: held while downloads are active, dropped when idle.
+    // The guard prevents system sleep/display dimming via OS-native APIs:
+    //   macOS:   IOPMAssertionCreateWithName (PreventUserIdleDisplaySleep)
+    //   Windows: SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED)
+    //   Linux:   org.freedesktop.ScreenSaver.Inhibit + systemd Inhibit (D-Bus)
+    let mut awake_guard: Option<KeepAwake> = None;
+
     loop {
         tokio::select! {
             _ = tokio::time::sleep(interval_state.duration()) => {},
@@ -424,6 +432,37 @@ async fn stat_loop(
         // progress bar keep updating. See issue #194 follow-up.
         if let Some(rc_state) = app.try_state::<RuntimeConfigState>() {
             let cfg = rc_state.snapshot().await;
+
+            // ── Keep-awake management ────────────────────────────────
+            // Acquire the OS power assertion when downloads are active
+            // and the user has opted in.  Release automatically (RAII
+            // drop) when all downloads finish or the setting is toggled
+            // off.  This runs in stat_service rather than a Tauri
+            // command so it works in lightweight mode when the WebView
+            // is destroyed.
+            if cfg.keep_awake && num_active > 0 {
+                if awake_guard.is_none() {
+                    match keepawake::Builder::default()
+                        .display(true)
+                        .idle(true)
+                        .reason("Active downloads in progress")
+                        .app_name("Motrix Next")
+                        .app_reverse_domain("com.motrix.next")
+                        .create()
+                    {
+                        Ok(guard) => {
+                            awake_guard = Some(guard);
+                            log::info!("keep_awake: assertion acquired (active downloads)");
+                        }
+                        Err(e) => {
+                            log::warn!("keep_awake: failed to acquire assertion: {e}");
+                        }
+                    }
+                }
+            } else if awake_guard.is_some() {
+                awake_guard = None; // RAII drop → OS releases the power assertion
+                log::info!("keep_awake: assertion released");
+            }
 
             // ── Tray title (macOS menu bar / Linux appindicator label) ──
             if let Some(tray) = app.tray_by_id("main") {
@@ -682,5 +721,23 @@ mod tests {
         assert!(json.get("numStoppedTotal").is_some());
         // Not snake_case
         assert!(json.get("download_speed").is_none());
+    }
+
+    // ── keepawake integration ───────────────────────────────────────
+
+    /// Validates that the keepawake Builder API compiles and returns
+    /// the expected types.  Does NOT create an actual OS assertion
+    /// (safe for headless CI environments).
+    #[test]
+    fn keepawake_builder_compiles() {
+        let _: fn() -> Result<KeepAwake, keepawake::Error> = || {
+            keepawake::Builder::default()
+                .display(true)
+                .idle(true)
+                .reason("test")
+                .app_name("test")
+                .app_reverse_domain("com.test")
+                .create()
+        };
     }
 }

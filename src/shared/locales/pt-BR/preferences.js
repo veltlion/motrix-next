@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Falha ao vincular a porta {port} da API da extensão. A porta pode estar em uso.',
   'extension-section': 'Extensão do navegador',
   'shutdown-when-complete': 'Desligar após concluir todos os downloads',
+  'keep-awake': 'Impedir suspensão durante downloads',
   'max-tries': 'Máximo de tentativas',
   'max-tries-hint': '0 = Ilimitado',
   'retry-wait': 'Espera entre tentativas',

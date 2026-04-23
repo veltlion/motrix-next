@@ -25,6 +25,7 @@ const userKeys = [
   'hide-dock-on-minimize',
   'history-directories',
   'keep-seeding',
+  'keep-awake',
   'keep-window-state',
   'last-check-update-time',
   'last-sync-tracker-time',

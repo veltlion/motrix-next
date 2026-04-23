@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Không thể gắn cổng {port} cho API tiện ích mở rộng. Cổng có thể đang được sử dụng.',
   'extension-section': 'Tiện ích mở rộng trình duyệt',
   'shutdown-when-complete': 'Tắt máy sau khi tải xong tất cả',
+  'keep-awake': 'Ngăn chế độ ngủ khi đang tải xuống',
   'max-tries': 'Số lần thử lại tối đa',
   'max-tries-hint': '0 = Không giới hạn',
   'retry-wait': 'Thời gian chờ thử lại',

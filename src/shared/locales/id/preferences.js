@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Gagal mengikat port {port} untuk API ekstensi. Port mungkin sudah digunakan.',
   'extension-section': 'Ekstensi Browser',
   'shutdown-when-complete': 'Matikan setelah semua unduhan selesai',
+  'keep-awake': 'Cegah tidur saat mengunduh',
   'max-tries': 'Maks. percobaan ulang',
   'max-tries-hint': '0 = Tak Terbatas',
   'retry-wait': 'Tunggu percobaan ulang',

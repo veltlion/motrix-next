@@ -45,6 +45,11 @@ pub struct RuntimeConfig {
     /// Whether to shut down the system after all downloads complete.
     #[serde(default)]
     pub shutdown_when_complete: bool,
+    /// Whether to prevent system sleep/display dimming during active downloads.
+    /// Uses `keepawake` crate (macOS IOPMAssertion, Windows SetThreadExecutionState,
+    /// Linux D-Bus org.freedesktop.ScreenSaver.Inhibit + systemd Inhibit).
+    #[serde(default)]
+    pub keep_awake: bool,
     /// Port for the embedded HTTP API (browser extension communication).
     #[serde(default = "default_extension_api_port")]
     pub extension_api_port: u16,
@@ -83,6 +88,7 @@ impl Default for RuntimeConfig {
             #[cfg(not(target_os = "linux"))]
             show_progress_bar: false,
             shutdown_when_complete: false,
+            keep_awake: false,
             extension_api_port: default_extension_api_port(),
         }
     }
@@ -136,6 +142,7 @@ mod tests {
         #[cfg(not(target_os = "linux"))]
         assert!(!cfg.show_progress_bar);
         assert!(!cfg.shutdown_when_complete); // default OFF — opt-in only
+        assert!(!cfg.keep_awake); // default OFF — opt-in only
     }
 
     // ── Deserialization from AppConfig-shaped JSON ───────────────────
@@ -155,6 +162,7 @@ mod tests {
             "dockBadgeSpeed": false,
             "showProgressBar": true,
             "shutdownWhenComplete": true,
+            "keepAwake": true,
             // Extra fields from AppConfig that RuntimeConfig ignores:
             "theme": "dark",
             "locale": "en-US",
@@ -178,6 +186,7 @@ mod tests {
         #[cfg(not(target_os = "linux"))]
         assert!(cfg.show_progress_bar);
         assert!(cfg.shutdown_when_complete);
+        assert!(cfg.keep_awake);
     }
 
     #[test]

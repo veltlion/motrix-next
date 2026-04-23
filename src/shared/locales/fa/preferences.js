@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'اتصال به پورت {port} برای API افزونه ناموفق بود. ممکن است پورت در حال استفاده باشد.',
   'extension-section': 'افزونه مرورگر',
   'shutdown-when-complete': 'خاموش شدن پس از اتمام همه دانلودها',
+  'keep-awake': 'جلوگیری از خواب سیستم هنگام دانلود',
   'max-tries': 'حداکثر تلاش مجدد',
   'max-tries-hint': '0 = نامحدود',
   'retry-wait': 'انتظار تلاش مجدد',

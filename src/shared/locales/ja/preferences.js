@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': '拡張API ポート {port} のバインドに失敗しました。ポートがすでに使用されている可能性があります。',
   'extension-section': 'ブラウザ拡張機能',
   'shutdown-when-complete': 'すべてのダウンロード完了後にシャットダウン',
+  'keep-awake': 'ダウンロード中のスリープを防止',
   'max-tries': '最大リトライ回数',
   'max-tries-hint': '0 = 無制限',
   'retry-wait': 'リトライ待機時間',

@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Nem sikerült a(z) {port} port kötése az API-hoz. A port már használatban lehet.',
   'extension-section': 'Böngészőbővítmény',
   'shutdown-when-complete': 'Leállítás az összes letöltés befejezése után',
+  'keep-awake': 'Alvás megakadályozása letöltés közben',
   'max-tries': 'Maximális újrapróbálkozások',
   'max-tries-hint': '0 = Korlátlan',
   'retry-wait': 'Újrapróbálkozás várakozás',

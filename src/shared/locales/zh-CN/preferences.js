@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': '无法绑定扩展 API 端口 {port}，该端口可能已被占用。',
   'extension-section': '浏览器扩展',
   'shutdown-when-complete': '所有下载完成后自动关机',
+  'keep-awake': '下载时阻止系统休眠',
   'max-tries': '最大重试次数',
   'max-tries-hint': '0 = 无限制',
   'retry-wait': '重试等待时间',

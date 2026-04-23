@@ -153,6 +153,16 @@ describe('buildDownloadsForm', () => {
     expect(form.shutdownWhenComplete).toBe(true)
   })
 
+  it('defaults keepAwake to false', () => {
+    const form = buildDownloadsForm(emptyConfig)
+    expect(form.keepAwake).toBe(false)
+  })
+
+  it('reads keepAwake from config when set', () => {
+    const form = buildDownloadsForm({ keepAwake: true } as unknown as AppConfig)
+    expect(form.keepAwake).toBe(true)
+  })
+
   // ── Auto Cleanup ────────────────────────────────────────────────
 
   it('defaults deleteTorrentAfterComplete to false', () => {
@@ -172,7 +182,7 @@ describe('buildDownloadsForm', () => {
 
   // ── Completeness ────────────────────────────────────────────────
 
-  it('returns all 25 form fields', () => {
+  it('returns all 26 form fields', () => {
     const form = buildDownloadsForm(emptyConfig)
     const expectedFields = [
       'dir',
@@ -198,6 +208,7 @@ describe('buildDownloadsForm', () => {
       'notifyOnStart',
       'notifyOnComplete',
       'shutdownWhenComplete',
+      'keepAwake',
       'deleteTorrentAfterComplete',
       'autoDeleteStaleRecords',
       'clearCompletedOnExit',
@@ -236,6 +247,7 @@ describe('buildDownloadsSystemConfig', () => {
     notifyOnStart: false,
     notifyOnComplete: true,
     shutdownWhenComplete: false,
+    keepAwake: false,
     deleteTorrentAfterComplete: false,
     autoDeleteStaleRecords: false,
     clearCompletedOnExit: false,
@@ -359,6 +371,7 @@ describe('transformDownloadsForStore', () => {
     notifyOnStart: false,
     notifyOnComplete: true,
     shutdownWhenComplete: false,
+    keepAwake: false,
     deleteTorrentAfterComplete: false,
     autoDeleteStaleRecords: false,
     clearCompletedOnExit: false,

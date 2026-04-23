@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Nu s-a putut lega portul {port} pentru API-ul extensiei. Portul ar putea fi deja utilizat.',
   'extension-section': 'Extensie browser',
   'shutdown-when-complete': 'Oprire după finalizarea tuturor descărcărilor',
+  'keep-awake': 'Previne suspendarea în timpul descărcărilor',
   'max-tries': 'Număr maxim de încercări',
   'max-tries-hint': '0 = Nelimitat',
   'retry-wait': 'Așteptare între încercări',

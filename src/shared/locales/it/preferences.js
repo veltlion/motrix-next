@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Impossibile associare la porta {port} per l\'API dell\'estensione. La porta potrebbe essere già in uso.',
   'extension-section': 'Estensione del browser',
   'shutdown-when-complete': 'Spegni dopo il completamento di tutti i download',
+  'keep-awake': 'Impedisci la sospensione durante i download',
   'max-tries': 'Tentativi massimi',
   'max-tries-hint': '0 = Illimitato',
   'retry-wait': 'Attesa tra tentativi',

@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'No se pudo enlazar el puerto {port} de la API de extensión. El puerto podría estar en uso.',
   'extension-section': 'Extensión del navegador',
   'shutdown-when-complete': 'Apagar después de completar todas las descargas',
+  'keep-awake': 'Evitar suspensión del sistema durante las descargas',
   'max-tries': 'Máximo de reintentos',
   'max-tries-hint': '0 = Ilimitado',
   'retry-wait': 'Espera entre reintentos',

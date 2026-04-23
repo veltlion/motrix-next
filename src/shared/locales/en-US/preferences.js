@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Failed to bind extension API on port {port}. The port may already be in use.',
   'extension-section': 'Browser Extension',
   'shutdown-when-complete': 'Shut down after all downloads complete',
+  'keep-awake': 'Prevent sleep while downloading',
   'max-tries': 'Max Retries',
   'max-tries-hint': '0 = Unlimited',
   'retry-wait': 'Retry Wait',

@@ -503,6 +503,9 @@ onMounted(async () => {
       <NFormItem :label="t('preferences.shutdown-when-complete')">
         <NSwitch v-model:value="form.shutdownWhenComplete" />
       </NFormItem>
+      <NFormItem :label="t('preferences.keep-awake')">
+        <NSwitch v-model:value="form.keepAwake" />
+      </NFormItem>
 
       <!-- Auto Cleanup -->
       <NDivider title-placement="left">{{ t('preferences.auto-cleanup') }}</NDivider>

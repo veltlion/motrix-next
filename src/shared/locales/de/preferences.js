@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Port {port} für die Extension-API konnte nicht gebunden werden. Der Port ist möglicherweise bereits belegt.',
   'extension-section': 'Browser-Erweiterung',
   'shutdown-when-complete': 'Nach Abschluss aller Downloads herunterfahren',
+  'keep-awake': 'System-Ruhezustand während Downloads verhindern',
   'max-tries': 'Maximale Wiederholungen',
   'max-tries-hint': '0 = Unbegrenzt',
   'retry-wait': 'Wartezeit zwischen Versuchen',

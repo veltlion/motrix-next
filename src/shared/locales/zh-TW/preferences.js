@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': '無法繫結擴充 API 連接埠 {port}，該連接埠可能已被佔用。',
   'extension-section': '瀏覽器擴充功能',
   'shutdown-when-complete': '所有下載完成後自動關機',
+  'keep-awake': '下載時阻止系統休眠',
   'max-tries': '最大重試次數',
   'max-tries-hint': '0 = 無限制',
   'retry-wait': '重試等待時間',

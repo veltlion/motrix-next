@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Kunne ikke binde port {port} for utvidelses-API. Porten kan allerede være i bruk.',
   'extension-section': 'Nettleserutvidelse',
   'shutdown-when-complete': 'Slå av etter at alle nedlastinger er ferdige',
+  'keep-awake': 'Forhindre hvilemodus under nedlasting',
   'max-tries': 'Maks. forsøk',
   'max-tries-hint': '0 = Ubegrenset',
   'retry-wait': 'Ventetid mellom forsøk',

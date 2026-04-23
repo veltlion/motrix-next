@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Uzantı API portu {port} bağlanamadı. Port zaten kullanımda olabilir.',
   'extension-section': 'Tarayıcı Eklentisi',
   'shutdown-when-complete': 'Tüm indirmeler tamamlandıktan sonra kapat',
+  'keep-awake': 'İndirme sırasında uyku modunu engelle',
   'max-tries': 'Maks. yeniden deneme',
   'max-tries-hint': '0 = Sınırsız',
   'retry-wait': 'Yeniden deneme bekleme',

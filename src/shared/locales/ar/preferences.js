@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'تعذر ربط منفذ API للإضافة {port}. قد يكون المنفذ مستخدمًا بالفعل.',
   'extension-section': 'إضافة المتصفح',
   'shutdown-when-complete': 'إيقاف التشغيل بعد اكتمال جميع التنزيلات',
+  'keep-awake': 'منع النظام من الدخول في وضع السكون أثناء التنزيل',
   'max-tries': 'الحد الأقصى لمحاولات إعادة المحاولة',
   'max-tries-hint': '0 = غير محدود',
   'retry-wait': 'انتظار إعادة المحاولة',

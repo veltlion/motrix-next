@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': 'Nie udało się powiązać portu {port} dla API rozszerzenia. Port może być już używany.',
   'extension-section': 'Rozszerzenie przeglądarki',
   'shutdown-when-complete': 'Wyłącz po zakończeniu wszystkich pobierań',
+  'keep-awake': 'Zapobiegaj uśpieniu podczas pobierania',
   'max-tries': 'Maksymalna liczba prób',
   'max-tries-hint': '0 = Bez limitu',
   'retry-wait': 'Oczekiwanie między próbami',

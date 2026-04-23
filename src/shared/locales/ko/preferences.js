@@ -300,6 +300,7 @@ export default {
   'extension-api-port-failed': '확장 API 포트 {port} 바인딩에 실패했습니다. 포트가 이미 사용 중일 수 있습니다.',
   'extension-section': '브라우저 확장 프로그램',
   'shutdown-when-complete': '모든 다운로드 완료 후 종료',
+  'keep-awake': '다운로드 중 절전 모드 방지',
   'max-tries': '최대 재시도 횟수',
   'max-tries-hint': '0 = 무제한',
   'retry-wait': '재시도 대기 시간',
