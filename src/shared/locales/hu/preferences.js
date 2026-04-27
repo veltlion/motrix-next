@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Folyamatjelző megjelenítése',
   'language': 'Nyelv',
   'select-language': 'Nyelv kiválasztása',
+  'follow-system': 'Rendszer követése',
   'language-changed-title': 'Nyelv megváltozott',
   'language-changed-content': 'Kérjük, indítsa újra az alkalmazást az új nyelv alkalmazásához.',
   'language-changed-restart': 'Újraindítás most',

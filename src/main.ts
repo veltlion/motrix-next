@@ -19,6 +19,7 @@ import './styles/variables.css'
 
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { getLocale } from 'tauri-plugin-locale-api'
+import { resolveSystemLocale } from '@shared/utils/locale'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -320,31 +321,37 @@ window.addEventListener('unhandledrejection', (e) => {
 
   preferenceStore.loadPreference().then(async () => {
     // ── Phase 1: critical path → window visible ASAP ──────────────────────
-    let locale = preferenceStore.locale
-    if (!locale) {
+    const storedLocale = preferenceStore.locale
+    let resolvedLocale: string
+
+    if (!storedLocale || storedLocale === 'auto') {
+      // First install (empty/auto) or explicit Follow System mode:
+      // detect the OS locale and resolve to the closest available match.
       try {
         const raw = (await getLocale()) || 'en-US'
-        const sysLang = raw.replace('-Hans', '').replace('-Hant', '')
-        const available = i18n.global.availableLocales
-        if (available.includes(sysLang)) {
-          locale = sysLang
-        } else {
-          const prefix = sysLang.split('-')[0]
-          locale = available.find((l) => l === prefix || l.startsWith(prefix + '-')) || 'en-US'
-        }
+        resolvedLocale = resolveSystemLocale(raw, i18n.global.availableLocales)
       } catch (e) {
         logger.debug('main.locale', e)
-        locale = 'en-US'
+        resolvedLocale = 'en-US'
       }
-      // Update config reactively FIRST (synchronous), then persist to disk (async).
-      // updateAndSave() delays config.value assignment until after file I/O,
-      // which causes a race: components that mount before the save completes
-      // would read stale '' locale and fall back to 'en-US'.
-      preferenceStore.updatePreference({ locale })
-      preferenceStore.savePreference()
+
+      if (!storedLocale) {
+        // Legacy first-install path (locale was ''): persist 'auto' so
+        // subsequent launches continue to follow the system language.
+        preferenceStore.updatePreference({ locale: 'auto' })
+        preferenceStore.savePreference()
+      }
+      // When storedLocale is already 'auto', we intentionally do NOT
+      // overwrite it — the config stays 'auto' across restarts.
+    } else {
+      // Explicit locale chosen by the user (e.g. 'zh-CN', 'ja').
+      resolvedLocale = storedLocale
     }
-    if (locale && i18n.global.locale) {
-      setI18nLocale(i18n, locale)
+
+    // Apply resolved locale to vue-i18n and expose it on the store
+    // so downstream consumers (direction, General.vue) can read it.
+    if (resolvedLocale) {
+      setI18nLocale(i18n, resolvedLocale)
     }
 
     // Flush deferred migration toasts now that i18n locale is active.

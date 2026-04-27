@@ -13,6 +13,22 @@ import type { AppConfig, ProxyConfig } from '@shared/types'
 
 const STORE_KEY = 'preferences'
 
+/**
+ * Lazily reads the active vue-i18n locale without importing useLocale at
+ * module scope (which would create a circular dependency in tests).
+ */
+function readI18nLocale(): string {
+  try {
+    const { i18n } = require('@/composables/useLocale') as {
+      i18n: { global: { locale: { value: string } | string } }
+    }
+    const loc = i18n.global.locale
+    return typeof loc === 'string' ? loc : loc.value
+  } catch {
+    return 'en-US'
+  }
+}
+
 export const usePreferenceStore = defineStore('preference', () => {
   const engineMode = ref('MAX')
   const pendingChanges = ref(false)
@@ -35,7 +51,17 @@ export const usePreferenceStore = defineStore('preference', () => {
 
   const theme = computed(() => config.value.theme)
   const locale = computed(() => config.value.locale)
-  const direction = computed(() => getLangDirection(config.value.locale || 'en-US'))
+
+  /** The actual locale code in use — resolves 'auto' to the live vue-i18n locale. */
+  const resolvedLocale = computed(() => {
+    const l = config.value.locale
+    if (!l || l === 'auto') {
+      return readI18nLocale()
+    }
+    return l
+  })
+
+  const direction = computed(() => getLangDirection(resolvedLocale.value))
 
   async function getStore() {
     return await load('config.json')
@@ -212,6 +238,7 @@ export const usePreferenceStore = defineStore('preference', () => {
     dbUpgradeVersion,
     theme,
     locale,
+    resolvedLocale,
     direction,
     updatePreference,
     updateAndSave,

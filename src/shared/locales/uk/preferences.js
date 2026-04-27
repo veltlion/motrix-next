@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Показувати індикатор прогресу',
   'language': 'Мова',
   'select-language': 'Вибрати мову',
+  'follow-system': 'Слідувати за системою',
   'language-changed-title': 'Мову змінено',
   'language-changed-content': 'Будь ласка, перезапустіть програму, щоб застосувати нову мову.',
   'language-changed-restart': 'Перезапустити зараз',

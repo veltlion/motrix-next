@@ -51,7 +51,7 @@ describe('PreferenceStore', () => {
   it('loadPreference keeps defaults when no saved data', async () => {
     await store.loadPreference()
     expect(store.config.theme).toBe('auto')
-    expect(store.config.locale).toBe('')
+    expect(store.config.locale).toBe('auto')
   })
 
   // ─── computed: theme / locale / direction ───────────────

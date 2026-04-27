@@ -11,6 +11,9 @@ import { arch as osArch, version as osVersion } from '@tauri-apps/plugin-os'
 import { usePlatform } from '@/composables/usePlatform'
 import { getVersion as getAppVersion } from '@tauri-apps/api/app'
 import { getVersion as getAria2Version } from '@/api/aria2'
+import { getLocale } from 'tauri-plugin-locale-api'
+import { resolveSystemLocale } from '@shared/utils/locale'
+import { i18n } from '@/composables/useLocale'
 import { logger } from '@shared/logger'
 import {
   buildGeneralForm,
@@ -51,6 +54,7 @@ const sysArch = ref('')
 const sysOsVersion = ref('')
 const sysAppVersion = ref('')
 const sysAria2Version = ref('')
+const detectedLocaleCode = ref('en-US')
 const archLabelDisplay = computed(() => getArchLabel(sysArch.value))
 
 async function copyVersionToClipboard(text: string, label: string) {
@@ -81,9 +85,10 @@ const { form, isDirty, handleSave, handleReset, patchSnapshot, resetSnapshot } =
   transformForStore: transformGeneralForStore,
   afterSave: async (f, prevConfig) => {
     // Locale change → restart prompt
-    const prevLocale = prevConfig.locale || 'en-US'
+    const prevLocale = prevConfig.locale || 'auto'
     if (f.locale !== prevLocale) {
-      const targetLocale = f.locale
+      // Determine the actual target locale for bilingual dialog rendering.
+      const targetLocale = f.locale === 'auto' ? detectedLocaleCode.value || 'en-US' : f.locale
       const isEn = targetLocale === 'en-US'
       const tt = (key: string) => t(key, {}, { locale: targetLocale })
       dialog.info({
@@ -130,17 +135,9 @@ const { form, isDirty, handleSave, handleReset, patchSnapshot, resetSnapshot } =
   },
 })
 
-// One-shot sync: if async OS locale detection completes after mount, patch the form.
-const stopLocaleSync = watch(
-  () => preferenceStore.config.locale,
-  (detected) => {
-    if (detected && form.value.locale === 'en-US' && detected !== 'en-US') {
-      form.value.locale = detected
-      patchSnapshot({ locale: detected } as Partial<typeof form.value>)
-      stopLocaleSync()
-    }
-  },
-)
+// Note: the legacy one-shot locale sync watcher has been removed.
+// With 'auto' as an explicit option, there is no async race condition
+// to handle — the form correctly initialises with 'auto' from config.
 
 // ── Instant color-scheme application ─────────────────────────────────
 watch(
@@ -213,6 +210,14 @@ const localeOptions = [
   { label: 'Tiếng Việt · Vietnamese', value: 'vi' },
 ]
 
+/** Dynamic label for the 'auto' option. */
+const autoLocaleLabel = computed(() => {
+  return locale.value === 'en-US' ? t('preferences.follow-system') : `${t('preferences.follow-system')} · Follow System`
+})
+
+/** Full locale options with 'Follow System' prepended as the first choice. */
+const fullLocaleOptions = computed(() => [{ label: autoLocaleLabel.value, value: 'auto' }, ...localeOptions])
+
 const themeOptions = computed(() => [
   { label: t('preferences.theme-auto'), value: 'auto' },
   { label: t('preferences.theme-light'), value: 'light' },
@@ -266,6 +271,12 @@ onMounted(async () => {
     sysAria2Version.value = info.version
   } catch (e) {
     logger.debug('General.aria2Version', e)
+  }
+  try {
+    const raw = (await getLocale()) || 'en-US'
+    detectedLocaleCode.value = resolveSystemLocale(raw, i18n.global.availableLocales)
+  } catch (e) {
+    logger.debug('General.detectLocale', e)
   }
   resetSnapshot()
 })
@@ -328,7 +339,7 @@ onMounted(async () => {
             : `${t('preferences.select-language')} · Select Language`
         "
       >
-        <NSelect v-model:value="form.locale" :options="localeOptions" style="width: 280px" />
+        <NSelect v-model:value="form.locale" :options="fullLocaleOptions" style="width: 280px" />
       </NFormItem>
 
       <!-- ③ Auto Update -->

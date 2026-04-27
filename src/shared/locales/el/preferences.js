@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Εμφάνιση γραμμής προόδου',
   'language': 'Γλώσσα',
   'select-language': 'Επιλογή γλώσσας',
+  'follow-system': 'Ακολουθήστε το σύστημα',
   'language-changed-title': 'Η γλώσσα άλλαξε',
   'language-changed-content': 'Παρακαλώ επανεκκινήστε την εφαρμογή για να εφαρμοστεί η νέα γλώσσα.',
   'language-changed-restart': 'Επανεκκίνηση τώρα',

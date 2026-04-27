@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Arată bara de progres',
   'language': 'Limbă',
   'select-language': 'Selectează limba',
+  'follow-system': 'Urmează sistemul',
   'language-changed-title': 'Limba schimbată',
   'language-changed-content': 'Reporniți aplicația pentru a aplica noua limbă.',
   'language-changed-restart': 'Reporniți acum',

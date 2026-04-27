@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Mostra barra di avanzamento',
   'language': 'Lingua',
   'select-language': 'Seleziona lingua',
+  'follow-system': 'Segui il sistema',
   'language-changed-title': 'Lingua modificata',
   'language-changed-content': 'Riavvia l\'applicazione per applicare la nuova lingua.',
   'language-changed-restart': 'Riavvia ora',

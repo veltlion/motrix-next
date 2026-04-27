@@ -22,9 +22,9 @@ describe('buildGeneralForm', () => {
 
   // ── Language ─────────────────────────────────────────────────────
 
-  it('defaults locale to en-US', () => {
+  it('defaults locale to auto (follow system)', () => {
     const form = buildGeneralForm(emptyConfig)
-    expect(form.locale).toBe('en-US')
+    expect(form.locale).toBe('auto')
   })
 
   it('reads locale from config', () => {

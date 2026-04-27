@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Vis fremdriftslinje',
   'language': 'Språk',
   'select-language': 'Velg språk',
+  'follow-system': 'Følg systemet',
   'language-changed-title': 'Språk endret',
   'language-changed-content': 'Start applikasjonen på nytt for å bruke det nye språket.',
   'language-changed-restart': 'Start på nytt nå',

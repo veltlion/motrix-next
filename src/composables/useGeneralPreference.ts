@@ -38,7 +38,7 @@ export interface GeneralForm {
  */
 export function buildGeneralForm(config: AppConfig): GeneralForm {
   return {
-    locale: config.locale || 'en-US',
+    locale: config.locale || 'auto',
     theme: config.theme ?? D.theme,
     colorScheme: config.colorScheme ?? D.colorScheme,
     autoCheckUpdate: config.autoCheckUpdate ?? D.autoCheckUpdate,

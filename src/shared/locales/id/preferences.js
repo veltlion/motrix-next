@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Tampilkan bilah kemajuan',
   'language': 'Bahasa',
   'select-language': 'Pilih bahasa',
+  'follow-system': 'Ikuti sistem',
   'language-changed-title': 'Bahasa diubah',
   'language-changed-content': 'Silakan mulai ulang aplikasi untuk menerapkan bahasa baru.',
   'language-changed-restart': 'Mulai ulang sekarang',

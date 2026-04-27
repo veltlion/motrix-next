@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Voortgangsbalk tonen',
   'language': 'Taal',
   'select-language': 'Taal selecteren',
+  'follow-system': 'Systeem volgen',
   'language-changed-title': 'Taal gewijzigd',
   'language-changed-content': 'Start de applicatie opnieuw op om de nieuwe taal toe te passen.',
   'language-changed-restart': 'Nu herstarten',

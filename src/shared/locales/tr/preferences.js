@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'İlerleme çubuğu göster',
   'language': 'Dil',
   'select-language': 'Dil seçin',
+  'follow-system': 'Sistemi takip et',
   'language-changed-title': 'Dil değiştirildi',
   'language-changed-content': 'Yeni dili uygulamak için lütfen uygulamayı yeniden başlatın.',
   'language-changed-restart': 'Şimdi yeniden başlat',

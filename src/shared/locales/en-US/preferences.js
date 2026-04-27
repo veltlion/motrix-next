@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Show download progress bar',
   'language': 'Language',
   'select-language': 'Select Language',
+  'follow-system': 'Follow System',
   'language-changed-title': 'Language Changed',
   'language-changed-content': 'Please restart the application to apply the new language.',
   'language-changed-restart': 'Restart Now',

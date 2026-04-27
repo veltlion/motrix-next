@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Покажи лента за прогрес',
   'language': 'Език',
   'select-language': 'Избери език',
+  'follow-system': 'Следвай системата',
   'language-changed-title': 'Езикът е променен',
   'language-changed-content': 'Моля, рестартирайте приложението, за да приложите новия език.',
   'language-changed-restart': 'Рестартиране сега',

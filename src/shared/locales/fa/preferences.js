@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'نمایش نوار پیشرفت',
   'language': 'زبان',
   'select-language': 'انتخاب زبان',
+  'follow-system': 'پیروی از سیستم',
   'language-changed-title': 'زبان تغییر کرد',
   'language-changed-content': 'لطفاً برنامه را مجدداً راه‌اندازی کنید تا زبان جدید اعمال شود.',
   'language-changed-restart': 'اکنون راه‌اندازی مجدد',

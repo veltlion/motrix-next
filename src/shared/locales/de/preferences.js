@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Fortschrittsbalken anzeigen',
   'language': 'Sprache',
   'select-language': 'Sprache wählen',
+  'follow-system': 'Systemstandard',
   'language-changed-title': 'Sprache geändert',
   'language-changed-content': 'Bitte starten Sie die Anwendung neu, um die neue Sprache anzuwenden.',
   'language-changed-restart': 'Jetzt neu starten',

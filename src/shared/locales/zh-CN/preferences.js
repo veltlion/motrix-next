@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': '显示下载进度条',
   'language': '语言',
   'select-language': '选择语言',
+  'follow-system': '跟随系统',
   'language-changed-title': '语言已更改',
   'language-changed-content': '请重启应用以切换到新语言。',
   'language-changed-restart': '立即重启',

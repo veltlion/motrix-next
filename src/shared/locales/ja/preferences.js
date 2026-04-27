@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'ダウンロード進捗バーを表示',
   'language': '言語',
   'select-language': '言語を選択',
+  'follow-system': 'システムに従う',
   'language-changed-title': '言語が変更されました',
   'language-changed-content': '新しい言語を適用するには、アプリケーションを再起動してください。',
   'language-changed-restart': '今すぐ再起動',

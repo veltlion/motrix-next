@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'Hiện thanh tiến trình',
   'language': 'Ngôn ngữ',
   'select-language': 'Chọn ngôn ngữ',
+  'follow-system': 'Theo hệ thống',
   'language-changed-title': 'Đã thay đổi ngôn ngữ',
   'language-changed-content': 'Vui lòng khởi động lại ứng dụng để áp dụng ngôn ngữ mới.',
   'language-changed-restart': 'Khởi động lại ngay',

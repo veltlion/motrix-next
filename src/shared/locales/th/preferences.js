@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': 'แสดงแถบความคืบหน้า',
   'language': 'ภาษา',
   'select-language': 'เลือกภาษา',
+  'follow-system': 'ตามระบบ',
   'language-changed-title': 'เปลี่ยนภาษาแล้ว',
   'language-changed-content': 'กรุณาเริ่มแอปพลิเคชันใหม่เพื่อใช้ภาษาใหม่',
   'language-changed-restart': 'เริ่มใหม่ตอนนี้',

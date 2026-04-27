@@ -68,6 +68,7 @@ export default {
   'show-progress-bar': '다운로드 진행률 표시',
   'language': '언어',
   'select-language': '언어 선택',
+  'follow-system': '시스템 기본값',
   'language-changed-title': '언어가 변경되었습니다',
   'language-changed-content': '새 언어를 적용하려면 애플리케이션을 다시 시작해 주세요.',
   'language-changed-restart': '지금 다시 시작',
