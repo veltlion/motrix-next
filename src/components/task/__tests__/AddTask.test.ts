@@ -212,7 +212,7 @@ describe('AddTask batch URI integration', () => {
     expect(appStore.pendingBatch).toEqual([])
   })
 
-  it('appends newly added uri batch items while open and deduplicates multiline payloads per line', async () => {
+  it('replaces textarea with newly arriving batch items (batch priority over prior content)', async () => {
     const appStore = useAppStore()
     appStore.pendingBatch = [createBatchItem('uri', 'https://a.example/file\nhttps://b.example/file')]
 
@@ -225,6 +225,9 @@ describe('AddTask batch URI integration', () => {
       ['https://a.example/file', 'https://b.example/file'].join('\n'),
     )
 
+    // New batch items arrive while dialog is open (e.g. extension deep-link).
+    // These REPLACE the textarea content instead of merging, because batch
+    // content takes priority over any clipboard auto-fill.
     appStore.pendingBatch = [
       createBatchItem('uri', 'https://b.example/file\nhttps://c.example/file'),
       createBatchItem('uri', 'https://a.example/file'),
@@ -233,8 +236,10 @@ describe('AddTask batch URI integration', () => {
     await nextTick()
     await flushPromises()
 
+    // Only the new batch items appear — prior textarea content is replaced.
+    // mergeUriLines still deduplicates within the new batch itself.
     expect((getTextarea(wrapper).element as HTMLTextAreaElement).value).toBe(
-      ['https://a.example/file', 'https://b.example/file', 'https://c.example/file'].join('\n'),
+      ['https://b.example/file', 'https://c.example/file', 'https://a.example/file'].join('\n'),
     )
     expect(appStore.pendingBatch).toEqual([])
   })

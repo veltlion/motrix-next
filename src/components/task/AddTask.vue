@@ -243,11 +243,25 @@ onMounted(async () => {
 })
 
 // When dialog opens: resolve file items, flush URIs into textarea, auto-select tab
+//
+// Race-condition guard: the batch.length watcher may fire and drain pendingBatch
+// BEFORE this async watcher finishes its clipboard read.  A simple `hasBatch`
+// re-check fails because the batch is already empty by that point.  Instead we
+// use a flag that the batch.length watcher sets synchronously whenever it writes
+// to form.uris — the flag survives the drain and is visible after the await.
+let batchDidWrite = false
+
 watch(
   () => props.show,
   async (visible) => {
-    if (!visible) return
+    if (!visible) {
+      batchDidWrite = false
+      return
+    }
     selectedBatchIndex.value = 0
+    console.error(
+      `[DBG:showWatcher] visible=${visible} hasBatch=${hasBatch.value} batchLen=${batch.value.length} batchDidWrite=${batchDidWrite}`,
+    )
 
     if (hasBatch.value) {
       // Resolve file-based items
@@ -273,7 +287,19 @@ watch(
       try {
         const { readText } = await import('@tauri-apps/plugin-clipboard-manager')
         const text = await readText()
+        // Re-check: a deep-link/extension batch may have arrived and been
+        // processed (and drained) during the async readText() gap.
+        // `hasBatch` is unreliable here because batchWatcher drains
+        // pendingBatch after writing — use the flag instead.
+        console.error(
+          `[DBG:showWatcher] after readText: batchDidWrite=${batchDidWrite} hasBatch=${hasBatch.value} text=${(text || '').slice(0, 60)}`,
+        )
+        if (batchDidWrite) {
+          console.error(`[DBG:showWatcher] BAIL: batchWatcher already wrote, skipping clipboard`)
+          return
+        }
         if (text && detectResource(text, preferenceStore.config.clipboard)) {
+          console.error(`[DBG:showWatcher] writing clipboard to form.uris`)
           form.value.uris = text.trim()
         }
       } catch (e) {
@@ -283,16 +309,22 @@ watch(
   },
 )
 
-// Watch for new batch items added while dialog is already open (drag-drop, deep link)
+// Watch for new batch items added while dialog is already open (drag-drop, deep link).
+// Replace (not merge) the textarea — batch content takes priority over any clipboard
+// auto-fill that the show watcher may have already written.
 watch(
   () => batch.value.length,
   async (newLen, oldLen) => {
+    console.error(`[DBG:batchWatcher] newLen=${newLen} oldLen=${oldLen} show=${props.show}`)
     if (!props.show || newLen <= oldLen) return
-    // Flush any newly added URI items via normalized merge (dedup against existing)
     const uriItems = batch.value.filter((i) => i.kind === 'uri')
     if (uriItems.length > 0) {
+      console.error(
+        `[DBG:batchWatcher] replacing form.uris with ${uriItems.length} batch items: ${uriItems.map((i) => i.payload.slice(0, 40)).join(', ')}`,
+      )
+      batchDidWrite = true
       form.value.uris = mergeUriLines(
-        form.value.uris,
+        '',
         uriItems.map((i) => i.payload),
       )
       appStore.pendingBatch = batch.value.filter((i) => i.kind !== 'uri')

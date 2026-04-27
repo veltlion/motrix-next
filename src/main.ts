@@ -518,6 +518,7 @@ window.addEventListener('unhandledrejection', (e) => {
     let lastClipboardText = ''
     getCurrentWindow().onFocusChanged(async ({ payload: focused }) => {
       if (!focused) return
+      console.error(`[DBG:clipboard] onFocusChanged focused=${focused} addTaskVisible=${appStore.addTaskVisible}`)
       if (appStore.addTaskVisible) return
       const clipboardConfig = preferenceStore.config.clipboard
       if (!clipboardConfig?.enable) return
@@ -528,8 +529,8 @@ window.addEventListener('unhandledrejection', (e) => {
         const { detectResource } = await import('@shared/utils')
         if (detectResource(text, clipboardConfig)) {
           lastClipboardText = text
-          const { createBatchItem } = await import('@shared/utils/batchHelpers')
-          appStore.enqueueBatch([createBatchItem('uri', text)])
+          console.error(`[DBG:clipboard] detected resource, calling showAddTaskDialog. text=${text.slice(0, 60)}`)
+          appStore.showAddTaskDialog()
         }
       } catch (e) {
         logger.debug('Main.clipboardMonitor', e)
