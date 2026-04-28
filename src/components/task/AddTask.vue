@@ -211,6 +211,9 @@ watch(
       if (appStore.pendingCookie) {
         form.value.cookie = appStore.pendingCookie
       }
+      if (appStore.pendingFilename) {
+        form.value.out = appStore.pendingFilename
+      }
     }
   },
 )

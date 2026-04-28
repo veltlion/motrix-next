@@ -62,6 +62,8 @@ export const useAppStore = defineStore('app', () => {
   const pendingReferer = ref('')
   /** Cookie from the most recent deep-link, forwarded to aria2 as a Cookie header. */
   const pendingCookie = ref('')
+  /** Output filename from extension's Content-Disposition extraction. */
+  const pendingFilename = ref('')
   const progress = ref(0)
   const pendingUpdate = ref<TauriUpdate | null>(null)
   const engineRestarting = ref(true)
@@ -145,6 +147,7 @@ export const useAppStore = defineStore('app', () => {
     pendingBatch.value = []
     pendingReferer.value = ''
     pendingCookie.value = ''
+    pendingFilename.value = ''
   }
 
   function updateAddTaskOptions(options: Aria2EngineOptions = {}) {
@@ -254,11 +257,17 @@ export const useAppStore = defineStore('app', () => {
               // cookies for authentication — without them, the CDN
               // returns HTTP 412 Precondition Failed.
               const cookie = parsed.searchParams.get('cookie') || ''
+              // Extract filename from extension's Content-Disposition
+              // query parameter extraction (RFC 6266).
+              const filename = parsed.searchParams.get('filename') || ''
               if (referer) {
                 pendingReferer.value = referer
               }
               if (cookie) {
                 pendingCookie.value = cookie
+              }
+              if (filename) {
+                pendingFilename.value = filename
               }
 
               // Auto-submit: bypass AddTask dialog for URI types when enabled.
@@ -266,9 +275,13 @@ export const useAppStore = defineStore('app', () => {
               // file-select pipeline that only runs inside the AddTask dialog.
               const autoSubmit = usePreferenceStore().config.autoSubmitFromExtension
               if (autoSubmit && kind === 'uri') {
-                void autoSubmitExtensionUrl(downloadUrl, referer, cookie)
+                void autoSubmitExtensionUrl(downloadUrl, referer, cookie, filename)
               } else {
-                items.push(createBatchItem(kind, downloadUrl))
+                const item = createBatchItem(kind, downloadUrl)
+                if (filename) {
+                  item.displayName = filename
+                }
+                items.push(item)
               }
             }
           }
@@ -316,13 +329,13 @@ export const useAppStore = defineStore('app', () => {
    * Auto-submits a single extension URL using the user's default settings.
    * Equivalent to opening AddTask and clicking Submit without any changes.
    */
-  async function autoSubmitExtensionUrl(url: string, referer: string, cookie: string): Promise<void> {
+  async function autoSubmitExtensionUrl(url: string, referer: string, cookie: string, filename: string): Promise<void> {
     const preferenceStore = usePreferenceStore()
     const taskStore = useTaskStore()
 
     const form: AddTaskForm = {
       uris: url,
-      out: '',
+      out: filename,
       dir: preferenceStore.config.dir,
       split: preferenceStore.config.split ?? 16,
       userAgent: '',
@@ -387,5 +400,6 @@ export const useAppStore = defineStore('app', () => {
     fetchEngineOptions,
     handleDeepLinkUrls,
     pendingProtocolHijack,
+    pendingFilename,
   }
 })

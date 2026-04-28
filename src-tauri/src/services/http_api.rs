@@ -60,14 +60,15 @@ impl PendingDeepLinkState {
 // ── Request / Response Types ────────────────────────────────────────
 
 /// POST /add request body from the browser extension.
-///
-/// The extension may also send `filename` — serde silently ignores it since
-/// all download logic (including output filename) now lives in the frontend.
 #[derive(Debug, Deserialize)]
 pub struct AddRequest {
     pub url: String,
     pub referer: Option<String>,
     pub cookie: Option<String>,
+    /// Output filename hint from the browser extension.
+    /// Extracted from the URL's `response-content-disposition` query parameter
+    /// (RFC 6266).
+    pub filename: Option<String>,
 }
 
 /// POST /add response.
@@ -415,10 +416,14 @@ fn build_deep_link_url(req: &AddRequest) -> String {
                 q.append_pair("cookie", cookie);
             }
         }
+        if let Some(ref filename) = req.filename {
+            if !filename.is_empty() {
+                q.append_pair("filename", filename);
+            }
+        }
     }
     deep_link.to_string()
 }
-
 // ── Server Lifecycle ────────────────────────────────────────────────
 
 /// Handle for a running HTTP API server.  Allows graceful shutdown.
@@ -613,12 +618,13 @@ mod tests {
             "url": "https://example.com/file.zip",
             "referer": "https://example.com/page",
             "cookie": "sid=abc",
-            "filename": "file.zip"  // ignored by serde (not in struct)
+            "filename": "file.zip"
         });
         let req: AddRequest = serde_json::from_value(json).expect("deserialize");
         assert_eq!(req.url, "https://example.com/file.zip");
         assert_eq!(req.referer.as_deref(), Some("https://example.com/page"));
         assert_eq!(req.cookie.as_deref(), Some("sid=abc"));
+        assert_eq!(req.filename.as_deref(), Some("file.zip"));
     }
 
     #[test]
@@ -628,6 +634,17 @@ mod tests {
         assert_eq!(req.url, "https://example.com/file.zip");
         assert!(req.referer.is_none());
         assert!(req.cookie.is_none());
+        assert!(req.filename.is_none());
+    }
+
+    #[test]
+    fn deserialize_add_request_with_chinese_filename() {
+        let json = serde_json::json!({
+            "url": "https://cdn.quark.cn/hash123",
+            "filename": "无常幽鬼V0.1.xmgic"
+        });
+        let req: AddRequest = serde_json::from_value(json).expect("deserialize");
+        assert_eq!(req.filename.as_deref(), Some("无常幽鬼V0.1.xmgic"));
     }
 
     #[test]
@@ -822,5 +839,44 @@ mod tests {
         let result = deep_link.to_string();
         assert!(result.contains("referer="));
         assert!(result.contains("cookie="));
+    }
+
+    #[test]
+    fn deep_link_url_includes_filename() {
+        let req = AddRequest {
+            url: "https://cdn.quark.cn/hash123".to_string(),
+            referer: None,
+            cookie: None,
+            filename: Some("无常幽鬼V0.1.xmgic".to_string()),
+        };
+        let result = build_deep_link_url(&req);
+        assert!(result.starts_with("motrixnext://new?"));
+        assert!(result.contains("filename="));
+        // Chinese characters must be percent-encoded
+        assert!(result.contains("%E6%97%A0%E5%B8%B8"));
+    }
+
+    #[test]
+    fn deep_link_url_omits_empty_filename() {
+        let req = AddRequest {
+            url: "https://example.com/file.zip".to_string(),
+            referer: None,
+            cookie: None,
+            filename: Some(String::new()),
+        };
+        let result = build_deep_link_url(&req);
+        assert!(!result.contains("filename="));
+    }
+
+    #[test]
+    fn deep_link_url_omits_none_filename() {
+        let req = AddRequest {
+            url: "https://example.com/file.zip".to_string(),
+            referer: None,
+            cookie: None,
+            filename: None,
+        };
+        let result = build_deep_link_url(&req);
+        assert!(!result.contains("filename="));
     }
 }

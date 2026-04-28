@@ -520,17 +520,65 @@ describe('useAppStore', () => {
       expect(store.pendingReferer).toBe('https://pan.quark.cn')
       expect(store.pendingCookie).toBe('__puus=abc; __pus=def')
     })
+
+    // ── Filename extraction (mirrors referer/cookie tests above) ────
+
+    it('extracts filename from motrixnext://new deep link', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://cdn.quark.cn/hash123')
+      const filename = encodeURIComponent('无常幽鬼V0.1.xmgic')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}&filename=${filename}`])
+
+      expect(store.pendingBatch).toHaveLength(1)
+      expect(store.pendingBatch[0].source).toBe('https://cdn.quark.cn/hash123')
+      expect(store.pendingFilename).toBe('无常幽鬼V0.1.xmgic')
+    })
+
+    it('sets pendingFilename to empty when deep link has no filename param', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://example.com/file.zip')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}`])
+
+      expect(store.pendingBatch).toHaveLength(1)
+      expect(store.pendingFilename).toBe('')
+    })
+
+    it('clears pendingFilename when hideAddTaskDialog is called', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://cdn.quark.cn/hash123')
+      const filename = encodeURIComponent('test.zip')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}&filename=${filename}`])
+      expect(store.pendingFilename).toBe('test.zip')
+
+      store.hideAddTaskDialog()
+      expect(store.pendingFilename).toBe('')
+    })
+
+    it('extracts filename together with referer and cookie', () => {
+      const store = useAppStore()
+      const url = encodeURIComponent('https://cdn.quark.cn/hash123')
+      const referer = encodeURIComponent('https://pan.quark.cn')
+      const cookie = encodeURIComponent('__puus=abc')
+      const filename = encodeURIComponent('无常幽鬼V0.1.xmgic')
+      store.handleDeepLinkUrls([`motrixnext://new?url=${url}&referer=${referer}&cookie=${cookie}&filename=${filename}`])
+
+      expect(store.pendingBatch).toHaveLength(1)
+      expect(store.pendingReferer).toBe('https://pan.quark.cn')
+      expect(store.pendingCookie).toBe('__puus=abc')
+      expect(store.pendingFilename).toBe('无常幽鬼V0.1.xmgic')
+    })
   })
 
   // ── autoSubmitFromExtension ───────────────────────────────────────
 
   describe('autoSubmitFromExtension', () => {
     // Helper: build a motrixnext://new deep link
-    function buildDeepLink(downloadUrl: string, referer = '', cookie = ''): string {
+    function buildDeepLink(downloadUrl: string, referer = '', cookie = '', filename = ''): string {
       const u = encodeURIComponent(downloadUrl)
       const r = referer ? `&referer=${encodeURIComponent(referer)}` : ''
       const c = cookie ? `&cookie=${encodeURIComponent(cookie)}` : ''
-      return `motrixnext://new?url=${u}${r}${c}`
+      const f = filename ? `&filename=${encodeURIComponent(filename)}` : ''
+      return `motrixnext://new?url=${u}${r}${c}${f}`
     }
 
     it('auto-submits HTTP URI when enabled', async () => {
