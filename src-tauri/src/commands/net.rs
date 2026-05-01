@@ -3,12 +3,13 @@
 /// `fetch_remote_bytes` — Downloads raw bytes (e.g. `.torrent` files) for
 /// the browser extension deep-link flow.
 ///
-/// `resolve_filename` — Resolves trustworthy server-provided filenames for
-/// extensionless HTTP URLs before forwarding them to aria2.
+/// `resolve_filename` — Resolves trustworthy filenames for extensionless HTTP
+/// URLs before forwarding them to aria2.
 ///
 /// The command deliberately avoids deriving a filename from URL placeholders
-/// such as `/attachment/u/0/`. When the server exposes only a MIME type, the
-/// fallback is a neutral English filename instead of a misleading path guess.
+/// such as `/attachment/u/0/`. Stable URL basenames from media/CDN paths may be
+/// combined with a MIME-derived extension; weak placeholders still receive a
+/// neutral English fallback.
 use crate::error::AppError;
 
 /// Applies an optional proxy to a `reqwest::ClientBuilder`.
@@ -110,16 +111,22 @@ pub async fn resolve_filename(
         }
     }
 
-    // 3d. Level 4 — Content-Type MIME → neutral fallback name.
+    // 3d. Level 4 — Content-Type MIME → URL basename plus extension, or neutral fallback.
     if let Some(ct) = resp.headers().get(reqwest::header::CONTENT_TYPE) {
         let mime_str = ct.to_str().unwrap_or("");
         // Strip parameters: "image/jpeg; charset=utf-8" → "image/jpeg"
         let mime_core = mime_str.split(';').next().unwrap_or("").trim();
         if let Some(ext) = mime2ext::mime2ext(mime_core) {
-            let resolved = format!("{UNRESOLVED_FILENAME}.{ext}");
-            log::debug!(
-                "resolve_filename: Content-Type ({mime_core}) has no trusted filename; using {resolved}"
-            );
+            let resolved = resolve_mime_fallback_filename(&basename, ext);
+            if resolved.starts_with(UNRESOLVED_FILENAME) {
+                log::debug!(
+                    "resolve_filename: Content-Type ({mime_core}) has no trusted filename; using {resolved}"
+                );
+            } else {
+                log::debug!(
+                    "resolve_filename: resolved via URL basename + Content-Type ({mime_core}) → {resolved}"
+                );
+            }
             return Ok(Some(resolved));
         }
     }
@@ -128,6 +135,37 @@ pub async fn resolve_filename(
         "resolve_filename: no trusted filename source for {url}; using {UNRESOLVED_FILENAME}"
     );
     Ok(Some(UNRESOLVED_FILENAME.to_string()))
+}
+
+fn resolve_mime_fallback_filename(basename: &str, ext: &str) -> String {
+    if is_trustworthy_extensionless_basename(basename) {
+        format!("{basename}.{ext}")
+    } else {
+        format!("{UNRESOLVED_FILENAME}.{ext}")
+    }
+}
+
+fn is_trustworthy_extensionless_basename(basename: &str) -> bool {
+    let name = basename.trim();
+    if name.is_empty() || name != basename || name == "." || name == ".." {
+        return false;
+    }
+    if name.contains('\0')
+        || name.contains('/')
+        || name.contains('\\')
+        || name.chars().any(char::is_control)
+    {
+        return false;
+    }
+    if name.chars().all(|ch| ch.is_ascii_digit()) {
+        return false;
+    }
+
+    let lower = name.to_ascii_lowercase();
+    !matches!(
+        lower.as_str(),
+        "attachment" | "download" | "file" | "index" | "default" | UNRESOLVED_FILENAME
+    )
 }
 
 async fn probe_get_content_disposition(
@@ -752,6 +790,35 @@ mod tests {
         .unwrap();
 
         assert_eq!(resolved, Some("unresolved-filename.xlsx".to_string()));
+    }
+
+    #[tokio::test]
+    async fn resolve_filename_uses_url_basename_for_trusted_extensionless_media_url() {
+        use axum::{routing::head, Router};
+        use std::net::SocketAddr;
+        use tokio::net::TcpListener;
+
+        async fn handle_head() -> [(&'static str, &'static str); 1] {
+            [("content-type", "image/jpeg")]
+        }
+
+        let app = Router::new().route("/media/HCo_0zsbkAEov7s", head(handle_head));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let resolved = resolve_filename(
+            format!("http://{addr}/media/HCo_0zsbkAEov7s?format=jpg&name=4096x4096"),
+            None,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(resolved, Some("HCo_0zsbkAEov7s.jpg".to_string()));
     }
 
     #[tokio::test]
