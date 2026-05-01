@@ -49,6 +49,7 @@
     "parse-torrent": "^11.0.19",
     "path-browserify": "^1.0.1",
     "pinia": "^3.0.4",
+    "sanitize-filename": "^1.6.4",
     "tauri-plugin-locale-api": "^2.0.1",
     "vue": "^3.5.13",
     "vue-i18n": "^11.2.8",

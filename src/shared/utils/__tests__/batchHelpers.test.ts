@@ -500,6 +500,12 @@ describe('resolveExternalFilenameHint', () => {
     ).toBe('')
   })
 
+  it('rejects numeric browser placeholder filename for extensionless attachment URL', () => {
+    expect(resolveExternalFilenameHint('https://mail-attachment.googleusercontent.com/attachment/u/0/', '0.xlsx')).toBe(
+      '',
+    )
+  })
+
   // ── Accept: extensionless but different from URL basename ─────────
 
   it('accepts extensionless hint when different from URL basename (cloud drive real name)', () => {

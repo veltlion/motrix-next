@@ -115,7 +115,7 @@ export async function addUri(params: {
 
     // Smart file classification: resolve per-URI download directory
     if (fileCategory?.enabled && fileCategory.categories.length > 0) {
-      opts.dir = resolveDownloadDir(uri, opts.dir || '', true, fileCategory.categories)
+      opts.dir = resolveDownloadDir(opts.out || uri, opts.dir || '', true, fileCategory.categories)
     }
 
     return invoke<string>('aria2_add_uri', { uris: [uri], options: opts })

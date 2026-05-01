@@ -9,12 +9,7 @@ import { usePreferenceStore } from '@/stores/preference'
 import { ADD_TASK_TYPE, ENGINE_MAX_CONNECTION_PER_SERVER } from '@shared/constants'
 import { detectResource, bytesToSize } from '@shared/utils'
 import { calcColumnWidth } from '@shared/utils/calcColumnWidth'
-import {
-  mergeUriLines,
-  normalizeUriLines,
-  extractDecodedFilename,
-  extractMagnetDisplayName,
-} from '@shared/utils/batchHelpers'
+import { mergeUriLines, normalizeUriLines, extractMagnetDisplayName } from '@shared/utils/batchHelpers'
 import {
   buildEngineOptions,
   classifySubmitError,
@@ -24,6 +19,7 @@ import {
   isGlobalDownloadProxyActive,
   getDownloadProxy,
 } from '@/composables/useAddTaskSubmit'
+import type { ManualUriSubmitResult } from '@/composables/useAddTaskSubmit'
 import { isValidAria2ProxyUrl } from '@shared/utils/aria2Proxy'
 import { handleTaskStart } from '@/composables/useTaskNotifyHandlers'
 import { isMagnetUri } from '@/composables/useMagnetFlow'
@@ -439,7 +435,7 @@ async function handleSubmit() {
       globalProxyServer: globalProxyServer.value,
     }
     const options = buildEngineOptions(effectiveForm)
-    let manualResult = { magnetGids: [] as string[], magnetFailures: [] as { uri: string; error: string }[] }
+    let manualResult: ManualUriSubmitResult = { submittedTaskNames: [], magnetGids: [], magnetFailures: [] }
 
     if (hasBatch.value) {
       await submitBatchItems(batch.value, options, taskStore)
@@ -470,12 +466,8 @@ async function handleSubmit() {
           taskNames.push(item.displayName)
         }
       }
+      taskNames.push(...manualResult.submittedTaskNames)
       const allUris = normalizeUriLines(form.value.uris)
-      for (const uri of allUris) {
-        if (!isMagnetUri(uri)) {
-          taskNames.push(extractDecodedFilename(uri) || uri)
-        }
-      }
       const magnetUris = allUris.filter(isMagnetUri)
       for (let i = 0; i < manualResult.magnetGids.length; i++) {
         const dn = magnetUris[i] ? extractMagnetDisplayName(magnetUris[i]) : ''

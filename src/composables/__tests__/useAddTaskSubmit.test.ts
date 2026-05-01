@@ -16,7 +16,9 @@ vi.mock('@tauri-apps/api/core', () => ({
 }))
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key: string) => key }),
+  useI18n: () => ({
+    t: (key: string, params?: Record<string, unknown>) => (params?.taskName ? `${key}:${params.taskName}` : key),
+  }),
 }))
 
 const mockRouterPush = vi.fn().mockResolvedValue(undefined)
@@ -55,6 +57,10 @@ const mockPreferenceStore = {
   config: {
     newTaskShowDownloading: true,
     proxy: { enable: false, server: '', scope: [], bypass: '' },
+    fileCategoryEnabled: false,
+    fileCategories: [],
+    taskNotification: false,
+    notifyOnStart: false,
   },
 }
 
@@ -480,7 +486,7 @@ describe('submitManualUris', () => {
     const { invoke } = await import('@tauri-apps/api/core')
     ;(invoke as ReturnType<typeof vi.fn>).mockResolvedValueOnce('Итоги_2026.docx')
 
-    await submitManualUris(
+    const result = await submitManualUris(
       {
         ...baseForm,
         uris: 'https://mail-attachment.googleusercontent.com/attachment/u/0/',
@@ -499,6 +505,7 @@ describe('submitManualUris', () => {
     })
     const call = (mockTaskStore.addUri as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(call.outs).toEqual(['Итоги_2026.docx'])
+    expect(result.submittedTaskNames).toEqual(['Итоги_2026.docx'])
   })
 
   it('sanitizes referer and cookie before passing them to resolve_filename', async () => {
@@ -565,6 +572,7 @@ describe('submitManualUris', () => {
     )
 
     expect(result).toEqual({
+      submittedTaskNames: [],
       magnetGids: ['magnet-gid-1'],
       magnetFailures: [{ uri: 'magnet:?xt=urn:btih:bad', error: 'invalid magnet' }],
     })
@@ -589,6 +597,10 @@ describe('useAddTaskSubmit', () => {
     vi.clearAllMocks()
     mockAppStore.pendingBatch = []
     mockPreferenceStore.config.newTaskShowDownloading = true
+    mockPreferenceStore.config.fileCategoryEnabled = false
+    mockPreferenceStore.config.fileCategories = []
+    mockPreferenceStore.config.taskNotification = false
+    mockPreferenceStore.config.notifyOnStart = false
   })
 
   it('keeps AddTask open when a magnet submission fails', async () => {
@@ -605,6 +617,24 @@ describe('useAddTaskSubmit', () => {
     expect(onClose).not.toHaveBeenCalled()
     expect(mockMessage.warning).toHaveBeenCalledWith('1 task.failed', { closable: true })
     expect(mockRouterPush).not.toHaveBeenCalled()
+  })
+
+  it('uses the resolved output filename in the start toast for extensionless URLs', async () => {
+    const { invoke } = await import('@tauri-apps/api/core')
+    ;(invoke as ReturnType<typeof vi.fn>).mockResolvedValueOnce('ИТОГИ ЛДУ 2026.xlsx')
+    const onClose = vi.fn()
+
+    const { handleSubmit } = useAddTaskSubmit({
+      form: ref({
+        ...baseForm,
+        uris: 'http://127.0.0.1:18080/attachment/u/0/?ui=2&disp=safe',
+      }),
+      onClose,
+    })
+
+    await handleSubmit()
+
+    expect(mockMessage.info).toHaveBeenCalledWith('task.download-start-message:ИТОГИ ЛДУ 2026.xlsx')
   })
 })
 

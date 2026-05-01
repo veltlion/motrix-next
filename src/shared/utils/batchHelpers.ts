@@ -6,6 +6,7 @@
 import type { BatchItemKind, BatchItem } from '@shared/types'
 import { BARE_INFO_HASH_RE } from '@shared/constants'
 import { decodeMimeWords } from 'lettercoder'
+import sanitizeFilename from 'sanitize-filename'
 
 let nextId = 0
 
@@ -161,11 +162,16 @@ export function mergeUriLines(existingText: string, incoming: string[]): string 
 
 // ── Filename extraction and decoding ────────────────────────────────
 
-/** Characters forbidden in filenames across Windows / macOS / Linux. */
-const FS_UNSAFE_RE = /[/\\:*?"<>|]/g
-
 /** ASCII control characters (0x00–0x1F, 0x7F) and C1 controls (0x80–0x9F). */
 const CONTROL_CHAR_RE = /[\x00-\x1f\x7f\x80-\x9f]/g
+
+function sanitizeFilenameSegment(name: string): string {
+  const stripped = name.replace(CONTROL_CHAR_RE, '').replace(/[. ]+$/, '')
+  const sanitized = sanitizeFilename(stripped, { replacement: '_' })
+    .trim()
+    .replace(/[. ]+$/, '')
+  return sanitized && !/^\.+$/.test(sanitized) ? sanitized : ''
+}
 
 /**
  * Safely percent-decodes a single path segment.
@@ -213,13 +219,7 @@ export function extractDecodedFilename(uri: string): string {
 
   const decoded = decodePathSegment(raw)
 
-  // Sanitize filesystem-unsafe characters (cross-platform safe)
-  const sanitized = decoded.replace(FS_UNSAFE_RE, '_').trim()
-
-  // Reject empty results or pure dots
-  if (!sanitized || /^\.+$/.test(sanitized)) return ''
-
-  return sanitized
+  return sanitizeFilenameSegment(decoded)
 }
 
 /**
@@ -235,7 +235,7 @@ export function hasExtension(filename: string): boolean {
 
 // ── External filename hint resolution ───────────────────────────────
 
-const GENERIC_EXTERNAL_FILENAME_HINTS = new Set(['download'])
+const GENERIC_EXTERNAL_FILENAME_HINTS = new Set(['download', 'unresolved-filename'])
 
 function stripUrlSuffixPollution(name: string): string {
   const qIdx = name.indexOf('?')
@@ -313,19 +313,28 @@ export function sanitizeAria2OutHint(raw: string): string {
   // 2. Strip URL query/fragment pollution without treating every '?' as a URL boundary.
   name = stripUrlSuffixPollution(name)
 
-  // 3. Replace filesystem-unsafe characters
-  name = name.replace(FS_UNSAFE_RE, '_')
+  return sanitizeFilenameSegment(name)
+}
 
-  // 4. Remove control characters
-  name = name.replace(CONTROL_CHAR_RE, '')
+function filenameStem(filename: string): string {
+  const dot = filename.lastIndexOf('.')
+  return dot > 0 ? filename.slice(0, dot) : filename
+}
 
-  // 5. Trim trailing dots and spaces (Windows rejects)
-  name = name.replace(/[. ]+$/, '')
+function isWeakExternalFilenameHint(url: string, filename: string): boolean {
+  const lower = filename.toLowerCase()
+  const stem = filenameStem(filename).toLowerCase()
+  if (GENERIC_EXTERNAL_FILENAME_HINTS.has(lower)) return true
 
-  // 6. Reject empty or pure-dot results
-  if (!name || /^\.+$/.test(name)) return ''
+  const isRemoteDownloadUrl = /^(?:https?|ftp):\/\//i.test(url)
+  if (!isRemoteDownloadUrl) return false
+  if (GENERIC_EXTERNAL_FILENAME_HINTS.has(stem)) return true
 
-  return name
+  const urlBasename = extractDecodedFilename(url)
+  const urlHasExtension = hasExtension(urlBasename)
+  if (urlBasename && !urlHasExtension && stem === urlBasename.toLowerCase()) return true
+
+  return /^\d+$/.test(stem) && !urlHasExtension
 }
 
 /**
@@ -338,8 +347,9 @@ export function sanitizeAria2OutHint(raw: string): string {
  *
  * Strategy:
  *   1. Sanitize the raw hint into a filesystem-safe name.
- *   2. If the cleaned hint has a file extension → accept (e.g. "报告.pdf").
- *   3. If extensionless, compare with the URL's own basename:
+ *   2. Reject browser-generated placeholders (e.g. "0.xlsx" for `/u/0/`).
+ *   3. If the cleaned hint has a file extension → accept (e.g. "报告.pdf").
+ *   4. If extensionless, compare with the URL's own basename:
  *      - Same name → reject (hint is redundant; `resolve_filename` can
  *        append the correct extension via Content-Type MIME mapping).
  *      - Different name → accept (hint carries information the URL lacks,
@@ -354,8 +364,9 @@ export function sanitizeAria2OutHint(raw: string): string {
 export function resolveExternalFilenameHint(url: string, rawHint: string): string {
   const cleaned = sanitizeAria2OutHint(rawHint)
   if (!cleaned) return ''
+  if (isWeakExternalFilenameHint(url, cleaned)) return ''
 
-  // Hint has a file extension → trust it unconditionally.
+  // Hint has a file extension → trust it after placeholder filtering.
   // Cloud drives (Baidu, Quark) provide correct filenames like "报告.pdf"
   // that the URL path (a CDN hash) cannot reproduce.
   if (hasExtension(cleaned)) return cleaned

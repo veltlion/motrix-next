@@ -22,6 +22,7 @@ import {
   extractDecodedFilename,
   extractMagnetDisplayName,
   hasExtension,
+  sanitizeAria2OutHint,
 } from '@shared/utils/batchHelpers'
 import { buildOuts } from '@shared/utils/rename'
 import { invoke } from '@tauri-apps/api/core'
@@ -58,6 +59,7 @@ export interface MagnetSubmitFailure {
 }
 
 export interface ManualUriSubmitResult {
+  submittedTaskNames: string[]
   magnetGids: string[]
   magnetFailures: MagnetSubmitFailure[]
 }
@@ -208,7 +210,7 @@ export async function submitManualUris(
   fileCategory?: { enabled: boolean; categories: FileCategory[] },
   downloadProxy?: string,
 ): Promise<ManualUriSubmitResult> {
-  if (!form.uris.trim()) return { magnetGids: [], magnetFailures: [] }
+  if (!form.uris.trim()) return { submittedTaskNames: [], magnetGids: [], magnetFailures: [] }
   const allUris = normalizeUriLines(form.uris)
   logger.info(
     'submitManualUris',
@@ -218,6 +220,7 @@ export async function submitManualUris(
   // Partition into magnet and regular URIs
   const magnetUris = allUris.filter(isMagnetUri)
   const regularUris = allUris.filter((uri) => !isMagnetUri(uri))
+  const submittedTaskNames: string[] = []
 
   // Submit regular URIs using the existing path
   if (regularUris.length > 0) {
@@ -232,6 +235,7 @@ export async function submitManualUris(
         outs = regularUris.map((_, i) => `${base}_${i + 1}${ext}`)
       }
       await taskStore.addUri({ uris: regularUris, outs, options: regularOptions, fileCategory })
+      submittedTaskNames.push(...regularUris.map((uri, index) => resolveSubmittedTaskName(uri, outs[index])))
     } else {
       // aria2's native filename resolution only uses Content-Disposition
       // and URL path.  CDNs like Twitter/X serve media from extensionless
@@ -270,11 +274,16 @@ export async function submitManualUris(
         }),
       )
       await taskStore.addUri({ uris: regularUris, outs, options, fileCategory })
+      const optionOut = typeof options.out === 'string' ? options.out : ''
+      submittedTaskNames.push(
+        ...regularUris.map((uri, index) => resolveSubmittedTaskName(uri, optionOut || outs[index])),
+      )
     }
   }
 
   // Submit magnet URIs (normal mode — global pause-metadata controls pausing)
   const result: ManualUriSubmitResult = {
+    submittedTaskNames,
     magnetGids: [],
     magnetFailures: [],
   }
@@ -294,6 +303,11 @@ export async function submitManualUris(
   return result
 }
 
+function resolveSubmittedTaskName(uri: string, outHint?: string): string {
+  const out = outHint ? sanitizeAria2OutHint(outHint) : ''
+  return out || extractDecodedFilename(uri) || uri
+}
+
 export function useAddTaskSubmit({ form, onClose }: UseAddTaskSubmitOptions) {
   const { t } = useI18n()
   const router = useRouter()
@@ -310,7 +324,7 @@ export function useAddTaskSubmit({ form, onClose }: UseAddTaskSubmitOptions) {
     try {
       const options = buildEngineOptions(form.value)
       const batch = appStore.pendingBatch
-      let manualResult: ManualUriSubmitResult = { magnetGids: [], magnetFailures: [] }
+      let manualResult: ManualUriSubmitResult = { submittedTaskNames: [], magnetGids: [], magnetFailures: [] }
 
       if (batch.length > 0) {
         await submitBatchItems(batch, options, taskStore)
@@ -346,12 +360,8 @@ export function useAddTaskSubmit({ form, onClose }: UseAddTaskSubmitOptions) {
             taskNames.push(item.displayName)
           }
         }
+        taskNames.push(...manualResult.submittedTaskNames)
         const allUris = normalizeUriLines(form.value.uris)
-        for (const uri of allUris) {
-          if (!isMagnetUri(uri)) {
-            taskNames.push(extractDecodedFilename(uri) || uri)
-          }
-        }
         const magnetUris = allUris.filter(isMagnetUri)
         for (let i = 0; i < manualResult.magnetGids.length; i++) {
           const dn = magnetUris[i] ? extractMagnetDisplayName(magnetUris[i]) : ''

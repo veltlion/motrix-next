@@ -284,6 +284,25 @@ describe('aria2 API (invoke transport)', () => {
       })
     })
 
+    it('addUri classifies extensionless downloads by the resolved output filename', async () => {
+      mockInvoke.mockResolvedValue('gid1')
+
+      await addUri({
+        uris: ['https://mail-attachment.googleusercontent.com/attachment/u/0/'],
+        outs: ['ИТОГИ ЛДУ 2026.xlsx'],
+        options: { dir: '/downloads' },
+        fileCategory: {
+          enabled: true,
+          categories: [{ label: 'Documents', extensions: ['xlsx'], directory: '/downloads/Documents' }],
+        },
+      })
+
+      expect(mockInvoke).toHaveBeenCalledWith('aria2_add_uri', {
+        uris: ['https://mail-attachment.googleusercontent.com/attachment/u/0/'],
+        options: { dir: '/downloads/Documents', out: 'ИТОГИ ЛДУ 2026.xlsx' },
+      })
+    })
+
     it('addUriAtomic creates exactly one invoke with all URIs', async () => {
       mockInvoke.mockResolvedValueOnce('gid-atomic')
 

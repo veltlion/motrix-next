@@ -271,11 +271,18 @@ pub fn build_history_record_with_added_at(
     // tasks for deletion, open-folder, and deduplication.
     let meta = build_history_meta_json(event);
 
+    let uri = event
+        .files
+        .first()
+        .and_then(|file| file.uris.first())
+        .filter(|uri| !uri.is_empty())
+        .cloned();
+
     crate::history::HistoryRecord {
         id: None,
         gid: event.gid.clone(),
         name: event.name.clone(),
-        uri: None,
+        uri,
         dir: Some(event.dir.clone()),
         total_length,
         status: status.to_string(),
@@ -604,7 +611,7 @@ impl TaskMonitorState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aria2::types::{Aria2BtInfo, Aria2BtName, Aria2File};
+    use crate::aria2::types::{Aria2BtInfo, Aria2BtName, Aria2File, Aria2FileUri};
 
     fn make_task(gid: &str, status: &str) -> Aria2Task {
         Aria2Task {
@@ -1024,6 +1031,23 @@ mod tests {
 
         assert_eq!(record.dir, Some("/tmp".to_string()));
         assert_eq!(record.total_length, Some(1024));
+    }
+
+    #[test]
+    fn build_history_record_preserves_primary_uri_for_lightweight_mode_restart() {
+        let mut task = make_task("g1", "complete");
+        task.files[0].path = "/tmp/ИТОГИ ЛДУ 2026.xlsx".to_string();
+        task.files[0].uris = vec![Aria2FileUri {
+            uri: "https://mail-attachment.googleusercontent.com/attachment/u/0/".to_string(),
+            status: "used".to_string(),
+        }];
+        let event = TaskEvent::from_aria2(&task);
+        let record = build_history_record(&event, events::TASK_COMPLETE);
+
+        assert_eq!(
+            record.uri.as_deref(),
+            Some("https://mail-attachment.googleusercontent.com/attachment/u/0/")
+        );
     }
 
     #[test]

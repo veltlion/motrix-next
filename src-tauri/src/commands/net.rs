@@ -3,16 +3,12 @@
 /// `fetch_remote_bytes` — Downloads raw bytes (e.g. `.torrent` files) for
 /// the browser extension deep-link flow.
 ///
-/// `resolve_filename` — Compensates for aria2's filename resolution gap:
-/// aria2 only uses `Content-Disposition` and the URL path to determine
-/// filenames, but never falls back to `Content-Type` MIME mapping.  Many
-/// CDNs (Twitter/X, Discord, Reddit) serve media from extensionless URL
-/// paths with the format info in query parameters or Content-Type headers.
-/// This command performs a lightweight HEAD request and resolves the correct
-/// filename using the same three-level fallback browsers use:
-///   1. Content-Disposition → filename (RFC 6266)
-///   2. Redirect target URL → path extension
-///   3. Content-Type MIME → extension via `mime2ext` (embeds mime-db)
+/// `resolve_filename` — Resolves trustworthy server-provided filenames for
+/// extensionless HTTP URLs before forwarding them to aria2.
+///
+/// The command deliberately avoids deriving a filename from URL placeholders
+/// such as `/attachment/u/0/`. When the server exposes only a MIME type, the
+/// fallback is a neutral English filename instead of a misleading path guess.
 use crate::error::AppError;
 
 /// Applies an optional proxy to a `reqwest::ClientBuilder`.
@@ -41,15 +37,16 @@ const MAX_TORRENT_SIZE: usize = 16 * 1024 * 1024; // 16 MiB — generous for any
 /// Timeout for HEAD requests in `resolve_filename`.  Short enough to avoid
 /// blocking the UI, long enough for CDN edge nodes to respond.
 pub(crate) const HEAD_TIMEOUT_SECS: u64 = 5;
+pub(crate) const UNRESOLVED_FILENAME: &str = "unresolved-filename";
 
 // ── Filename resolution ─────────────────────────────────────────────────
 
 /// Sends a HEAD request to `url` and infers the correct filename (with
 /// extension) when the URL path segment has none.
 ///
-/// Returns `Ok(Some("filename.ext"))` on successful inference, `Ok(None)`
-/// when the URL already has an extension (no work needed) or inference
-/// fails (graceful degradation — aria2 saves the file as-is).
+/// Returns `Ok(Some("filename.ext"))` on successful resolution, `Ok(None)`
+/// when the URL already has an extension, or `Ok(Some("unresolved-filename"))`
+/// when the server exposes no trustworthy filename.
 ///
 /// The frontend calls this for each extensionless URL before `aria2.addUri`,
 /// setting the returned name as the aria2 `out` option.
@@ -76,13 +73,8 @@ pub async fn resolve_filename(
         .build()
         .map_err(|e| AppError::Io(format!("HEAD client init failed: {e}")))?;
 
-    let mut req = client.head(&url);
-    if let Some(referer) = referer.as_deref().filter(|v| !v.trim().is_empty()) {
-        req = req.header(reqwest::header::REFERER, referer);
-    }
-    if let Some(cookie) = cookie.as_deref().filter(|v| !v.trim().is_empty()) {
-        req = req.header(reqwest::header::COOKIE, cookie);
-    }
+    let req =
+        apply_download_request_headers(client.head(&url), referer.as_deref(), cookie.as_deref());
 
     let resp = req
         .send()
@@ -90,13 +82,10 @@ pub async fn resolve_filename(
         .map_err(|e| AppError::Io(format!("HEAD request failed: {e}")))?;
 
     // 3a. Level 1 — Content-Disposition filename
-    if let Some(cd) = resp.headers().get(reqwest::header::CONTENT_DISPOSITION) {
-        let cd_str = String::from_utf8_lossy(cd.as_bytes());
-        if let Some(name) = parse_cd_filename(&cd_str) {
-            if has_extension(&name) {
-                log::debug!("resolve_filename: resolved via Content-Disposition → {name}");
-                return Ok(Some(name));
-            }
+    if let Some(name) = parse_content_disposition_filename(resp.headers()) {
+        if has_extension(&name) {
+            log::debug!("resolve_filename: resolved via Content-Disposition → {name}");
+            return Ok(Some(name));
         }
     }
 
@@ -110,20 +99,78 @@ pub async fn resolve_filename(
         }
     }
 
-    // 3c. Level 3 — Content-Type MIME → extension via mime2ext
+    // 3c. Level 3 — GET header probe for servers that only expose
+    // Content-Disposition on the actual download request.
+    if let Some(name) =
+        probe_get_content_disposition(&client, &url, referer.as_deref(), cookie.as_deref()).await
+    {
+        if has_extension(&name) {
+            log::debug!("resolve_filename: resolved via GET Content-Disposition → {name}");
+            return Ok(Some(name));
+        }
+    }
+
+    // 3d. Level 4 — Content-Type MIME → neutral fallback name.
     if let Some(ct) = resp.headers().get(reqwest::header::CONTENT_TYPE) {
         let mime_str = ct.to_str().unwrap_or("");
         // Strip parameters: "image/jpeg; charset=utf-8" → "image/jpeg"
         let mime_core = mime_str.split(';').next().unwrap_or("").trim();
         if let Some(ext) = mime2ext::mime2ext(mime_core) {
-            let resolved = format!("{basename}.{ext}");
-            log::debug!("resolve_filename: resolved via Content-Type ({mime_core}) → {resolved}");
+            let resolved = format!("{UNRESOLVED_FILENAME}.{ext}");
+            log::debug!(
+                "resolve_filename: Content-Type ({mime_core}) has no trusted filename; using {resolved}"
+            );
             return Ok(Some(resolved));
         }
     }
 
-    log::debug!("resolve_filename: no extension inferred for {url}");
-    Ok(None) // Inference failed — graceful degradation
+    log::debug!(
+        "resolve_filename: no trusted filename source for {url}; using {UNRESOLVED_FILENAME}"
+    );
+    Ok(Some(UNRESOLVED_FILENAME.to_string()))
+}
+
+async fn probe_get_content_disposition(
+    client: &reqwest::Client,
+    url: &str,
+    referer: Option<&str>,
+    cookie: Option<&str>,
+) -> Option<String> {
+    let req = client
+        .get(url)
+        .header(reqwest::header::RANGE, "bytes=0-0")
+        .header(reqwest::header::ACCEPT_ENCODING, "identity");
+    let req = apply_download_request_headers(req, referer, cookie);
+
+    let resp = match req.send().await {
+        Ok(resp) => resp,
+        Err(e) => {
+            log::debug!("resolve_filename: GET header probe failed: {e}");
+            return None;
+        }
+    };
+
+    parse_content_disposition_filename(resp.headers())
+}
+
+fn apply_download_request_headers(
+    mut req: reqwest::RequestBuilder,
+    referer: Option<&str>,
+    cookie: Option<&str>,
+) -> reqwest::RequestBuilder {
+    if let Some(referer) = referer.filter(|v| !v.trim().is_empty()) {
+        req = req.header(reqwest::header::REFERER, referer);
+    }
+    if let Some(cookie) = cookie.filter(|v| !v.trim().is_empty()) {
+        req = req.header(reqwest::header::COOKIE, cookie);
+    }
+    req
+}
+
+fn parse_content_disposition_filename(headers: &reqwest::header::HeaderMap) -> Option<String> {
+    let cd = headers.get(reqwest::header::CONTENT_DISPOSITION)?;
+    let cd_str = String::from_utf8_lossy(cd.as_bytes());
+    parse_cd_filename(&cd_str)
 }
 
 /// Extracts the last non-empty path segment from a URL, percent-decoded.
@@ -551,6 +598,189 @@ mod tests {
             .unwrap();
 
         assert_eq!(resolved, Some("Итоги_2026.docx".to_string()));
+    }
+
+    #[tokio::test]
+    async fn resolve_filename_probes_get_content_disposition_when_head_lacks_filename() {
+        use axum::{routing::get, routing::head, Router};
+        use std::net::SocketAddr;
+        use tokio::net::TcpListener;
+
+        async fn handle_head() -> [(&'static str, &'static str); 1] {
+            [(
+                "content-type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )]
+        }
+
+        async fn handle_get() -> [(&'static str, &'static str); 2] {
+            [
+                (
+                    "content-type",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ),
+                (
+                    "content-disposition",
+                    "attachment; filename=\"=?UTF-8?B?0JjQotCe0JPQmCDQm9CU0KMgMjAyNi54bHN4?=\"",
+                ),
+            ]
+        }
+
+        let app = Router::new()
+            .route("/attachment/u/0/", head(handle_head))
+            .route("/attachment/u/0/", get(handle_get));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let resolved = resolve_filename(
+            format!("http://{addr}/attachment/u/0/?ui=2&disp=safe"),
+            None,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(resolved, Some("ИТОГИ ЛДУ 2026.xlsx".to_string()));
+    }
+
+    #[tokio::test]
+    async fn resolve_filename_get_probe_sends_download_headers() {
+        use axum::{extract::State, http::HeaderMap, routing::get, routing::head, Router};
+        use std::net::SocketAddr;
+        use std::sync::{Arc, Mutex};
+        use tokio::net::TcpListener;
+
+        #[derive(Default)]
+        struct CapturedProbeHeaders {
+            referer: Option<String>,
+            cookie: Option<String>,
+            range: Option<String>,
+        }
+
+        async fn handle_head() -> [(&'static str, &'static str); 1] {
+            [(
+                "content-type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )]
+        }
+
+        async fn handle_get(
+            State(captured): State<Arc<Mutex<CapturedProbeHeaders>>>,
+            headers: HeaderMap,
+        ) -> [(&'static str, &'static str); 1] {
+            let mut captured = captured.lock().expect("captured headers mutex poisoned");
+            captured.referer = headers
+                .get(reqwest::header::REFERER)
+                .and_then(|value| value.to_str().ok())
+                .map(str::to_string);
+            captured.cookie = headers
+                .get(reqwest::header::COOKIE)
+                .and_then(|value| value.to_str().ok())
+                .map(str::to_string);
+            captured.range = headers
+                .get(reqwest::header::RANGE)
+                .and_then(|value| value.to_str().ok())
+                .map(str::to_string);
+
+            [(
+                "content-disposition",
+                "attachment; filename*=UTF-8''%D0%98%D0%A2%D0%9E%D0%93%D0%98%20%D0%9B%D0%94%D0%A3%202026.xlsx",
+            )]
+        }
+
+        let captured = Arc::new(Mutex::new(CapturedProbeHeaders::default()));
+        let app = Router::new()
+            .route("/attachment/u/0/", head(handle_head))
+            .route("/attachment/u/0/", get(handle_get))
+            .with_state(Arc::clone(&captured));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let resolved = resolve_filename(
+            format!("http://{addr}/attachment/u/0/?ui=2&disp=safe"),
+            None,
+            Some("https://mail.google.com/mail/u/0/#inbox".to_string()),
+            Some("COMPASS=gmail=abc".to_string()),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(resolved, Some("ИТОГИ ЛДУ 2026.xlsx".to_string()));
+        let captured = captured.lock().expect("captured headers mutex poisoned");
+        assert_eq!(
+            captured.referer.as_deref(),
+            Some("https://mail.google.com/mail/u/0/#inbox")
+        );
+        assert_eq!(captured.cookie.as_deref(), Some("COMPASS=gmail=abc"));
+        assert_eq!(captured.range.as_deref(), Some("bytes=0-0"));
+    }
+
+    #[tokio::test]
+    async fn resolve_filename_uses_neutral_fallback_for_content_type_without_trusted_name() {
+        use axum::{routing::head, Router};
+        use std::net::SocketAddr;
+        use tokio::net::TcpListener;
+
+        async fn handle_head() -> [(&'static str, &'static str); 1] {
+            [(
+                "content-type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )]
+        }
+
+        let app = Router::new().route("/attachment/u/0/", head(handle_head));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let resolved = resolve_filename(
+            format!("http://{addr}/attachment/u/0/?ui=2&disp=safe"),
+            None,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(resolved, Some("unresolved-filename.xlsx".to_string()));
+    }
+
+    #[tokio::test]
+    async fn resolve_filename_uses_neutral_fallback_without_content_type_extension() {
+        use axum::{routing::head, Router};
+        use std::net::SocketAddr;
+        use tokio::net::TcpListener;
+
+        async fn handle_head() -> axum::http::StatusCode {
+            axum::http::StatusCode::OK
+        }
+
+        let app = Router::new().route("/attachment/u/0/", head(handle_head));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let resolved = resolve_filename(
+            format!("http://{addr}/attachment/u/0/?ui=2&disp=safe"),
+            None,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(resolved, Some("unresolved-filename".to_string()));
     }
 
     #[test]
