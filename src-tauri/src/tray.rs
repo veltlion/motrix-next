@@ -93,6 +93,41 @@ pub fn get_or_create_main_window(app: &AppHandle) -> Option<tauri::WebviewWindow
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WindowActivationOutcome {
+    Activated,
+    WindowUnavailable,
+}
+
+pub fn activate_main_window(app: &AppHandle, source: &'static str) -> WindowActivationOutcome {
+    log::info!("window:activate-start source={source}");
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::ActivationPolicy;
+        if let Err(e) = app.set_activation_policy(ActivationPolicy::Regular) {
+            log::warn!("window:activate-policy-failed source={source} error={e}");
+        }
+    }
+
+    let Some(window) = get_or_create_main_window(app) else {
+        log::error!("window:activate-failed source={source} reason=window-unavailable");
+        return WindowActivationOutcome::WindowUnavailable;
+    };
+
+    if let Err(e) = window.unminimize() {
+        log::warn!("window:activate-unminimize-failed source={source} error={e}");
+    }
+    if let Err(e) = window.show() {
+        log::warn!("window:activate-show-failed source={source} error={e}");
+    }
+    if let Err(e) = window.set_focus() {
+        log::warn!("window:activate-focus-failed source={source} error={e}");
+    }
+
+    log::info!("window:activate-done source={source}");
+    WindowActivationOutcome::Activated
+}
+
 pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::Error>> {
     // Create MenuItem references for TrayMenuState (used by update_tray_menu_labels).
     // All three platforms use the same native menu — no platform-specific branching.
@@ -143,16 +178,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::
             {
                 let app = tray.app_handle();
                 log::info!("tray:left-click — showing main window");
-                #[cfg(target_os = "macos")]
-                {
-                    use tauri::ActivationPolicy;
-                    let _ = app.set_activation_policy(ActivationPolicy::Regular);
-                }
-                if let Some(window) = get_or_create_main_window(app) {
-                    let _ = window.unminimize();
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                }
+                activate_main_window(app, "tray-left-click");
             }
         })
         .on_menu_event(|app, event| {
@@ -160,16 +186,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::
             match id {
                 "show" => {
                     log::info!("tray:menu-show — showing main window");
-                    #[cfg(target_os = "macos")]
-                    {
-                        use tauri::ActivationPolicy;
-                        let _ = app.set_activation_policy(ActivationPolicy::Regular);
-                    }
-                    if let Some(window) = get_or_create_main_window(app) {
-                        let _ = window.unminimize();
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
+                    activate_main_window(app, "tray-menu-show");
                 }
                 "tray-pause-all" => {
                     log::info!("tray:pause-all — calling aria2 directly");
@@ -208,16 +225,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::
                     // go nowhere. Recreate the window first so the newly loaded
                     // frontend can receive the event and open the Add Task dialog.
                     log::info!("tray:new-task — ensuring window exists");
-                    #[cfg(target_os = "macos")]
-                    {
-                        use tauri::ActivationPolicy;
-                        let _ = app.set_activation_policy(ActivationPolicy::Regular);
-                    }
-                    if let Some(window) = get_or_create_main_window(app) {
-                        let _ = window.unminimize();
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
+                    activate_main_window(app, "tray-new-task");
                     // Emit to the (now existing) frontend to open the Add Task dialog
                     let _ = app.emit("tray-menu-action", "new-task");
                 }

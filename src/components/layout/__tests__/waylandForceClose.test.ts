@@ -94,14 +94,14 @@ describe('lib.rs — ExitRequested safety net', () => {
 
   it('still handles Reopen on macOS', () => {
     expect(runEventBody).toContain('RunEvent::Reopen')
-    expect(runEventBody).toContain('ActivationPolicy::Regular')
+    expect(runEventBody).toContain('activate_main_window')
   })
 
-  it('Reopen uses get_or_create_main_window for window recreation', () => {
+  it('Reopen uses shared window activation for window recreation', () => {
     const reopenIdx = runEventBody.indexOf('RunEvent::Reopen')
     expect(reopenIdx).toBeGreaterThanOrEqual(0)
     const afterReopen = runEventBody.slice(reopenIdx, reopenIdx + 500)
-    expect(afterReopen).toContain('get_or_create_main_window')
+    expect(afterReopen).toContain('activate_main_window')
   })
 })
 
@@ -166,16 +166,16 @@ describe('tray.rs — get_or_create_main_window', () => {
     expect(fnBody).toContain('window-recreate-failed')
   })
 
-  it('tray left-click handler uses get_or_create_main_window', () => {
+  it('tray left-click handler uses shared window activation', () => {
     const traySetup = extractBody(source, 'pub fn setup_tray')
-    expect(traySetup).toContain('get_or_create_main_window')
+    expect(traySetup).toContain('activate_main_window')
   })
 
-  it('"show" menu handler uses get_or_create_main_window', () => {
+  it('"show" menu handler uses shared window activation', () => {
     const showIdx = source.indexOf('"show" =>')
     expect(showIdx).toBeGreaterThanOrEqual(0)
     const afterShow = source.slice(showIdx, showIdx + 500)
-    expect(afterShow).toContain('get_or_create_main_window')
+    expect(afterShow).toContain('activate_main_window')
   })
 
   it('does NOT use raw get_webview_window in tray handlers', () => {

@@ -234,9 +234,11 @@ describe('commands/ui.rs — set_dock_visible Rust command', () => {
 
 describe('lib.rs — on_window_event close interception', () => {
   let source: string
+  let traySource: string
 
   beforeAll(() => {
     source = fs.readFileSync(path.join(TAURI_ROOT, 'src', 'lib.rs'), 'utf-8')
+    traySource = fs.readFileSync(path.join(TAURI_ROOT, 'src', 'tray.rs'), 'utf-8')
   })
 
   describe('Architecture: CloseRequested is in on_window_event, NOT handle_run_event', () => {
@@ -335,19 +337,20 @@ describe('lib.rs — on_window_event close interception', () => {
       expect(source).toContain('tauri::RunEvent::Reopen')
     })
 
-    it('restores ActivationPolicy::Regular on Reopen', () => {
+    it('routes Reopen through shared window activation', () => {
       const reopenIdx = source.indexOf('RunEvent::Reopen')
       expect(reopenIdx).toBeGreaterThanOrEqual(0)
       const reopenBlock = source.slice(reopenIdx, source.indexOf('}', reopenIdx + 200))
-      expect(reopenBlock).toContain('ActivationPolicy::Regular')
+      expect(reopenBlock).toContain('activate_main_window')
     })
 
-    it('shows and focuses the main window on Reopen', () => {
-      const reopenIdx = source.indexOf('RunEvent::Reopen')
-      const reopenBlock = source.slice(reopenIdx, source.indexOf('}', reopenIdx + 200))
-      expect(reopenBlock).toContain('get_or_create_main_window')
-      expect(reopenBlock).toContain('window.show()')
-      expect(reopenBlock).toContain('window.set_focus()')
+    it('shared window activation restores, shows, and focuses the main window', () => {
+      const activationBody = extractFunctionBody(traySource, 'activate_main_window')
+      expect(activationBody).toBeTruthy()
+      expect(activationBody).toContain('ActivationPolicy::Regular')
+      expect(activationBody).toContain('get_or_create_main_window')
+      expect(activationBody).toContain('window.show()')
+      expect(activationBody).toContain('window.set_focus()')
     })
 
     it('Reopen handler is gated to macOS only', () => {

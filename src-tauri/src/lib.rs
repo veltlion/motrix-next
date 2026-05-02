@@ -237,11 +237,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             // These menu actions open in-app dialogs — ensure the window
             // exists before emitting. In lightweight mode the WebView may
             // have been destroyed, making emit a no-op.
-            if let Some(window) = tray::get_or_create_main_window(app) {
-                let _ = window.unminimize();
-                let _ = window.show();
-                let _ = window.set_focus();
-            }
+            tray::activate_main_window(app, "native-menu-action");
             let _ = app.emit("menu-event", event.id().as_ref());
         }
         "release-notes" => {
@@ -602,14 +598,7 @@ fn handle_run_event(app: &tauri::AppHandle, event: tauri::RunEvent) {
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => {
             log::info!("app:reopen — restoring main window");
-            // Restore Dock icon before showing the window.
-            use tauri::ActivationPolicy;
-            let _ = app.set_activation_policy(ActivationPolicy::Regular);
-            if let Some(window) = tray::get_or_create_main_window(app) {
-                let _ = window.unminimize();
-                let _ = window.show();
-                let _ = window.set_focus();
-            }
+            tray::activate_main_window(app, "macos-reopen");
         }
         _ => {}
     }
@@ -744,7 +733,22 @@ pub fn run() {
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let urls = services::deep_link::filter_external_input_args(&argv);
-            services::deep_link::route_external_inputs(app, urls, "single-instance");
+            if !urls.is_empty() {
+                services::deep_link::route_external_inputs(app, urls, "single-instance");
+                return;
+            }
+
+            if services::deep_link::is_autostart_arg_launch(&argv) {
+                log::info!("single-instance:autostart-skip argc={}", argv.len());
+                return;
+            }
+
+            let app_handle = app.clone();
+            if let Err(e) = app.run_on_main_thread(move || {
+                tray::activate_main_window(&app_handle, "single-instance-launch");
+            }) {
+                log::warn!("single-instance:activate-schedule-failed error={e}");
+            }
         }));
     }
 

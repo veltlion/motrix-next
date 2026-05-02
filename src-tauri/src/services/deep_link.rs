@@ -61,6 +61,12 @@ pub fn filter_external_input_args(args: &[String]) -> Vec<String> {
         .collect()
 }
 
+/// Returns true when argv belongs to the OS autostart path.
+pub fn is_autostart_arg_launch(args: &[String]) -> bool {
+    args.iter()
+        .any(|arg| arg == "--autostart" || arg.starts_with("--autostart="))
+}
+
 /// Drain pending external inputs for the frontend boot path.
 pub fn take_pending_deep_links(state: &PendingDeepLinkState) -> Vec<String> {
     match state.0.lock() {
@@ -181,16 +187,9 @@ fn schedule_main_window_wake(app: &AppHandle, source: &'static str) {
 
 fn wake_main_window(app: &AppHandle, source: &'static str) {
     log::debug!("deep_link:wake-start source={source}");
-    #[cfg(target_os = "macos")]
+    if crate::tray::activate_main_window(app, source)
+        == crate::tray::WindowActivationOutcome::Activated
     {
-        use tauri::ActivationPolicy;
-        let _ = app.set_activation_policy(ActivationPolicy::Regular);
-    }
-
-    if let Some(window) = crate::tray::get_or_create_main_window(app) {
-        let _ = window.unminimize();
-        let _ = window.show();
-        let _ = window.set_focus();
         log::debug!("deep_link:wake-done source={source}");
     } else {
         log::error!("deep_link:wake-failed source={source}");
@@ -200,8 +199,8 @@ fn wake_main_window(app: &AppHandle, source: &'static str) {
 #[cfg(test)]
 mod tests {
     use super::{
-        append_unique_pending, filter_external_input_args, take_pending_deep_links,
-        PendingDeepLinkState,
+        append_unique_pending, filter_external_input_args, is_autostart_arg_launch,
+        take_pending_deep_links, PendingDeepLinkState,
     };
 
     #[test]
@@ -225,6 +224,22 @@ mod tests {
                 "magnet:?xt=urn:btih:abc".to_string()
             ]
         );
+    }
+
+    #[test]
+    fn detects_autostart_args_for_empty_single_instance_launches() {
+        assert!(is_autostart_arg_launch(&[
+            "MotrixNext.exe".to_string(),
+            "--autostart".to_string(),
+        ]));
+        assert!(is_autostart_arg_launch(&[
+            "MotrixNext.exe".to_string(),
+            "--autostart=true".to_string(),
+        ]));
+        assert!(!is_autostart_arg_launch(&[
+            "MotrixNext.exe".to_string(),
+            "--flag".to_string(),
+        ]));
     }
 
     #[test]

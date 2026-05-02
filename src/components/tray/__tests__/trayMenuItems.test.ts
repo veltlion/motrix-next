@@ -112,11 +112,17 @@ describe('tray.rs — on_menu_event unified handler', () => {
     source = fs.readFileSync(TRAY_RS, 'utf-8')
   })
 
-  it('handles "show" menu event with ActivationPolicy on macOS', () => {
+  it('handles "show" menu event through shared window activation', () => {
     const menuEventBlock = extractOnMenuEvent(source)
     expect(menuEventBlock).toBeTruthy()
     expect(menuEventBlock).toContain('"show"')
-    expect(menuEventBlock).toContain('ActivationPolicy')
+    expect(menuEventBlock).toContain('activate_main_window')
+  })
+
+  it('shared window activation restores ActivationPolicy on macOS', () => {
+    const activationBody = extractBody(source, 'pub fn activate_main_window')
+    expect(activationBody).toBeTruthy()
+    expect(activationBody).toContain('ActivationPolicy::Regular')
   })
 
   it('dispatches pause/resume through resolve_tray_action', () => {
@@ -194,6 +200,20 @@ function extractMenuWithItems(source: string): string | null {
  */
 function extractOnMenuEvent(source: string): string | null {
   const marker = '.on_menu_event('
+  const idx = source.indexOf(marker)
+  if (idx === -1) return null
+  const braceStart = source.indexOf('{', idx)
+  if (braceStart === -1) return null
+  let depth = 0
+  for (let i = braceStart; i < source.length; i++) {
+    if (source[i] === '{') depth++
+    if (source[i] === '}') depth--
+    if (depth === 0) return source.slice(idx, i + 1)
+  }
+  return null
+}
+
+function extractBody(source: string, marker: string): string | null {
   const idx = source.indexOf(marker)
   if (idx === -1) return null
   const braceStart = source.indexOf('{', idx)

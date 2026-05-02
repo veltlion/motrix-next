@@ -76,13 +76,14 @@ describe('tray.rs — new-task recreates window in lightweight mode', () => {
     expect(menuEventBlock).toContain('"tray-new-task"')
   })
 
-  it('calls get_or_create_main_window before emitting new-task', () => {
+  it('activates the main window before emitting new-task', () => {
     const menuEventBlock = extractOnMenuEvent(source)
     expect(menuEventBlock).toBeTruthy()
     // Must recreate window before emit to ensure frontend exists
-    expect(menuEventBlock).toContain('get_or_create_main_window')
+    expect(menuEventBlock).toContain('activate_main_window')
     expect(menuEventBlock).toContain('tray-menu-action')
     expect(menuEventBlock).toContain('"new-task"')
+    expect(menuEventBlock!.indexOf('activate_main_window')).toBeLessThan(menuEventBlock!.indexOf('tray-menu-action'))
   })
 
   it('does NOT route tray-new-task through resolve_tray_action', () => {
@@ -134,6 +135,20 @@ describe('lib.rs — single-instance queues external input before waking the win
     expect(singleInstanceBlock).toContain('route_external_inputs')
   })
 
+  it('activates the existing app when a second launch has no external input', () => {
+    const singleInstanceBlock = extractSingleInstanceCallback(source)
+    expect(singleInstanceBlock).toBeTruthy()
+    expect(singleInstanceBlock).toContain('activate_main_window')
+    expect(singleInstanceBlock).toContain('single-instance-launch')
+  })
+
+  it('keeps empty autostart launches silent', () => {
+    const singleInstanceBlock = extractSingleInstanceCallback(source)
+    expect(singleInstanceBlock).toBeTruthy()
+    expect(singleInstanceBlock).toContain('is_autostart_arg_launch')
+    expect(singleInstanceBlock).toContain('single-instance:autostart-skip')
+  })
+
   it('does not rebuild or emit directly in the single-instance callback', () => {
     const singleInstanceBlock = extractSingleInstanceCallback(source)
     expect(singleInstanceBlock).toBeTruthy()
@@ -144,7 +159,6 @@ describe('lib.rs — single-instance queues external input before waking the win
       .join('\n')
     // Window recreation is scheduled by the shared service when needed.
     expect(codeOnly).not.toMatch(/get_webview_window\(\s*"main"\s*\)/)
-    expect(codeOnly).not.toContain('get_or_create_main_window')
     expect(codeOnly).not.toContain('emit("single-instance-triggered"')
   })
 })
