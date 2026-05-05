@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder,
 };
 
@@ -21,6 +21,10 @@ pub const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/tray-icon@2x.png");
 #[cfg(not(target_os = "macos"))]
 pub const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/tray-icon-color.png");
 
+/// Whether the current platform expects the tray icon to be rendered as an
+/// AppKit template image.
+pub const TRAY_ICON_IS_TEMPLATE: bool = cfg!(target_os = "macos");
+
 /// Creates a `tauri::image::Image` from the embedded tray icon bytes.
 ///
 /// This is the single source of truth for the tray icon bitmap, shared
@@ -28,6 +32,21 @@ pub const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/tray-icon-color.png"
 /// workaround that must re-set the icon after `set_title` on macOS.
 pub fn tray_icon_image() -> tauri::image::Image<'static> {
     tauri::image::Image::from_bytes(TRAY_ICON_BYTES).expect("embedded tray icon is valid PNG")
+}
+
+/// Re-applies the tray icon while preserving platform-specific rendering flags.
+///
+/// macOS menu bar icons must be template images so AppKit can render the same
+/// monochrome mask correctly on light, dark, and highlighted menu bar states.
+/// Any path that re-sets the icon must restore that flag immediately afterward,
+/// otherwise AppKit treats the bitmap as a normal white image.
+pub fn refresh_tray_icon(tray: &TrayIcon<tauri::Wry>) -> tauri::Result<()> {
+    let icon = tray_icon_image();
+    tray.set_icon(Some(icon))?;
+    if TRAY_ICON_IS_TEMPLATE {
+        tray.set_icon_as_template(true)?;
+    }
+    Ok(())
 }
 
 /// Holds references to tray menu items for dynamic label updates (i18n).
@@ -167,6 +186,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::
         .show_menu_on_left_click(false)
         .tooltip("Motrix Next")
         .icon(tray_icon_image())
+        .icon_as_template(TRAY_ICON_IS_TEMPLATE)
         .on_tray_icon_event(|tray, event| {
             // Left-click: show main window (macOS and Windows).
             // Linux libappindicator does not emit TrayIconEvent::Click —
@@ -267,8 +287,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<TrayMenuState, Box<dyn std::error::
         tauri::async_runtime::spawn(async move {
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;
             if let Some(tray) = app_handle.tray_by_id("motrix-next") {
-                let icon = tray_icon_image();
-                let _ = tray.set_icon(Some(icon));
+                let _ = refresh_tray_icon(&tray);
                 log::info!(
                     "tray:linux-deferred-icon-refresh — re-set icon after 3 s startup delay"
                 );

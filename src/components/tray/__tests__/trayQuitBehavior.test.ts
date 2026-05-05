@@ -269,6 +269,12 @@ describe('stat.rs — direct tray/dock/progress operations (no emit)', () => {
     expect(source).toContain('set_title')
   })
 
+  it('preserves the macOS template flag when refreshing the tray icon', () => {
+    // Re-setting the icon after set_title must keep AppKit's template-image
+    // rendering active, otherwise a white bitmap stays white on light menu bars.
+    expect(source).toContain('refresh_tray_icon')
+  })
+
   it('uses NSDockTile API for dock badge (not window.set_badge_label)', () => {
     // set_dock_badge() uses NSApp().dockTile().setBadgeLabel() which is
     // app-level — does NOT require a Window object. This fixes the dock badge

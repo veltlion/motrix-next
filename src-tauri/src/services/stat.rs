@@ -477,11 +477,12 @@ async fn stat_loop(
                     let _ = tray.set_title(Some(""));
                 }
                 // Workaround: re-set icon after set_title to prevent macOS
-                // icon disappearing (Tauri/tao bug).
+                // icon disappearing (Tauri/tao bug). The helper preserves
+                // AppKit template rendering so the menu bar can auto-adapt
+                // the icon color on light and dark backgrounds.
                 #[cfg(target_os = "macos")]
                 {
-                    let icon = crate::tray::tray_icon_image();
-                    let _ = tray.set_icon(Some(icon));
+                    let _ = crate::tray::refresh_tray_icon(&tray);
                 }
             }
 

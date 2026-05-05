@@ -81,6 +81,23 @@ describe('tray.rs — native menu attached to TrayIconBuilder', () => {
     expect(source).toMatch(/\.menu\(&menu\)/)
   })
 
+  it('marks the macOS tray icon as a template image', () => {
+    // macOS menu bar icons must be template images so AppKit can adapt
+    // their rendered color to light, dark, and highlighted menu bar states.
+    expect(source).toContain('icon_as_template')
+    expect(source).toContain('TRAY_ICON_IS_TEMPLATE')
+    expect(source).toMatch(/TRAY_ICON_IS_TEMPLATE:\s*bool\s*=\s*cfg!\(target_os\s*=\s*"macos"\)/)
+    expect(source).toMatch(/\.icon_as_template\(TRAY_ICON_IS_TEMPLATE\)/)
+  })
+
+  it('keeps template rendering when the tray icon is refreshed', () => {
+    const refreshBody = extractBody(source, 'pub fn refresh_tray_icon')
+    expect(refreshBody).toBeTruthy()
+    expect(refreshBody).toContain('tray.set_icon(Some(icon))')
+    expect(refreshBody).toContain('TRAY_ICON_IS_TEMPLATE')
+    expect(refreshBody).toContain('tray.set_icon_as_template(true)')
+  })
+
   it('disables menu on left click for macOS (menu_on_left_click)', () => {
     // macOS: .menu() defaults to showing menu on both left and right click.
     // Must explicitly disable left-click menu to preserve left-click = show window.
