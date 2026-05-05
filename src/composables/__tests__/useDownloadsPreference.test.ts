@@ -5,10 +5,11 @@
  * retry, speed limits, notifications, and auto-cleanup. Most fields here map
  * directly to aria2 engine options via buildDownloadsSystemConfig.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   buildDownloadsForm,
   buildDownloadsSystemConfig,
+  recordDownloadsDirectory,
   transformDownloadsForStore,
   type DownloadsForm,
 } from '../useDownloadsPreference'
@@ -424,5 +425,33 @@ describe('transformDownloadsForStore', () => {
   it('preserves dir through transform', () => {
     const result = transformDownloadsForStore({ ...baseForm, dir: '/custom/path' })
     expect(result.dir).toBe('/custom/path')
+  })
+})
+
+// ── recordDownloadsDirectory ───────────────────────────────────────
+
+describe('recordDownloadsDirectory', () => {
+  it('records a saved default download directory in the shared directory history', () => {
+    const record = vi.fn()
+
+    recordDownloadsDirectory({ dir: '/Users/test/Downloads' } as DownloadsForm, record)
+
+    expect(record).toHaveBeenCalledWith('/Users/test/Downloads')
+  })
+
+  it('trims the saved directory before recording it', () => {
+    const record = vi.fn()
+
+    recordDownloadsDirectory({ dir: '  /Users/test/Downloads  ' } as DownloadsForm, record)
+
+    expect(record).toHaveBeenCalledWith('/Users/test/Downloads')
+  })
+
+  it('does not record an empty directory', () => {
+    const record = vi.fn()
+
+    recordDownloadsDirectory({ dir: '   ' } as DownloadsForm, record)
+
+    expect(record).not.toHaveBeenCalled()
   })
 })

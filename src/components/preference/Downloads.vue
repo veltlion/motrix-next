@@ -24,6 +24,7 @@ import { useAppMessage } from '@/composables/useAppMessage'
 import {
   buildDownloadsForm,
   buildDownloadsSystemConfig,
+  recordDownloadsDirectory,
   transformDownloadsForStore,
 } from '@/composables/useDownloadsPreference'
 import type { FileCategory } from '@shared/types'
@@ -45,6 +46,7 @@ import {
   useDialog,
 } from 'naive-ui'
 import PreferenceActionBar from './PreferenceActionBar.vue'
+import DirectoryPopover from '@/components/common/DirectoryPopover.vue'
 import { FolderOpenOutline } from '@vicons/ionicons5'
 
 const { t } = useI18n()
@@ -135,6 +137,9 @@ const { form, isDirty, handleSave, handleReset, resetSnapshot } = usePreferenceF
       if (!ok) return false
     }
     return true
+  },
+  afterSave: (f) => {
+    recordDownloadsDirectory(f, preferenceStore.recordHistoryDirectory)
   },
 })
 
@@ -229,6 +234,9 @@ function handleResetCategories() {
 async function handleSelectDir() {
   const selected = await openDialog({ directory: true, multiple: false })
   if (typeof selected === 'string') form.value.dir = selected
+}
+function handleRecentDirSelect(dir: string) {
+  form.value.dir = dir
 }
 async function handleSelectCategoryDir(index: number) {
   const selected = await openDialog({ directory: true, multiple: false })
@@ -352,6 +360,7 @@ onMounted(async () => {
               <NIcon :size="16"><FolderOpenOutline /></NIcon>
             </template>
           </NButton>
+          <DirectoryPopover @select="handleRecentDirSelect" />
         </NInputGroup>
       </NFormItem>
       <NFormItem :label="t('preferences.file-timestamp')">

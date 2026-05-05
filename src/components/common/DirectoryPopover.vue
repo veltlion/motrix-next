@@ -1,17 +1,5 @@
 <script setup lang="ts">
-/**
- * @fileoverview Directory quick-pick popover for the AddTask "Save to" field.
- *
- * Renders a clock-icon button that opens an NPopover showing two groups:
- *   ⭐ Favorite directories  (pinned, manually managed)
- *   🕘 Recent directories    (auto-recorded on successful download)
- *
- * Backend CRUD is fully handled by `preferenceStore` — this component
- * only provides the UI surface.
- *
- * The button is hidden when both lists are empty to avoid showing an
- * empty popover.
- */
+/** @fileoverview Shared directory quick-pick popover backed by preference directory history. */
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePreferenceStore } from '@/stores/preference'
@@ -25,13 +13,9 @@ const { t } = useI18n()
 const preferenceStore = usePreferenceStore()
 const popoverVisible = ref(false)
 
-// ── Computed lists ──────────────────────────────────────────────────
-
 const favorites = computed(() => preferenceStore.config.favoriteDirectories ?? [])
 const recents = computed(() => preferenceStore.config.historyDirectories ?? [])
 const hasItems = computed(() => favorites.value.length + recents.value.length > 0)
-
-// ── Handlers ────────────────────────────────────────────────────────
 
 function onSelect(dir: string) {
   emit('select', dir)
@@ -50,11 +34,6 @@ function onRemove(dir: string) {
   preferenceStore.removeDirectory(dir)
 }
 
-/**
- * Returns the shortest unambiguous label for a directory path.
- * Shows the last path segment, or the last two if the last segment would
- * be ambiguous (e.g. two entries both ending in "Downloads").
- */
 function shortLabel(dir: string): string {
   const segments = dir.replace(/\\/g, '/').replace(/\/+$/, '').split('/')
   return segments.length >= 2 ? segments.slice(-2).join('/') : segments[segments.length - 1] || dir
@@ -78,7 +57,6 @@ function shortLabel(dir: string): string {
       </NButton>
     </template>
 
-    <!-- ⭐ Favorites -->
     <div v-auto-animate="{ duration: 200, easing: 'ease-out' }">
       <div v-if="favorites.length > 0" class="dir-popover-heading">{{ t('task.favorite-folders') }}</div>
       <div v-for="dir in favorites" :key="'fav-' + dir" class="dir-popover-item" :title="dir" @click="onSelect(dir)">
@@ -100,7 +78,6 @@ function shortLabel(dir: string): string {
       </div>
     </div>
 
-    <!-- 🕘 Recents -->
     <div v-auto-animate="{ duration: 200, easing: 'ease-out' }">
       <div
         v-if="recents.length > 0"

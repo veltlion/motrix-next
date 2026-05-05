@@ -51,7 +51,7 @@ import type { BatchItem } from '@shared/types'
 import { FolderOpenOutline, CloudUploadOutline } from '@vicons/ionicons5'
 import { vAutoAnimate } from '@formkit/auto-animate'
 import AdvancedOptions from './addtask/AdvancedOptions.vue'
-import DirectoryPopover from './addtask/DirectoryPopover.vue'
+import DirectoryPopover from '@/components/common/DirectoryPopover.vue'
 
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{ close: [] }>()

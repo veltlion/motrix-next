@@ -150,3 +150,9 @@ export function transformDownloadsForStore(f: DownloadsForm): Partial<AppConfig>
 
   return data
 }
+
+export function recordDownloadsDirectory(f: DownloadsForm, recordDirectory: (directory: string) => void): void {
+  const directory = f.dir.trim()
+  if (!directory) return
+  recordDirectory(directory)
+}
