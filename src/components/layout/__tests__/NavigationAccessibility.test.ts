@@ -73,6 +73,14 @@ describe('keyboard-accessible navigation', () => {
     expect(showAddTaskDialogMock).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps the sidebar logo visual-only instead of linking to GitHub', () => {
+    const wrapper = mount(AsideBar)
+
+    expect(wrapper.find('.logo-mini a').exists()).toBe(false)
+    expect(wrapper.find('.logo-mini').text()).toContain('NEXT')
+    expect(wrapper.html()).not.toContain('github.com/AnInsomniacy/motrix-next')
+  })
+
   it('renders TaskSubnav routes as buttons and marks the active route', async () => {
     const wrapper = mount(TaskSubnav)
     const buttons = wrapper.findAll('button')

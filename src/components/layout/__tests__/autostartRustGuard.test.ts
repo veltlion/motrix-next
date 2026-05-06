@@ -46,18 +46,15 @@ describe('lib.rs — StateFlags::VISIBLE excluded from window-state (#109)', () 
     expect(pluginBlock).toContain('!StateFlags::VISIBLE')
   })
 
-  it('excludes VISIBLE from manual restore_state() call', () => {
-    // The restore_state block must also exclude VISIBLE
-    const restoreBlock = extractRestoreStateBlock(source)
+  it('excludes VISIBLE from manual restore_state() helper', () => {
+    const restoreBlock = extractWindowStateFlagsBlock(source)
     expect(restoreBlock).toBeTruthy()
     expect(restoreBlock).toContain('!StateFlags::VISIBLE')
   })
 
   it('restore_state uses & !StateFlags::VISIBLE on all platforms', () => {
-    const restoreBlock = extractRestoreStateBlock(source)
+    const restoreBlock = extractWindowStateFlagsBlock(source)
     expect(restoreBlock).toBeTruthy()
-    // Must appear in both cfg branches (macOS and non-macOS)
-    // Count occurrences of !StateFlags::VISIBLE
     const matches = restoreBlock!.match(/!StateFlags::VISIBLE/g) || []
     expect(matches.length).toBeGreaterThanOrEqual(2)
   })
@@ -116,13 +113,28 @@ describe('lib.rs — autostart silent-mode guard in setup()', () => {
   })
 
   it('guard runs AFTER restore_state (correct ordering)', () => {
-    // The guard must come after restore_state to override any
-    // accidental visibility restoration
+    // The guard must come after the explicit restore call in setup_app
+    // to override any accidental visibility restoration.
+    const setupBlock = extractSetupBlock(source)
+    expect(setupBlock).toBeTruthy()
+    const restoreIdx = setupBlock!.indexOf('restore_window_state_if_enabled')
+    const guardIdx = setupBlock!.indexOf('autostart silent-mode guard')
+    expect(restoreIdx).toBeGreaterThanOrEqual(0)
+    expect(guardIdx).toBeGreaterThanOrEqual(0)
+    expect(guardIdx).toBeGreaterThan(restoreIdx)
+  })
+
+  it('setup restore uses the shared restore helper', () => {
+    const setupBlock = extractSetupBlock(source)
+    expect(setupBlock).toBeTruthy()
+    expect(setupBlock).toContain('restore_window_state_if_enabled')
+  })
+
+  it('the shared restore helper calls restore_state', () => {
     const restoreIdx = source.indexOf('restore_state')
     const guardIdx = source.indexOf('autostart silent-mode guard')
     expect(restoreIdx).toBeGreaterThanOrEqual(0)
     expect(guardIdx).toBeGreaterThanOrEqual(0)
-    expect(guardIdx).toBeGreaterThan(restoreIdx)
   })
 
   it('guard runs BEFORE Ok(()) return (within setup)', () => {
@@ -340,11 +352,10 @@ function extractWindowStatePluginBlock(source: string): string | null {
 }
 
 /**
- * Extracts the manual restore_state() block from lib.rs.
- * Identified by the comment about conditional window state restoration.
+ * Extracts the shared window-state flags helper from lib.rs.
  */
-function extractRestoreStateBlock(source: string): string | null {
-  const marker = 'Conditionally restore window state'
+function extractWindowStateFlagsBlock(source: string): string | null {
+  const marker = 'fn window_state_flags'
   const idx = source.indexOf(marker)
   if (idx === -1) return null
   const braceStart = source.indexOf('{', idx)

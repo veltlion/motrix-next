@@ -28,8 +28,8 @@ function showAddTask() {
   <aside class="aside" data-tauri-drag-region>
     <div class="aside-inner" data-tauri-drag-region>
       <h1 class="logo-mini">
-        <a target="_blank" href="https://github.com/AnInsomniacy/motrix-next/">
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="18" viewBox="0 0 40 18">
+        <span class="logo-mark" aria-label="Motrix Next">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="18" viewBox="0 0 40 18" aria-hidden="true">
             <rect
               x="0.5"
               y="0.5"
@@ -54,7 +54,7 @@ function showAddTask() {
               NEXT
             </text>
           </svg>
-        </a>
+        </span>
       </h1>
       <ul class="menu top-menu" data-tauri-drag-region>
         <li>
@@ -144,13 +144,12 @@ function showAddTask() {
   width: 100%;
   margin-top: var(--header-top-offset);
 }
-.logo-mini > a {
+.logo-mark {
   display: block;
   width: 40px;
   height: 18px;
   text-align: center;
   font-size: 0;
-  outline: none;
   padding: 2px;
   margin: 0 auto;
 }

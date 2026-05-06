@@ -160,6 +160,19 @@ describe('tray.rs — get_or_create_main_window', () => {
     expect(fnBody).toContain('.visible(false)')
   })
 
+  it('restores saved geometry after recreating a destroyed window', () => {
+    const fnBody = extractBody(source, 'pub fn get_or_create_main_window')
+    expect(fnBody).toContain('restore_window_state_if_enabled')
+    expect(fnBody.indexOf('builder.build()')).toBeLessThan(fnBody.indexOf('restore_window_state_if_enabled'))
+  })
+
+  it('does not center the recreated window after build-time restore can run', () => {
+    const fnBody = extractBody(source, 'pub fn get_or_create_main_window')
+    const buildIdx = fnBody.indexOf('builder.build()')
+    const afterBuild = fnBody.slice(buildIdx)
+    expect(afterBuild).not.toContain('.center()')
+  })
+
   it('logs an error if window recreation fails', () => {
     const fnBody = extractBody(source, 'pub fn get_or_create_main_window')
     expect(fnBody).toContain('log::error!')
@@ -185,6 +198,46 @@ describe('tray.rs — get_or_create_main_window', () => {
     // Count occurrences of get_webview_window in setup_tray — should be 0
     const rawCalls = (setupBody.match(/get_webview_window/g) || []).length
     expect(rawCalls, 'tray handlers should use get_or_create, not raw get_webview_window').toBe(0)
+  })
+})
+
+describe('lib.rs — lightweight window-state preservation', () => {
+  let libSource: string
+
+  beforeAll(() => {
+    libSource = fs.readFileSync(path.join(TAURI_ROOT, 'src', 'lib.rs'), 'utf-8')
+  })
+
+  it('defines one shared helper for conditional window-state restore flags', () => {
+    const helperBody = extractBody(libSource, 'pub(crate) fn restore_window_state_if_enabled')
+    const preferenceBody = extractBody(libSource, 'fn keep_window_state_enabled')
+    expect(helperBody).toContain('keep_window_state_enabled')
+    expect(preferenceBody).toContain('keepWindowState')
+    expect(helperBody).toContain('restore_state')
+    expect(libSource).toContain('!StateFlags::VISIBLE')
+  })
+
+  it('uses the shared restore helper during initial setup', () => {
+    const setupBody = extractBody(libSource, 'fn setup_app')
+    expect(setupBody).toContain('restore_window_state_if_enabled')
+  })
+
+  it('saves window state before lightweight mode destroys the WebView', () => {
+    const helperBody = extractBody(libSource, 'fn handle_minimize_to_tray')
+    expect(helperBody).toContain('save_window_state_before_lightweight_destroy')
+    expect(helperBody.indexOf('save_window_state_before_lightweight_destroy')).toBeLessThan(
+      helperBody.indexOf('window.destroy()'),
+    )
+  })
+
+  it('keeps lightweight destroy state save scoped to the lightweight branch', () => {
+    const helperBody = extractBody(libSource, 'fn handle_minimize_to_tray')
+    const lightweightIdx = helperBody.indexOf('if lightweight')
+    const saveIdx = helperBody.indexOf('save_window_state_before_lightweight_destroy')
+    const hideIdx = helperBody.indexOf('window.hide()')
+    expect(lightweightIdx).toBeGreaterThanOrEqual(0)
+    expect(saveIdx).toBeGreaterThan(lightweightIdx)
+    expect(hideIdx).toBeGreaterThan(saveIdx)
   })
 })
 

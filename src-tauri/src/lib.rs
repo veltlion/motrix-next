@@ -96,6 +96,59 @@ impl AppLifecycleState {
     }
 }
 
+fn window_state_flags() -> tauri_plugin_window_state::StateFlags {
+    use tauri_plugin_window_state::StateFlags;
+
+    #[cfg(target_os = "macos")]
+    {
+        StateFlags::all() & !StateFlags::MAXIMIZED & !StateFlags::VISIBLE
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        StateFlags::all() & !StateFlags::VISIBLE
+    }
+}
+
+fn keep_window_state_enabled(app: &tauri::AppHandle) -> bool {
+    app.store("config.json")
+        .ok()
+        .and_then(|s| s.get("preferences"))
+        .and_then(|p| p.get("keepWindowState")?.as_bool())
+        .unwrap_or(false)
+}
+
+/// Restores window geometry when the user has opted into window-state restore.
+///
+/// Visibility is intentionally excluded. The app owns visibility through the
+/// autostart silent-mode guard and the frontend show-on-ready flow, so restoring
+/// visibility here would reintroduce startup flashes.
+pub(crate) fn restore_window_state_if_enabled(
+    app: &tauri::AppHandle,
+    window: &tauri::WebviewWindow,
+) {
+    use tauri_plugin_window_state::WindowExt;
+
+    if !keep_window_state_enabled(app) {
+        return;
+    }
+
+    if let Err(e) = window.restore_state(window_state_flags()) {
+        log::warn!(
+            "window-state:restore-failed label={} error={}",
+            window.label(),
+            e
+        );
+    }
+}
+
+fn save_window_state_before_lightweight_destroy(app: &tauri::AppHandle) {
+    use tauri_plugin_window_state::AppHandleExt;
+
+    if let Err(e) = app.save_window_state(window_state_flags()) {
+        log::warn!("window-state:save-before-lightweight-destroy-failed error={e}");
+    }
+}
+
 /// Minimizes the main window to tray, either by destroying the WebView
 /// (lightweight mode — reduces memory usage) or by
 /// hiding it (standard mode — instant show on tray click).
@@ -125,6 +178,7 @@ pub(crate) fn handle_minimize_to_tray(app: &tauri::AppHandle, window: &tauri::We
 
     if lightweight {
         log::info!("tray:lightweight-destroy label={}", window.label());
+        save_window_state_before_lightweight_destroy(app);
         services::deep_link::mark_frontend_unready(app);
         services::frontend_action::mark_frontend_actions_unready(app);
         let _ = window.destroy();
@@ -291,45 +345,11 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Conditionally restore window state based on user preference.
-    // The window-state plugin is registered with skip_initial_state("main")
-    // so it does NOT auto-restore.  We read the preference here and
-    // call restore_state() manually only when the user has opted in.
-    // The plugin still saves state on exit regardless, so toggling the
-    // preference on later will pick up the last saved geometry.
-    {
-        use tauri_plugin_window_state::{StateFlags, WindowExt};
-
-        let keep_state = app
-            .store("config.json")
-            .ok()
-            .and_then(|s| s.get("preferences"))
-            .and_then(|p| p.get("keepWindowState")?.as_bool())
-            .unwrap_or(false);
-
-        if keep_state {
-            if let Some(w) = app.get_webview_window("main") {
-                // Exclude VISIBLE — window visibility is managed entirely by
-                // the autostart-silent-mode logic below and the frontend's
-                // MainLayout.vue.  Allowing the window-state plugin to restore
-                // VISIBLE would race with the autostart check and show the
-                // window before the frontend can decide to hide it (#109).
-                //
-                // Exclude MAXIMIZED on macOS — known tao bug where
-                // isMaximized() triggers infinite resize loop (#5812).
-                let flags = {
-                    #[cfg(target_os = "macos")]
-                    {
-                        StateFlags::all() & !StateFlags::MAXIMIZED & !StateFlags::VISIBLE
-                    }
-                    #[cfg(not(target_os = "macos"))]
-                    {
-                        StateFlags::all() & !StateFlags::VISIBLE
-                    }
-                };
-                let _ = w.restore_state(flags);
-            }
-        }
+    // The window-state plugin is registered with skip_initial_state("main"),
+    // so initial and lightweight-recreated windows both restore through the
+    // same explicit helper.
+    if let Some(w) = app.get_webview_window("main") {
+        restore_window_state_if_enabled(handle, &w);
     }
 
     // Window visibility follows a two-layer defense-in-depth pattern:

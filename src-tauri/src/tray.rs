@@ -80,7 +80,6 @@ pub fn get_or_create_main_window(app: &AppHandle) -> Option<tauri::WebviewWindow
         .title("Motrix Next")
         .inner_size(1068.0, 680.0)
         .min_inner_size(970.0, 560.0)
-        .center()
         .visible(false);
 
     // macOS: native traffic lights via overlay title bar (matches tauri.macos.conf.json).
@@ -103,6 +102,7 @@ pub fn get_or_create_main_window(app: &AppHandle) -> Option<tauri::WebviewWindow
 
     match builder.build() {
         Ok(w) => {
+            crate::restore_window_state_if_enabled(app, &w);
             log::info!("tray:window-recreated label=main");
             Some(w)
         }
