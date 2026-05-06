@@ -150,6 +150,7 @@ function showAddTask() {
   height: 18px;
   text-align: center;
   font-size: 0;
+  color: var(--m3-primary);
   padding: 2px;
   margin: 0 auto;
 }
