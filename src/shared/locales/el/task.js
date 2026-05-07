@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Αποτυχία συνέχισης όλων',
   'resume-all-task-confirm': 'Συνέχιση όλων των εργασιών;',
   'pause-all-task-confirm': 'Παύση όλων των εργασιών;',
-  'purge-record-confirm': 'Θα εκκαθαριστούν όλες οι ολοκληρωμένες, αποτυχημένες ή αφαιρεμένες εγγραφές εργασιών.',
+  'purge-record-confirm': 'Θα εκκαθαριστούν όλες οι ολοκληρωμένες ή αποτυχημένες εγγραφές εργασιών.',
   'purge-record-files-label': 'Διαγραφή και των τοπικών αρχείων',
   'select-all-task': 'Επιλογή όλων',
   'clear-recent-tasks': 'Εκκαθάριση πρόσφατων',

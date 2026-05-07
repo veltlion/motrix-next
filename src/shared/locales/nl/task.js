@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Hervatten van alle taken mislukt',
   'resume-all-task-confirm': 'Alle taken hervatten?',
   'pause-all-task-confirm': 'Alle taken pauzeren?',
-  'purge-record-confirm': 'Dit wist alle voltooide, mislukte of verwijderde taakrecords.',
+  'purge-record-confirm': 'Dit wist alle voltooide of mislukte taakrecords.',
   'purge-record-files-label': 'Ook lokale bestanden verwijderen',
   'select-all-task': 'Alles selecteren',
   'clear-recent-tasks': 'Recente taken wissen',

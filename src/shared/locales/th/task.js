@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'ไม่สามารถดำเนินการทุกงานต่อได้',
   'resume-all-task-confirm': 'ดำเนินการทั้งหมดต่อ?',
   'pause-all-task-confirm': 'หยุดทั้งหมดชั่วคราว?',
-  'purge-record-confirm': 'จะล้างบันทึกงานที่เสร็จ ล้มเหลว หรือถูกลบทั้งหมด',
+  'purge-record-confirm': 'จะล้างบันทึกงานที่เสร็จหรือผิดพลาดทั้งหมด',
   'purge-record-files-label': 'ลบไฟล์ในเครื่องด้วย',
   'select-all-task': 'เลือกทั้งหมด',
   'clear-recent-tasks': 'ล้างงานล่าสุด',

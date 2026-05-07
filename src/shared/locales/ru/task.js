@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Не удалось возобновить все задачи',
   'resume-all-task-confirm': 'Возобновить все задачи?',
   'pause-all-task-confirm': 'Приостановить все задачи?',
-  'purge-record-confirm': 'Будут очищены все завершённые, ошибочные или удалённые записи задач.',
+  'purge-record-confirm': 'Будут очищены все завершённые или ошибочные записи задач.',
   'purge-record-files-label': 'Также удалить локальные файлы',
   'select-all-task': 'Выделить все',
   'clear-recent-tasks': 'Очистить недавние задачи',

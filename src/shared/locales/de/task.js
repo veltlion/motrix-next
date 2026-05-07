@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Fortsetzen aller Aufgaben fehlgeschlagen',
   'resume-all-task-confirm': 'Alle Aufgaben fortsetzen?',
   'pause-all-task-confirm': 'Alle Aufgaben pausieren?',
-  'purge-record-confirm': 'Entfernt alle abgeschlossenen, fehlgeschlagenen oder entfernten Aufgabeneinträge.',
+  'purge-record-confirm': 'Entfernt alle abgeschlossenen oder fehlgeschlagenen Aufgabeneinträge.',
   'purge-record-files-label': 'Auch lokale Dateien löschen',
   'select-all-task': 'Alle auswählen',
   'clear-recent-tasks': 'Letzte Einträge löschen',

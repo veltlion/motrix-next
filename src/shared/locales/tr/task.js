@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Tüm görevler devam ettirilemedi',
   'resume-all-task-confirm': 'Tüm görevlere devam edilsin mi?',
   'pause-all-task-confirm': 'Tüm görevler duraklatılsın mı?',
-  'purge-record-confirm': 'Tamamlanan, başarısız veya kaldırılmış tüm görev kayıtları temizlenecek.',
+  'purge-record-confirm': 'Tamamlanan veya başarısız tüm görev kayıtları temizlenecek.',
   'purge-record-files-label': 'Yerel dosyaları da sil',
   'select-all-task': 'Tümünü seç',
   'clear-recent-tasks': 'Son görevleri temizle',

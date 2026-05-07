@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'ادامه همه وظایف ناموفق بود',
   'resume-all-task-confirm': 'همه وظایف ادامه یابند؟',
   'pause-all-task-confirm': 'همه وظایف متوقف شوند؟',
-  'purge-record-confirm': 'همه رکوردهای کامل، ناموفق یا حذف‌شده پاک می‌شوند.',
+  'purge-record-confirm': 'همه رکوردهای کامل یا ناموفق پاک می‌شوند.',
   'purge-record-files-label': 'فایل‌های محلی نیز حذف شوند',
   'select-all-task': 'انتخاب همه',
   'clear-recent-tasks': 'پاک کردن وظایف اخیر',

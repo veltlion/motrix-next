@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'فشل استئناف جميع المهام',
   'resume-all-task-confirm': 'استئناف جميع المهام؟',
   'pause-all-task-confirm': 'إيقاف جميع المهام مؤقتًا؟',
-  'purge-record-confirm': 'سيتم مسح كل سجلات المهام المكتملة أو الفاشلة أو المزالة.',
+  'purge-record-confirm': 'سيتم مسح كل سجلات المهام المكتملة أو الفاشلة.',
   'purge-record-files-label': 'حذف الملفات المحلية أيضًا',
   'select-all-task': 'تحديد الكل',
   'clear-recent-tasks': 'مسح المهام الأخيرة',

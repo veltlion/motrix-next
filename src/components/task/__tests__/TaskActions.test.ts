@@ -77,7 +77,7 @@ function translateForTest(key: string, params?: Record<string, unknown>): string
     'task.batch-delete-task-confirm': `This will remove ${params?.count ?? '{count}'} downloading, waiting, or paused task(s).`,
     'task.delete-queue-files-label': 'Also delete downloaded files',
     'task.purge-record': 'Clear History Records',
-    'task.purge-record-confirm': 'This will clear all completed, failed, or removed task records.',
+    'task.purge-record-confirm': 'This will clear all completed or failed task records.',
     'task.purge-record-files-label': 'Also delete local files',
   }
   return messages[key] ?? key
@@ -502,7 +502,7 @@ describe('TaskActions', () => {
       await clickButton(wrapper, 3) // Purge
       expect(lastDialogOptions?.title).toBe('Clear History Records')
       expect(renderDialogText(lastDialogOptions?.content)).toContain(
-        'This will clear all completed, failed, or removed task records.',
+        'This will clear all completed or failed task records.',
       )
       expect(renderDialogText(lastDialogOptions?.content)).toContain('Also delete local files')
       const onPositiveClick = lastDialogOptions!.onPositiveClick as () => Promise<void>

@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': '모든 작업 재개 실패',
   'resume-all-task-confirm': '모든 작업을 재개하시겠습니까?',
   'pause-all-task-confirm': '모든 작업을 일시 중지하시겠습니까?',
-  'purge-record-confirm': '완료, 실패 또는 제거된 작업 기록을 모두 지웁니다.',
+  'purge-record-confirm': '완료 또는 실패한 작업 기록을 모두 지웁니다.',
   'purge-record-files-label': '로컬 파일도 삭제',
   'select-all-task': '모두 선택',
   'clear-recent-tasks': '최근 기록 삭제',

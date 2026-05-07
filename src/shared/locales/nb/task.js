@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Kunne ikke gjenoppta alle oppgaver',
   'resume-all-task-confirm': 'Gjenoppta alle oppgaver?',
   'pause-all-task-confirm': 'Pause alle oppgaver?',
-  'purge-record-confirm': 'Dette fjerner alle fullførte, mislykkede eller fjernede oppføringer.',
+  'purge-record-confirm': 'Dette fjerner alle fullførte eller mislykkede oppføringer.',
   'purge-record-files-label': 'Slett også lokale filer',
   'select-all-task': 'Velg alle',
   'clear-recent-tasks': 'Fjern nylige oppgaver',

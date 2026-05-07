@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': '恢復所有任務失敗',
   'resume-all-task-confirm': '確定恢復所有任務？',
   'pause-all-task-confirm': '確定暫停所有任務？',
-  'purge-record-confirm': '將清除所有已完成、失敗或已移除的任務記錄。',
+  'purge-record-confirm': '將清除所有已完成或失敗的任務記錄。',
   'purge-record-files-label': '同時刪除本機檔案',
   'select-all-task': '全選',
   'clear-recent-tasks': '清除最近的下載記錄',

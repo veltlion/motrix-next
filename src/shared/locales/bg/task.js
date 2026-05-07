@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Неуспешно продължаване на всички задачи',
   'resume-all-task-confirm': 'Продължи всички задачи?',
   'pause-all-task-confirm': 'Пауза на всички задачи?',
-  'purge-record-confirm': 'Ще бъдат изчистени всички завършени, неуспешни или премахнати записи.',
+  'purge-record-confirm': 'Ще бъдат изчистени всички завършени или неуспешни записи.',
   'purge-record-files-label': 'Изтрий и локалните файлове',
   'select-all-task': 'Избери всички',
   'clear-recent-tasks': 'Изчисти скорошни задачи',

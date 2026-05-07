@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Nie udało się wznowić wszystkich zadań',
   'resume-all-task-confirm': 'Wznowić wszystkie zadania?',
   'pause-all-task-confirm': 'Wstrzymać wszystkie zadania?',
-  'purge-record-confirm': 'Zostaną wyczyszczone wszystkie ukończone, nieudane lub usunięte wpisy zadań.',
+  'purge-record-confirm': 'Zostaną wyczyszczone wszystkie ukończone lub nieudane wpisy zadań.',
   'purge-record-files-label': 'Usuń także pliki lokalne',
   'select-all-task': 'Zaznacz wszystko',
   'clear-recent-tasks': 'Wyczyść ostatnie zadania',

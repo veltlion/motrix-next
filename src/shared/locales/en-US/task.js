@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Failed to resume all tasks',
   'resume-all-task-confirm': 'Resume all tasks?',
   'pause-all-task-confirm': 'Pause all tasks?',
-  'purge-record-confirm': 'This will clear all completed, failed, or removed task records.',
+  'purge-record-confirm': 'This will clear all completed or failed task records.',
   'purge-record-files-label': 'Also delete local files',
   'select-all-task': 'Select All',
   'clear-recent-tasks': 'Clear Recent Tasks',

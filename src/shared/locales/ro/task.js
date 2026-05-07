@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Reluarea tuturor sarcinilor a eșuat',
   'resume-all-task-confirm': 'Reluați toate sarcinile?',
   'pause-all-task-confirm': 'Suspendați toate sarcinile?',
-  'purge-record-confirm': 'Vor fi șterse toate înregistrările finalizate, eșuate sau eliminate.',
+  'purge-record-confirm': 'Vor fi șterse toate înregistrările finalizate sau eșuate.',
   'purge-record-files-label': 'Șterge și fișierele locale',
   'select-all-task': 'Selectează tot',
   'clear-recent-tasks': 'Curăță sarcinile recente',

@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Không thể tiếp tục tất cả',
   'resume-all-task-confirm': 'Tiếp tục tất cả tác vụ?',
   'pause-all-task-confirm': 'Tạm dừng tất cả tác vụ?',
-  'purge-record-confirm': 'Thao tác này sẽ xóa tất cả bản ghi tác vụ đã hoàn thành, thất bại hoặc đã bị xóa.',
+  'purge-record-confirm': 'Thao tác này sẽ xóa tất cả bản ghi tác vụ đã hoàn thành hoặc thất bại.',
   'purge-record-files-label': 'Xóa cả tệp cục bộ',
   'select-all-task': 'Chọn tất cả',
   'clear-recent-tasks': 'Xóa tác vụ gần đây',

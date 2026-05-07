@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': '恢复所有任务失败',
   'resume-all-task-confirm': '确定恢复所有任务？',
   'pause-all-task-confirm': '确定暂停所有任务？',
-  'purge-record-confirm': '将清除所有已完成、失败或已移除的任务记录。',
+  'purge-record-confirm': '将清除所有已完成或失败的任务记录。',
   'purge-record-files-label': '同时删除本地文件',
   'select-all-task': '全选',
   'clear-recent-tasks': '清除最近的下载记录',

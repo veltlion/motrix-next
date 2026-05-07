@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Impossibile riprendere tutte le attività',
   'resume-all-task-confirm': 'Riprendere tutte le attività?',
   'pause-all-task-confirm': 'Mettere in pausa tutte le attività?',
-  'purge-record-confirm': 'Rimuoverà tutti i record completati, non riusciti o rimossi.',
+  'purge-record-confirm': 'Rimuoverà tutti i record completati o non riusciti.',
   'purge-record-files-label': 'Elimina anche i file locali',
   'select-all-task': 'Seleziona tutto',
   'clear-recent-tasks': 'Cancella attività recenti',

@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Az összes feladat folytatása sikertelen',
   'resume-all-task-confirm': 'Folytatja az összes feladatot?',
   'pause-all-task-confirm': 'Szünetelteti az összes feladatot?',
-  'purge-record-confirm': 'Minden befejezett, sikertelen vagy eltávolított feladatbejegyzés törlődik.',
+  'purge-record-confirm': 'Minden befejezett vagy sikertelen feladatbejegyzés törlődik.',
   'purge-record-files-label': 'Helyi fájlok törlése is',
   'select-all-task': 'Összes kijelölése',
   'clear-recent-tasks': 'Legutóbbi feladatok törlése',

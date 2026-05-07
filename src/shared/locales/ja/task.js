@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'すべてのタスクの再開に失敗しました',
   'resume-all-task-confirm': 'すべてのタスクを再開しますか？',
   'pause-all-task-confirm': 'すべてのタスクを一時停止しますか？',
-  'purge-record-confirm': '完了、失敗、削除済みのタスク記録をすべて消去します。',
+  'purge-record-confirm': '完了または失敗したタスク記録をすべて消去します。',
   'purge-record-files-label': 'ローカルファイルも削除',
   'select-all-task': 'すべて選択',
   'clear-recent-tasks': '最近の記録を消去',

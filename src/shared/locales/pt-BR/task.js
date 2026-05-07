@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Falha ao retomar todas as tarefas',
   'resume-all-task-confirm': 'Retomar todas as tarefas?',
   'pause-all-task-confirm': 'Pausar todas as tarefas?',
-  'purge-record-confirm': 'Isso limpará todos os registros concluídos, com falha ou removidos.',
+  'purge-record-confirm': 'Isso limpará todos os registros concluídos ou com falha.',
   'purge-record-files-label': 'Também excluir arquivos locais',
   'select-all-task': 'Selecionar tudo',
   'clear-recent-tasks': 'Limpar tarefas recentes',

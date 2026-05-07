@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Échec de la reprise',
   'resume-all-task-confirm': 'Reprendre toutes les tâches ?',
   'pause-all-task-confirm': 'Suspendre toutes les tâches ?',
-  'purge-record-confirm': 'Supprime tous les enregistrements terminés, échoués ou retirés.',
+  'purge-record-confirm': 'Supprime tous les enregistrements terminés ou échoués.',
   'purge-record-files-label': 'Supprimer aussi les fichiers locaux',
   'select-all-task': 'Tout sélectionner',
   'clear-recent-tasks': 'Effacer les tâches récentes',

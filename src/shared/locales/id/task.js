@@ -169,7 +169,7 @@ export default {
   'resume-all-task-fail': 'Gagal melanjutkan semua tugas',
   'resume-all-task-confirm': 'Lanjutkan semua tugas?',
   'pause-all-task-confirm': 'Jeda semua tugas?',
-  'purge-record-confirm': 'Ini akan menghapus semua catatan tugas selesai, gagal, atau terhapus.',
+  'purge-record-confirm': 'Ini akan menghapus semua catatan tugas selesai atau gagal.',
   'purge-record-files-label': 'Hapus juga file lokal',
   'select-all-task': 'Pilih semua',
   'clear-recent-tasks': 'Hapus tugas terbaru',
