@@ -286,10 +286,7 @@ pub(crate) fn decode_filename_encoding(filename: &str) -> String {
     decode_filename_encoding_for_source(filename, FilenameEncodingSource::Legacy)
 }
 
-fn decode_filename_encoding_for_source(
-    filename: &str,
-    source: FilenameEncodingSource,
-) -> String {
+fn decode_filename_encoding_for_source(filename: &str, source: FilenameEncodingSource) -> String {
     let trimmed = filename.trim();
 
     if matches!(source, FilenameEncodingSource::Extended) {
@@ -312,7 +309,7 @@ fn decode_filename_encoding_for_source(
     }
 
     for candidate in &candidates {
-        if looks_like_rfc2047_encoded_word(&candidate) {
+        if looks_like_rfc2047_encoded_word(candidate) {
             let decoded = decode_rfc2047_filename(candidate.clone());
             if decoded != *candidate && !decoded.trim().is_empty() {
                 return decoded.trim().to_string();
@@ -321,7 +318,10 @@ fn decode_filename_encoding_for_source(
     }
 
     if matches!(source, FilenameEncodingSource::Legacy) {
-        if let Some(decoded) = candidates.get(1).filter(|decoded| !decoded.trim().is_empty()) {
+        if let Some(decoded) = candidates
+            .get(1)
+            .filter(|decoded| !decoded.trim().is_empty())
+        {
             return decoded.trim().to_string();
         }
     }
