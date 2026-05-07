@@ -1,7 +1,7 @@
 //! Localised strings for Rust-side task notifications.
 //!
-//! This table is generated from `src/shared/locales/*/task.js` for the
-//! small subset of strings required while the WebView is destroyed.
+//! This table intentionally owns the small subset of notification strings
+//! required while the WebView is destroyed.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TaskNotificationTexts {
@@ -16,11 +16,11 @@ pub struct TaskNotificationTexts {
 
 const EN_US_TEXTS: TaskNotificationTexts = TaskNotificationTexts {
     download_complete_title: "Download Complete",
-    download_complete_body: "\"{taskName}\" completed",
-    bt_complete_title: "BT download complete, seeding...",
-    bt_complete_body: "\"{taskName}\" — download complete, seeding...",
+    download_complete_body: "Saved: {taskName}",
+    bt_complete_title: "BT Download Complete",
+    bt_complete_body: "Seeding started: {taskName}",
     download_failed_title: "Download Failed",
-    download_failed_body: "Failed to download \"{taskName}\"",
+    download_failed_body: "{taskName}: {reason}",
     error_unknown: "Unknown error",
 };
 
@@ -80,227 +80,227 @@ pub fn texts_for_locale(locale: &str) -> TaskNotificationTexts {
     match resolve_supported_locale(locale) {
         "ar" => TaskNotificationTexts {
             download_complete_title: "اكتمل التنزيل",
-            download_complete_body: "اكتمل تنزيل \"{taskName}\"",
-            bt_complete_title: "اكتمل تنزيل BT، جارٍ المشاركة...",
-            bt_complete_body: "\"{taskName}\" — اكتمل التنزيل، جارٍ البذر...",
+            download_complete_body: "تم حفظ الملف: {taskName}",
+            bt_complete_title: "اكتمل تنزيل BT",
+            bt_complete_body: "بدأت المشاركة: {taskName}",
             download_failed_title: "فشل التنزيل",
-            download_failed_body: "فشل تنزيل \"{taskName}\"",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "bg" => TaskNotificationTexts {
             download_complete_title: "Изтеглянето е завършено",
-            download_complete_body: "«{taskName}» е изтеглено",
-            bt_complete_title: "BT изтеглянето е завършено, споделяне...",
-            bt_complete_body: "«{taskName}» — изтеглянето завърши, споделяне...",
+            download_complete_body: "Файлът е запазен: {taskName}",
+            bt_complete_title: "BT изтеглянето е завършено",
+            bt_complete_body: "Споделянето започна: {taskName}",
             download_failed_title: "Изтеглянето е неуспешно",
-            download_failed_body: "Неуспешно изтегляне на «{taskName}»",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "ca" => TaskNotificationTexts {
             download_complete_title: "Descàrrega completada",
-            download_complete_body: "«{taskName}» completada",
-            bt_complete_title: "Descàrrega BT completada, compartint...",
-            bt_complete_body: "«{taskName}» — descàrrega completada, compartint...",
+            download_complete_body: "Fitxer desat: {taskName}",
+            bt_complete_title: "Descàrrega BT completada",
+            bt_complete_body: "S\'ha iniciat la compartició: {taskName}",
             download_failed_title: "Descàrrega fallida",
-            download_failed_body: "No s'ha pogut descarregar «{taskName}»",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "de" => TaskNotificationTexts {
             download_complete_title: "Download abgeschlossen",
-            download_complete_body: "„{taskName}\" abgeschlossen",
-            bt_complete_title: "BT-Download abgeschlossen, Seeding...",
-            bt_complete_body: "„{taskName}\" — Download abgeschlossen, Seeding...",
+            download_complete_body: "Datei gespeichert: {taskName}",
+            bt_complete_title: "BT-Download abgeschlossen",
+            bt_complete_body: "Seeding gestartet: {taskName}",
             download_failed_title: "Download fehlgeschlagen",
-            download_failed_body: "Download von „{taskName}\" fehlgeschlagen",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "el" => TaskNotificationTexts {
             download_complete_title: "Η λήψη ολοκληρώθηκε",
-            download_complete_body: "Η λήψη του \"{taskName}\" ολοκληρώθηκε",
-            bt_complete_title: "Η BT λήψη ολοκληρώθηκε, διαμοιρασμός...",
-            bt_complete_body: "\"{taskName}\" — λήψη ολοκληρώθηκε, σπορά...",
+            download_complete_body: "Το αρχείο αποθηκεύτηκε: {taskName}",
+            bt_complete_title: "Η BT λήψη ολοκληρώθηκε",
+            bt_complete_body: "Ξεκίνησε η διαμοίραση: {taskName}",
             download_failed_title: "Η λήψη απέτυχε",
-            download_failed_body: "Αποτυχία λήψης του \"{taskName}\"",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "es" => TaskNotificationTexts {
             download_complete_title: "Descarga completada",
-            download_complete_body: "\"{taskName}\" completado",
-            bt_complete_title: "Descarga BT completada, sembrando...",
-            bt_complete_body: "\"{taskName}\" — descarga completa, compartiendo...",
+            download_complete_body: "Archivo guardado: {taskName}",
+            bt_complete_title: "Descarga BT completada",
+            bt_complete_body: "Seeding iniciado: {taskName}",
             download_failed_title: "Descarga fallida",
-            download_failed_body: "Error al descargar \"{taskName}\"",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "fa" => TaskNotificationTexts {
             download_complete_title: "دانلود تکمیل شد",
-            download_complete_body: "دانلود \"{taskName}\" کامل شد",
-            bt_complete_title: "دانلود BT تکمیل شد، در حال اشتراک‌گذاری...",
-            bt_complete_body: "\"{taskName}\" — دانلود تمام شد، بذرگذاری...",
+            download_complete_body: "فایل ذخیره شد: {taskName}",
+            bt_complete_title: "دانلود BT تکمیل شد",
+            bt_complete_body: "اشتراک‌گذاری آغاز شد: {taskName}",
             download_failed_title: "دانلود ناموفق بود",
-            download_failed_body: "دانلود \"{taskName}\" ناموفق بود",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "fr" => TaskNotificationTexts {
             download_complete_title: "Téléchargement terminé",
-            download_complete_body: "Téléchargement de « {taskName} » terminé",
-            bt_complete_title: "Téléchargement BT terminé, partage en cours...",
-            bt_complete_body: "« {taskName} » — téléchargement terminé, partage en cours...",
+            download_complete_body: "Fichier enregistré : {taskName}",
+            bt_complete_title: "Téléchargement BT terminé",
+            bt_complete_body: "Partage démarré : {taskName}",
             download_failed_title: "Échec du téléchargement",
-            download_failed_body: "Échec du téléchargement de « {taskName} »",
+            download_failed_body: "{taskName} : {reason}",
             error_unknown: "Unknown error",
         },
         "hu" => TaskNotificationTexts {
             download_complete_title: "Letöltés befejezve",
-            download_complete_body: "\"{taskName}\" letöltése kész",
-            bt_complete_title: "BT letöltés befejezve, megosztás...",
-            bt_complete_body: "\"{taskName}\" — letöltés kész, megosztás...",
+            download_complete_body: "Fájl mentve: {taskName}",
+            bt_complete_title: "BT letöltés befejezve",
+            bt_complete_body: "Megosztás elindult: {taskName}",
             download_failed_title: "Letöltés sikertelen",
-            download_failed_body: "\"{taskName}\" letöltése sikertelen",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "id" => TaskNotificationTexts {
             download_complete_title: "Unduhan selesai",
-            download_complete_body: "Unduhan \"{taskName}\" selesai",
-            bt_complete_title: "Unduhan BT selesai, berbagi...",
-            bt_complete_body: "\"{taskName}\" — unduhan selesai, seeding...",
+            download_complete_body: "File disimpan: {taskName}",
+            bt_complete_title: "Unduhan BT selesai",
+            bt_complete_body: "Seeding dimulai: {taskName}",
             download_failed_title: "Unduhan gagal",
-            download_failed_body: "Gagal mengunduh \"{taskName}\"",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "it" => TaskNotificationTexts {
             download_complete_title: "Download completato",
-            download_complete_body: "Download di \"{taskName}\" completato",
-            bt_complete_title: "Download BT completato, condivisione...",
-            bt_complete_body: "\"{taskName}\" — download completato, condivisione...",
+            download_complete_body: "File salvato: {taskName}",
+            bt_complete_title: "Download BT completato",
+            bt_complete_body: "Condivisione avviata: {taskName}",
             download_failed_title: "Download non riuscito",
-            download_failed_body: "Download di \"{taskName}\" fallito",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "ja" => TaskNotificationTexts {
             download_complete_title: "ダウンロード完了",
-            download_complete_body: "「{taskName}」 のダウンロードが完了",
-            bt_complete_title: "BT ダウンロード完了、シード中...",
-            bt_complete_body: "「{taskName}」 ダウンロード完了、シード中...",
+            download_complete_body: "ファイルを保存しました：{taskName}",
+            bt_complete_title: "BT ダウンロード完了",
+            bt_complete_body: "シードを開始しました：{taskName}",
             download_failed_title: "ダウンロード失敗",
-            download_failed_body: "「{taskName}」 のダウンロードに失敗",
+            download_failed_body: "{taskName}：{reason}",
             error_unknown: "不明なエラー",
         },
         "ko" => TaskNotificationTexts {
             download_complete_title: "다운로드 완료",
-            download_complete_body: "\"{taskName}\" 다운로드 완료",
-            bt_complete_title: "BT 다운로드 완료, 시딩 중...",
-            bt_complete_body: "\"{taskName}\" 다운로드 완료, 시딩 중...",
+            download_complete_body: "파일 저장됨: {taskName}",
+            bt_complete_title: "BT 다운로드 완료",
+            bt_complete_body: "시딩 시작됨: {taskName}",
             download_failed_title: "다운로드 실패",
-            download_failed_body: "\"{taskName}\" 다운로드 실패",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "알 수 없는 오류",
         },
         "nb" => TaskNotificationTexts {
             download_complete_title: "Nedlasting fullført",
-            download_complete_body: "Nedlasting av \"{taskName}\" fullført",
-            bt_complete_title: "BT-nedlasting fullført, deler...",
-            bt_complete_body: "\"{taskName}\" — nedlasting fullført, deler...",
+            download_complete_body: "Fil lagret: {taskName}",
+            bt_complete_title: "BT-nedlasting fullført",
+            bt_complete_body: "Deling startet: {taskName}",
             download_failed_title: "Nedlasting mislyktes",
-            download_failed_body: "Kunne ikke laste ned \"{taskName}\"",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "nl" => TaskNotificationTexts {
             download_complete_title: "Download voltooid",
-            download_complete_body: "Download van \"{taskName}\" voltooid",
-            bt_complete_title: "BT-download voltooid, seeden...",
-            bt_complete_body: "\"{taskName}\" — download voltooid, seeden...",
+            download_complete_body: "Bestand opgeslagen: {taskName}",
+            bt_complete_title: "BT-download voltooid",
+            bt_complete_body: "Seeden gestart: {taskName}",
             download_failed_title: "Download mislukt",
-            download_failed_body: "Download van \"{taskName}\" mislukt",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "pl" => TaskNotificationTexts {
             download_complete_title: "Pobieranie ukończone",
-            download_complete_body: "Pobieranie \"{taskName}\" zakończone",
-            bt_complete_title: "Pobieranie BT ukończone, udostępnianie...",
-            bt_complete_body: "\"{taskName}\" — pobieranie zakończone, udostępnianie...",
+            download_complete_body: "Plik zapisany: {taskName}",
+            bt_complete_title: "Pobieranie BT ukończone",
+            bt_complete_body: "Udostępnianie rozpoczęte: {taskName}",
             download_failed_title: "Pobieranie nie powiodło się",
-            download_failed_body: "Nie udało się pobrać \"{taskName}\"",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "pt-BR" => TaskNotificationTexts {
             download_complete_title: "Download concluído",
-            download_complete_body: "Download de \"{taskName}\" concluído",
-            bt_complete_title: "Download BT concluído, semeando...",
-            bt_complete_body: "\"{taskName}\" — download concluído, semeando...",
+            download_complete_body: "Arquivo salvo: {taskName}",
+            bt_complete_title: "Download BT concluído",
+            bt_complete_body: "Semeadura iniciada: {taskName}",
             download_failed_title: "Download falhou",
-            download_failed_body: "Falha ao baixar \"{taskName}\"",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "ro" => TaskNotificationTexts {
             download_complete_title: "Descărcare finalizată",
-            download_complete_body: "Descărcarea \"{taskName}\" finalizată",
-            bt_complete_title: "Descărcare BT finalizată, se distribuie...",
-            bt_complete_body: "\"{taskName}\" — descărcare finalizată, partajare...",
+            download_complete_body: "Fișier salvat: {taskName}",
+            bt_complete_title: "Descărcare BT finalizată",
+            bt_complete_body: "Distribuirea a început: {taskName}",
             download_failed_title: "Descărcarea a eșuat",
-            download_failed_body: "Descărcarea \"{taskName}\" a eșuat",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "ru" => TaskNotificationTexts {
             download_complete_title: "Загрузка завершена",
-            download_complete_body: "Загрузка «{taskName}» завершена",
-            bt_complete_title: "BT-загрузка завершена, раздача...",
-            bt_complete_body: "«{taskName}» — загрузка завершена, раздача...",
+            download_complete_body: "Файл сохранён: {taskName}",
+            bt_complete_title: "BT-загрузка завершена",
+            bt_complete_body: "Раздача началась: {taskName}",
             download_failed_title: "Загрузка не удалась",
-            download_failed_body: "Не удалось загрузить «{taskName}»",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "th" => TaskNotificationTexts {
             download_complete_title: "ดาวน์โหลดเสร็จสิ้น",
-            download_complete_body: "ดาวน์โหลด \"{taskName}\" เสร็จสิ้น",
-            bt_complete_title: "ดาวน์โหลด BT เสร็จ กำลังแชร์...",
-            bt_complete_body: "\"{taskName}\" — ดาวน์โหลดเสร็จ กำลังแชร์...",
+            download_complete_body: "บันทึกไฟล์แล้ว: {taskName}",
+            bt_complete_title: "ดาวน์โหลด BT เสร็จสิ้น",
+            bt_complete_body: "เริ่ม seeding แล้ว: {taskName}",
             download_failed_title: "ดาวน์โหลดไม่สำเร็จ",
-            download_failed_body: "ดาวน์โหลด \"{taskName}\" ล้มเหลว",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "tr" => TaskNotificationTexts {
             download_complete_title: "İndirme tamamlandı",
-            download_complete_body: "\"{taskName}\" tamamlandı",
-            bt_complete_title: "BT indirmesi tamamlandı, paylaşılıyor...",
-            bt_complete_body: "\"{taskName}\" — indirme tamamlandı, paylaşılıyor...",
+            download_complete_body: "Dosya kaydedildi: {taskName}",
+            bt_complete_title: "BT indirmesi tamamlandı",
+            bt_complete_body: "Paylaşım başladı: {taskName}",
             download_failed_title: "İndirme başarısız",
-            download_failed_body: "\"{taskName}\" indirilemedi",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "uk" => TaskNotificationTexts {
             download_complete_title: "Завантаження завершено",
-            download_complete_body: "Завантаження «{taskName}» завершено",
-            bt_complete_title: "BT-завантаження завершено, роздача...",
-            bt_complete_body: "«{taskName}» — завантаження завершено, роздача...",
+            download_complete_body: "Файл збережено: {taskName}",
+            bt_complete_title: "BT-завантаження завершено",
+            bt_complete_body: "Роздачу розпочато: {taskName}",
             download_failed_title: "Завантаження не вдалося",
-            download_failed_body: "Не вдалося завантажити «{taskName}»",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "vi" => TaskNotificationTexts {
             download_complete_title: "Tải xuống hoàn thành",
-            download_complete_body: "Đã tải xong \"{taskName}\"",
-            bt_complete_title: "Tải BT hoàn thành, đang chia sẻ...",
-            bt_complete_body: "\"{taskName}\" — tải về hoàn tất, đang chia sẻ...",
+            download_complete_body: "Đã lưu tệp: {taskName}",
+            bt_complete_title: "Tải BT hoàn thành",
+            bt_complete_body: "Đã bắt đầu seeding: {taskName}",
             download_failed_title: "Tải xuống thất bại",
-            download_failed_body: "Tải \"{taskName}\" thất bại",
+            download_failed_body: "{taskName}: {reason}",
             error_unknown: "Unknown error",
         },
         "zh-CN" => TaskNotificationTexts {
             download_complete_title: "下载完成",
-            download_complete_body: "「{taskName}」下载完成",
-            bt_complete_title: "BT 下载完成，正在做种...",
-            bt_complete_body: "「{taskName}」已下载完成，开始做种...",
+            download_complete_body: "文件已保存：{taskName}",
+            bt_complete_title: "BT 下载完成",
+            bt_complete_body: "已开始做种：{taskName}",
             download_failed_title: "下载失败",
-            download_failed_body: "「{taskName}」下载失败",
+            download_failed_body: "{taskName}：{reason}",
             error_unknown: "未知错误",
         },
         "zh-TW" => TaskNotificationTexts {
             download_complete_title: "下載完成",
-            download_complete_body: "「{taskName}」下載完成",
-            bt_complete_title: "BT 下載完成，正在做種...",
-            bt_complete_body: "「{taskName}」已下載完成，開始做種...",
+            download_complete_body: "檔案已儲存：{taskName}",
+            bt_complete_title: "BT 下載完成",
+            bt_complete_body: "已開始做種：{taskName}",
             download_failed_title: "下載失敗",
-            download_failed_body: "「{taskName}」下載失敗",
+            download_failed_body: "{taskName}：{reason}",
             error_unknown: "未知錯誤",
         },
         _ => EN_US_TEXTS,
@@ -309,6 +309,12 @@ pub fn texts_for_locale(locale: &str) -> TaskNotificationTexts {
 
 pub fn format_task_message(template: &str, task_name: &str) -> String {
     template.replace("{taskName}", task_name)
+}
+
+pub fn format_error_message(template: &str, task_name: &str, reason: &str) -> String {
+    template
+        .replace("{taskName}", task_name)
+        .replace("{reason}", reason)
 }
 
 #[cfg(test)]
@@ -363,6 +369,10 @@ mod tests {
                 "failed body lacks placeholder for {locale}"
             );
             assert!(
+                texts.download_failed_body.contains("{reason}"),
+                "failed body lacks reason placeholder for {locale}"
+            );
+            assert!(
                 !texts.error_unknown.is_empty(),
                 "empty unknown error for {locale}"
             );
@@ -371,11 +381,30 @@ mod tests {
 
     #[test]
     fn localises_download_complete_texts() {
-        let texts = texts_for_locale("zh-CN");
-        assert_eq!(texts.download_complete_title, "下载完成");
+        let texts = texts_for_locale("en-US");
+        assert_eq!(texts.download_complete_title, "Download Complete");
         assert_eq!(
             format_task_message(texts.download_complete_body, "file.zip"),
-            "「file.zip」下载完成"
+            "Saved: file.zip"
+        );
+    }
+
+    #[test]
+    fn localises_bt_complete_texts() {
+        let texts = texts_for_locale("en-US");
+        assert_eq!(texts.bt_complete_title, "BT Download Complete");
+        assert_eq!(
+            format_task_message(texts.bt_complete_body, "file.zip"),
+            "Seeding started: file.zip"
+        );
+    }
+
+    #[test]
+    fn localises_error_texts() {
+        let texts = texts_for_locale("en-US");
+        assert_eq!(
+            format_error_message(texts.download_failed_body, "file.zip", "Network error"),
+            "file.zip: Network error"
         );
     }
 }

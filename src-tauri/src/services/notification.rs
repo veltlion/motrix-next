@@ -2,7 +2,7 @@
 
 use super::config::RuntimeConfig;
 use super::monitor::{events, TaskEvent};
-use super::notification_i18n::{format_task_message, texts_for_locale};
+use super::notification_i18n::{format_error_message, format_task_message, texts_for_locale};
 use tauri::Manager;
 use tauri_plugin_notification::NotificationExt;
 
@@ -79,11 +79,7 @@ pub fn build_task_notification(
                 .unwrap_or(texts.error_unknown);
             (
                 texts.download_failed_title.to_string(),
-                format!(
-                    "{}: {}",
-                    format_task_message(texts.download_failed_body, task_name),
-                    reason
-                ),
+                format_error_message(texts.download_failed_body, task_name, reason),
             )
         }
     };
@@ -156,7 +152,7 @@ mod tests {
 
     fn cfg() -> RuntimeConfig {
         RuntimeConfig {
-            locale: "zh-CN".to_string(),
+            locale: "en-US".to_string(),
             task_notification: true,
             notify_on_complete: true,
             ..RuntimeConfig::default()
@@ -184,27 +180,27 @@ mod tests {
     fn builds_localised_complete_notification() {
         let content = build_task_notification(events::TASK_COMPLETE, &event(), &cfg()).unwrap();
         assert_eq!(content.kind, TaskNotificationKind::Complete);
-        assert_eq!(content.title, "下载完成");
-        assert_eq!(content.body, "「file.zip」下载完成");
-        assert_eq!(content.locale, "zh-CN");
+        assert_eq!(content.title, "Download Complete");
+        assert_eq!(content.body, "Saved: file.zip");
+        assert_eq!(content.locale, "en-US");
     }
 
     #[test]
     fn builds_localised_bt_complete_notification() {
         let content = build_task_notification(events::BT_COMPLETE, &event(), &cfg()).unwrap();
         assert_eq!(content.kind, TaskNotificationKind::BtComplete);
-        assert_eq!(content.title, "BT 下载完成，正在做种...");
-        assert_eq!(content.body, "「file.zip」已下载完成，开始做种...");
+        assert_eq!(content.title, "BT Download Complete");
+        assert_eq!(content.body, "Seeding started: file.zip");
     }
 
     #[test]
     fn builds_localised_error_notification_with_reason() {
         let mut ev = event();
-        ev.error_message = Some("网络错误".to_string());
+        ev.error_message = Some("Network error".to_string());
         let content = build_task_notification(events::TASK_ERROR, &ev, &cfg()).unwrap();
         assert_eq!(content.kind, TaskNotificationKind::Error);
-        assert_eq!(content.title, "下载失败");
-        assert_eq!(content.body, "「file.zip」下载失败: 网络错误");
+        assert_eq!(content.title, "Download Failed");
+        assert_eq!(content.body, "file.zip: Network error");
     }
 
     #[test]
