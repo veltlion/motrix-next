@@ -27,6 +27,7 @@ const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..', '..')
 const MAIN_LAYOUT = path.join(PROJECT_ROOT, 'src', 'layouts', 'MainLayout.vue')
 const TRAY_RS = path.join(PROJECT_ROOT, 'src-tauri', 'src', 'tray.rs')
 const APP_EVENTS_TS = path.join(PROJECT_ROOT, 'src', 'composables', 'useAppEvents.ts')
+const NOTIFICATION_RS = path.join(PROJECT_ROOT, 'src-tauri', 'src', 'services', 'notification.rs')
 
 // ═══════════════════════════════════════════════════════════════════
 // Group 1: Rust — tray-quit handled natively (not emit)
@@ -381,7 +382,30 @@ describe('monitor.rs — Rust-side history DB persistence', () => {
 })
 
 // ═══════════════════════════════════════════════════════════════════
-// Group 8: Frontend app store — event-driven stat (no polling)
+// Group 8: Rust notifications — Linux desktop identity
+// ═══════════════════════════════════════════════════════════════════
+
+describe('notification.rs — Linux desktop notification identity', () => {
+  let source: string
+
+  beforeAll(() => {
+    source = fs.readFileSync(NOTIFICATION_RS, 'utf-8')
+  })
+
+  it('uses notify-rust directly on Linux so desktop-entry can be set', () => {
+    expect(source).toContain('notify_rust::Notification')
+    expect(source).toContain('notify_rust::Hint::DesktopEntry')
+  })
+
+  it('pins Linux notifications to the GNOME desktop entry identity', () => {
+    expect(source).toContain('app_name: "motrixnext"')
+    expect(source).toContain('desktop_entry: "MotrixNext"')
+    expect(source).toContain('icon: "motrix-next"')
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════
+// Group 9: Frontend app store — event-driven stat (no polling)
 // ═══════════════════════════════════════════════════════════════════
 
 describe('app.ts — event-driven stat architecture', () => {

@@ -4,7 +4,17 @@ use super::config::RuntimeConfig;
 use super::monitor::{events, TaskEvent};
 use super::notification_i18n::{format_error_message, format_task_message, texts_for_locale};
 use tauri::Manager;
+
+#[cfg(not(target_os = "linux"))]
 use tauri_plugin_notification::NotificationExt;
+
+#[cfg(target_os = "linux")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LinuxNotificationIdentity {
+    pub app_name: &'static str,
+    pub desktop_entry: &'static str,
+    pub icon: &'static str,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TaskNotificationKind {
@@ -19,6 +29,25 @@ pub struct TaskNotificationContent {
     pub title: String,
     pub body: String,
     pub locale: &'static str,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum NotificationDispatchResult {
+    Submitted,
+    #[cfg(target_os = "linux")]
+    Delivered {
+        id: u32,
+        identity: LinuxNotificationIdentity,
+    },
+}
+
+#[cfg(target_os = "linux")]
+pub fn linux_notification_identity() -> LinuxNotificationIdentity {
+    LinuxNotificationIdentity {
+        app_name: "motrixnext",
+        desktop_entry: "MotrixNext",
+        icon: "motrix-next",
+    }
 }
 
 fn kind_for_event(event_name: &str) -> Option<TaskNotificationKind> {
@@ -118,22 +147,10 @@ pub fn send_task_notification(
         content.title
     );
 
-    match app
-        .notification()
-        .builder()
-        .title(content.title)
-        .body(content.body)
-        .show()
-    {
-        Ok(()) => {
+    match send_platform_notification(app, &content) {
+        Ok(dispatch) => {
             let webview_alive = app.get_webview_window("main").is_some();
-            log::info!(
-                "notification:sent type={:?} gid={} locale={} webview_alive={}",
-                content.kind,
-                event.gid,
-                content.locale,
-                webview_alive
-            );
+            log_notification_success(&content, event, dispatch, webview_alive);
         }
         Err(e) => {
             log::warn!(
@@ -144,6 +161,97 @@ pub fn send_task_notification(
             );
         }
     }
+}
+
+#[cfg(target_os = "linux")]
+fn log_notification_success(
+    content: &TaskNotificationContent,
+    event: &TaskEvent,
+    dispatch: NotificationDispatchResult,
+    webview_alive: bool,
+) {
+    match dispatch {
+        NotificationDispatchResult::Delivered { id, identity } => {
+            log::info!(
+                "notification:delivered platform=linux id={} type={:?} gid={} locale={} webview_alive={} app_name={} desktop_entry={} icon={}",
+                id,
+                content.kind,
+                event.gid,
+                content.locale,
+                webview_alive,
+                identity.app_name,
+                identity.desktop_entry,
+                identity.icon
+            );
+        }
+        NotificationDispatchResult::Submitted => {
+            log::info!(
+                "notification:submitted platform=linux type={:?} gid={} locale={} webview_alive={}",
+                content.kind,
+                event.gid,
+                content.locale,
+                webview_alive
+            );
+        }
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn log_notification_success(
+    content: &TaskNotificationContent,
+    event: &TaskEvent,
+    dispatch: NotificationDispatchResult,
+    webview_alive: bool,
+) {
+    match dispatch {
+        NotificationDispatchResult::Submitted => {
+            log::info!(
+                "notification:submitted type={:?} gid={} locale={} webview_alive={}",
+                content.kind,
+                event.gid,
+                content.locale,
+                webview_alive
+            );
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn send_platform_notification(
+    _app: &tauri::AppHandle,
+    content: &TaskNotificationContent,
+) -> Result<NotificationDispatchResult, String> {
+    let identity = linux_notification_identity();
+    let handle = notify_rust::Notification::new()
+        .appname(identity.app_name)
+        .icon(identity.icon)
+        .hint(notify_rust::Hint::DesktopEntry(
+            identity.desktop_entry.to_string(),
+        ))
+        .summary(&content.title)
+        .body(&content.body)
+        .show()
+        .map_err(|error| error.to_string())?;
+
+    Ok(NotificationDispatchResult::Delivered {
+        id: handle.id(),
+        identity,
+    })
+}
+
+#[cfg(not(target_os = "linux"))]
+fn send_platform_notification(
+    app: &tauri::AppHandle,
+    content: &TaskNotificationContent,
+) -> Result<NotificationDispatchResult, String> {
+    app.notification()
+        .builder()
+        .title(content.title.clone())
+        .body(content.body.clone())
+        .show()
+        .map_err(|error| error.to_string())?;
+
+    Ok(NotificationDispatchResult::Submitted)
 }
 
 #[cfg(test)]
@@ -217,5 +325,14 @@ mod tests {
         config.task_notification = false;
         assert!(build_task_notification(events::TASK_COMPLETE, &event(), &config).is_none());
         assert!(build_task_notification(events::TASK_ERROR, &event(), &config).is_none());
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_notification_identity_matches_gnome_desktop_entry() {
+        let identity = linux_notification_identity();
+        assert_eq!(identity.app_name, "motrixnext");
+        assert_eq!(identity.desktop_entry, "MotrixNext");
+        assert_eq!(identity.icon, "motrix-next");
     }
 }
