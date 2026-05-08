@@ -33,6 +33,7 @@ pub struct TaskNotificationContent {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum NotificationDispatchResult {
+    #[cfg(not(target_os = "linux"))]
     Submitted,
     #[cfg(target_os = "linux")]
     Delivered {
@@ -182,15 +183,6 @@ fn log_notification_success(
                 identity.app_name,
                 identity.desktop_entry,
                 identity.icon
-            );
-        }
-        NotificationDispatchResult::Submitted => {
-            log::info!(
-                "notification:submitted platform=linux type={:?} gid={} locale={} webview_alive={}",
-                content.kind,
-                event.gid,
-                content.locale,
-                webview_alive
             );
         }
     }
