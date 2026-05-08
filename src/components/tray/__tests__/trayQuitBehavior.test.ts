@@ -392,9 +392,16 @@ describe('notification.rs — Linux desktop notification identity', () => {
     source = fs.readFileSync(NOTIFICATION_RS, 'utf-8')
   })
 
-  it('uses notify-rust directly on Linux without the GNOME desktop-entry hint', () => {
+  it('retains notify-rust handles on Linux so GNOME keeps the notification source alive', () => {
     expect(source).toContain('notify_rust::Notification')
-    expect(source).not.toContain('notify_rust::Hint::DesktopEntry')
+    expect(source).toContain('LinuxNotificationRegistry')
+    expect(source).toContain('retain(handle)')
+    expect(source).toContain('retained=true')
+  })
+
+  it('pins Linux notifications to the installed GNOME desktop identity', () => {
+    expect(source).toContain('notify_rust::Hint::DesktopEntry')
+    expect(source).toContain('desktop_entry: "MotrixNext"')
   })
 
   it('sets normal urgency on Linux notifications so GNOME does not expire them immediately', () => {

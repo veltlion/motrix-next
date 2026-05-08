@@ -107,6 +107,11 @@
         ],
         "installerHooks": "nsis/hooks.nsh"
       }
+    },
+    "linux": {
+      "deb": {
+        "desktopTemplate": "deb/motrix-next.desktop.hbs"
+      }
     }
   },
   "plugins": {

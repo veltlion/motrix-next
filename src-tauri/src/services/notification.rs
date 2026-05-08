@@ -5,15 +5,119 @@ use super::monitor::{events, TaskEvent};
 use super::notification_i18n::{format_error_message, format_task_message, texts_for_locale};
 use tauri::Manager;
 
+#[cfg(target_os = "linux")]
+use std::{
+    collections::VecDeque,
+    sync::Mutex,
+    time::{Duration, Instant},
+};
+
 #[cfg(not(target_os = "linux"))]
 use tauri_plugin_notification::NotificationExt;
+
+#[cfg(target_os = "linux")]
+const LINUX_NOTIFICATION_RETENTION_TTL: Duration = Duration::from_secs(120);
+#[cfg(target_os = "linux")]
+const LINUX_NOTIFICATION_RETENTION_LIMIT: usize = 32;
 
 #[cfg(target_os = "linux")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LinuxNotificationIdentity {
     pub app_name: &'static str,
     pub icon: &'static str,
+    pub desktop_entry: &'static str,
     pub urgency: notify_rust::Urgency,
+}
+
+#[cfg(target_os = "linux")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LinuxNotificationRetention {
+    pub retained: bool,
+    pub id: u32,
+    pub registry_size: usize,
+    pub retention_limit: usize,
+    pub ttl_secs: u64,
+    pub pruned_expired: usize,
+    pub dropped_over_limit: usize,
+}
+
+#[cfg(target_os = "linux")]
+pub struct LinuxNotificationRegistry {
+    retained: Mutex<VecDeque<RetainedLinuxNotification>>,
+}
+
+#[cfg(target_os = "linux")]
+struct RetainedLinuxNotification {
+    created_at: Instant,
+    _handle: notify_rust::NotificationHandle,
+}
+
+#[cfg(target_os = "linux")]
+impl LinuxNotificationRegistry {
+    pub fn new() -> Self {
+        Self {
+            retained: Mutex::new(VecDeque::new()),
+        }
+    }
+
+    pub fn retain(&self, handle: notify_rust::NotificationHandle) -> LinuxNotificationRetention {
+        let id = handle.id();
+        let now = Instant::now();
+        let mut retained = self
+            .retained
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        let pruned_expired =
+            prune_expired_linux_notifications(&mut retained, now, LINUX_NOTIFICATION_RETENTION_TTL);
+
+        retained.push_back(RetainedLinuxNotification {
+            created_at: now,
+            _handle: handle,
+        });
+
+        let dropped_over_limit =
+            trim_linux_notifications_to_limit(&mut retained, LINUX_NOTIFICATION_RETENTION_LIMIT);
+
+        LinuxNotificationRetention {
+            retained: true,
+            id,
+            registry_size: retained.len(),
+            retention_limit: LINUX_NOTIFICATION_RETENTION_LIMIT,
+            ttl_secs: LINUX_NOTIFICATION_RETENTION_TTL.as_secs(),
+            pruned_expired,
+            dropped_over_limit,
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl Default for LinuxNotificationRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn prune_expired_linux_notifications(
+    retained: &mut VecDeque<RetainedLinuxNotification>,
+    now: Instant,
+    ttl: Duration,
+) -> usize {
+    let original_len = retained.len();
+    retained.retain(|notification| now.duration_since(notification.created_at) < ttl);
+    original_len - retained.len()
+}
+
+#[cfg(target_os = "linux")]
+fn trim_linux_notifications_to_limit(
+    retained: &mut VecDeque<RetainedLinuxNotification>,
+    limit: usize,
+) -> usize {
+    let original_len = retained.len();
+    while retained.len() > limit {
+        retained.pop_front();
+    }
+    original_len - retained.len()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -39,6 +143,7 @@ enum NotificationDispatchResult {
     Delivered {
         id: u32,
         identity: LinuxNotificationIdentity,
+        retention: LinuxNotificationRetention,
     },
 }
 
@@ -47,6 +152,7 @@ pub fn linux_notification_identity() -> LinuxNotificationIdentity {
     LinuxNotificationIdentity {
         app_name: "motrixnext",
         icon: "motrix-next",
+        desktop_entry: "MotrixNext",
         urgency: notify_rust::Urgency::Normal,
     }
 }
@@ -172,16 +278,26 @@ fn log_notification_success(
     webview_alive: bool,
 ) {
     match dispatch {
-        NotificationDispatchResult::Delivered { id, identity } => {
+        NotificationDispatchResult::Delivered {
+            id,
+            identity,
+            retention,
+        } => {
             log::info!(
-                "notification:delivered platform=linux id={} type={:?} gid={} locale={} webview_alive={} app_name={} icon={} urgency=normal",
+                "notification:delivered platform=linux id={} type={:?} gid={} locale={} webview_alive={} app_name={} icon={} desktop_entry={} urgency=normal retained=true registry_size={} retention_limit={} ttl_secs={} pruned_expired={} dropped_over_limit={}",
                 id,
                 content.kind,
                 event.gid,
                 content.locale,
                 webview_alive,
                 identity.app_name,
-                identity.icon
+                identity.icon,
+                identity.desktop_entry,
+                retention.registry_size,
+                retention.retention_limit,
+                retention.ttl_secs,
+                retention.pruned_expired,
+                retention.dropped_over_limit
             );
         }
     }
@@ -209,22 +325,28 @@ fn log_notification_success(
 
 #[cfg(target_os = "linux")]
 fn send_platform_notification(
-    _app: &tauri::AppHandle,
+    app: &tauri::AppHandle,
     content: &TaskNotificationContent,
 ) -> Result<NotificationDispatchResult, String> {
     let identity = linux_notification_identity();
     let handle = notify_rust::Notification::new()
         .appname(identity.app_name)
         .icon(identity.icon)
+        .hint(notify_rust::Hint::DesktopEntry(
+            identity.desktop_entry.to_string(),
+        ))
         .urgency(identity.urgency)
         .summary(&content.title)
         .body(&content.body)
         .show()
         .map_err(|error| error.to_string())?;
+    let registry = app.state::<LinuxNotificationRegistry>();
+    let retention = registry.retain(handle);
 
     Ok(NotificationDispatchResult::Delivered {
-        id: handle.id(),
+        id: retention.id,
         identity,
+        retention,
     })
 }
 
@@ -318,10 +440,11 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     #[test]
-    fn linux_notification_identity_avoids_gnome_desktop_entry_hint() {
+    fn linux_notification_identity_matches_gnome_desktop_entry() {
         let identity = linux_notification_identity();
         assert_eq!(identity.app_name, "motrixnext");
         assert_eq!(identity.icon, "motrix-next");
+        assert_eq!(identity.desktop_entry, "MotrixNext");
         assert_eq!(identity.urgency, notify_rust::Urgency::Normal);
     }
 }
