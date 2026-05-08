@@ -12,7 +12,6 @@ use tauri_plugin_notification::NotificationExt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LinuxNotificationIdentity {
     pub app_name: &'static str,
-    pub desktop_entry: &'static str,
     pub icon: &'static str,
 }
 
@@ -46,7 +45,6 @@ enum NotificationDispatchResult {
 pub fn linux_notification_identity() -> LinuxNotificationIdentity {
     LinuxNotificationIdentity {
         app_name: "motrixnext",
-        desktop_entry: "MotrixNext",
         icon: "motrix-next",
     }
 }
@@ -174,14 +172,13 @@ fn log_notification_success(
     match dispatch {
         NotificationDispatchResult::Delivered { id, identity } => {
             log::info!(
-                "notification:delivered platform=linux id={} type={:?} gid={} locale={} webview_alive={} app_name={} desktop_entry={} icon={}",
+                "notification:delivered platform=linux id={} type={:?} gid={} locale={} webview_alive={} app_name={} icon={}",
                 id,
                 content.kind,
                 event.gid,
                 content.locale,
                 webview_alive,
                 identity.app_name,
-                identity.desktop_entry,
                 identity.icon
             );
         }
@@ -217,9 +214,6 @@ fn send_platform_notification(
     let handle = notify_rust::Notification::new()
         .appname(identity.app_name)
         .icon(identity.icon)
-        .hint(notify_rust::Hint::DesktopEntry(
-            identity.desktop_entry.to_string(),
-        ))
         .summary(&content.title)
         .body(&content.body)
         .show()
@@ -321,10 +315,9 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     #[test]
-    fn linux_notification_identity_matches_gnome_desktop_entry() {
+    fn linux_notification_identity_avoids_gnome_desktop_entry_hint() {
         let identity = linux_notification_identity();
         assert_eq!(identity.app_name, "motrixnext");
-        assert_eq!(identity.desktop_entry, "MotrixNext");
         assert_eq!(identity.icon, "motrix-next");
     }
 }

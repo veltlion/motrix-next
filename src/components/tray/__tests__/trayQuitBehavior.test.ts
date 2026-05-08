@@ -392,14 +392,13 @@ describe('notification.rs — Linux desktop notification identity', () => {
     source = fs.readFileSync(NOTIFICATION_RS, 'utf-8')
   })
 
-  it('uses notify-rust directly on Linux so desktop-entry can be set', () => {
+  it('uses notify-rust directly on Linux without the GNOME desktop-entry hint', () => {
     expect(source).toContain('notify_rust::Notification')
-    expect(source).toContain('notify_rust::Hint::DesktopEntry')
+    expect(source).not.toContain('notify_rust::Hint::DesktopEntry')
   })
 
-  it('pins Linux notifications to the GNOME desktop entry identity', () => {
+  it('pins Linux notifications to the GNOME application identity', () => {
     expect(source).toContain('app_name: "motrixnext"')
-    expect(source).toContain('desktop_entry: "MotrixNext"')
     expect(source).toContain('icon: "motrix-next"')
   })
 })
