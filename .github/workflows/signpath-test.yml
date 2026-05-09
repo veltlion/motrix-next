@@ -69,7 +69,7 @@ jobs:
           }
 
           $expectedSubject = "CN=Test certificate for 'Motrix Next [OSS]'"
-          if ($signature.SignerCertificate.Subject -notlike "*$expectedSubject*") {
+          if (-not $signature.SignerCertificate.Subject.Contains($expectedSubject)) {
             throw "Unexpected signer certificate subject: $($signature.SignerCertificate.Subject)"
           }
 
