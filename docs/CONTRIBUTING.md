@@ -10,7 +10,7 @@ Before you start contributing, make sure you understand [GitHub flow](https://gu
 
 - [Rust](https://rustup.rs/) (latest stable)
 - [Node.js](https://nodejs.org/) >= 22
-- [pnpm](https://pnpm.io/) >= 9
+- [pnpm](https://pnpm.io/) 10.x, managed by the `packageManager` field in `package.json`
 
 ### Getting Started
 
@@ -25,8 +25,8 @@ Rust backend (standalone):
 
 ```bash
 cd src-tauri
-cargo build
-cargo test
+cargo check --all-targets
+cargo test --all-targets
 ```
 
 ## ✅ Code Quality
@@ -34,10 +34,15 @@ cargo test
 All checks must pass before PR merge:
 
 ```bash
-pnpm lint               # ESLint (0 errors, 0 warnings)
-pnpm test               # Vitest
-npx vue-tsc --noEmit    # TypeScript strict mode
-cd src-tauri && cargo test  # Rust tests
+pnpm lint                                      # ESLint
+pnpm format:check                              # Prettier formatting
+npx vue-tsc --noEmit                           # TypeScript strict mode
+pnpm test                                      # Vitest
+npx vite build                                 # Frontend production build
+cd src-tauri && cargo fmt -- --check           # Rust formatting
+cd src-tauri && cargo clippy --all-targets -- -D warnings
+cd src-tauri && cargo check --all-targets
+cd src-tauri && cargo test --all-targets
 ```
 
 Pre-commit hooks (husky + lint-staged) auto-run `eslint --fix` and `prettier --write` on staged files.
@@ -52,7 +57,7 @@ Pre-commit hooks (husky + lint-staged) auto-run `eslint --fix` and `prettier --w
 ## 🛡 Error Handling
 
 - **TypeScript**: Never leave `catch` blocks empty — always call `logger.debug()` at minimum.
-- **Rust**: Use the `AppError` enum (`Store`, `Engine`, `Io`, `NotFound`, `Updater`, `Upnp`) for all command return types.
+- **Rust**: Use the `AppError` enum (`Store`, `Engine`, `Io`, `NotFound`, `Updater`, `Upnp`, `Protocol`, `Aria2`, `Database`) for command return types.
 
 ## 🧪 Testing
 
@@ -86,7 +91,7 @@ There are language files in each directory organized by business module:
 1. Create a new directory under `src/shared/locales/` with the locale code (e.g. `src/shared/locales/de/`)
 2. Copy the files from `src/shared/locales/en-US/` as a template
 3. Translate each file
-4. Register the locale in `src/shared/locales/all.js`
+4. Register the locale in `src/shared/locales/index.js`
 5. Submit a Pull Request
 
 ## 💬 Commit Messages
@@ -141,11 +146,15 @@ docs: update i18n translation guide
 Run the full check suite locally. PRs that fail any of these will not be reviewed:
 
 ```bash
-pnpm format:check           # Prettier formatting
-npx vue-tsc --noEmit        # TypeScript strict mode
-pnpm test                   # Vitest unit tests
-cd src-tauri && cargo test   # Rust tests
-cd src-tauri && cargo clippy # Rust lints (zero warnings)
+pnpm lint
+pnpm format:check
+npx vue-tsc --noEmit
+pnpm test
+npx vite build
+cd src-tauri && cargo fmt -- --check
+cd src-tauri && cargo clippy --all-targets -- -D warnings
+cd src-tauri && cargo check --all-targets
+cd src-tauri && cargo test --all-targets
 ```
 
 ### i18n changes

@@ -1,53 +1,75 @@
 # Privacy Policy
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-05-11
 
 Motrix Next is an open-source desktop download manager licensed under the [MIT License](https://opensource.org/licenses/MIT). This document describes what data the application handles and what network connections it makes.
 
 ## Data Collection
 
-Motrix Next does **not** collect, store, or transmit any personal data, usage analytics, or telemetry. There is no account system, no tracking, and no third-party analytics SDK.
+Motrix Next does **not** collect, store, or transmit telemetry, analytics, usage profiles, account data, or advertising identifiers. There is no account system and no third-party analytics SDK.
 
 ## Local Data Storage
 
-All user data is stored locally on your device and is never synced to any remote server:
+Application data is stored locally on your device and is not synced by Motrix Next:
 
 | Data | Location | Purpose |
 |------|----------|---------|
 | Preferences | `config.json` (app data directory) | User settings |
+| Engine options | `system.json` (app data directory) | aria2 runtime configuration |
 | Download history | `history.db` (local SQLite database) | Task records |
+| Task resume cache | `download.session` (app data directory) | Resume active and paused downloads |
+| Application logs | app log directory | Diagnostics and troubleshooting |
 | Download files | User-specified directory | Downloaded content |
-| Aria2 session | `aria2.session` (app data directory) | Resume state |
+
+Diagnostic log exports are created only when the user chooses **Advanced Settings → Export Diagnostic Logs**. The exported ZIP may include log files, system/runtime metadata, and a sanitized `config.json` snapshot. RPC secrets, Extension API secrets, cookies, and proxy credentials are redacted before export.
 
 ## Automatic Network Connections
 
-Motrix Next makes the following network connections automatically. **All can be disabled in Settings.**
+Motrix Next can make the following automatic network connections. They can be disabled in Settings.
 
 ### 1. Update Check
 
 | | |
 |---|---|
-| **Default** | Enabled (every 24 hours) |
-| **Contacts** | GitHub Releases API (`github.com`) |
+| **Default** | Enabled, every application startup |
+| **Contacts** | GitHub-hosted updater metadata and release assets |
 | **Purpose** | Check if a newer version of Motrix Next is available |
-| **Data sent** | Current app version, platform, and architecture |
-| **Data received** | Latest version metadata |
-| **Disable** | Settings → General → uncheck *"Auto check for updates"* |
+| **Data sent** | Standard HTTPS request metadata, including client IP as seen by GitHub |
+| **Data received** | Version metadata, release notes, signatures, and update package when the user downloads an update |
+| **Disable** | Settings → General → uncheck "Check for updates automatically" |
+
+The update channel can be Stable, Beta, or Latest Across Channels. If a proxy is configured for app updates, update checks use that proxy.
 
 ### 2. BT Tracker List Sync
 
 | | |
 |---|---|
-| **Default** | Enabled |
-| **Contacts** | Community tracker list URLs (e.g. `cdn.jsdelivr.net`) |
+| **Default** | Enabled, at most once every 12 hours |
+| **Contacts** | Configured community tracker list URLs, such as `cdn.jsdelivr.net` or `raw.githubusercontent.com` |
 | **Purpose** | Update BitTorrent tracker lists for better peer discovery |
 | **Data sent** | Standard HTTP GET request (no user data) |
 | **Data received** | Plain-text tracker URL list |
-| **Disable** | Settings → BitTorrent → uncheck *"Auto sync tracker list"* |
+| **Disable** | Settings → BitTorrent → uncheck "Auto-update tracker list" |
 
 ## User-Initiated Network Connections
 
-When you add a download task, the application connects to the servers or peers you specify (HTTP/FTP servers, BitTorrent trackers, DHT nodes, etc.) to perform the download. These connections are inherent to the download manager's core functionality and only occur when you explicitly add a task.
+When you add a download task, Motrix Next and its aria2 sidecar connect to the servers or peers needed for that task. This can include HTTP/FTP servers, BitTorrent trackers, DHT nodes, peers, and metadata endpoints.
+
+Some task creation flows resolve filenames before download. This may issue HTTP requests to the URL you submit so the app can inspect response headers such as `Content-Disposition`.
+
+If UPnP is enabled, the app may contact your local network gateway to map BitTorrent ports. If system proxy detection is used, the app reads operating-system proxy settings locally.
+
+## Browser Extension API
+
+Motrix Next includes an embedded Extension API for browser extensions. It defaults to port `16801` and uses an Extension API secret that is independent from the aria2 RPC secret.
+
+The Extension API can receive download URLs, referer values, cookie headers, and filename hints from the browser extension. These requests are routed into the desktop app and processed according to the user's confirmation and auto-submit settings.
+
+The API is intended for browser-extension integration. Users can change the port or clear the secret in Advanced Settings. Running without a secret disables API authentication and is not recommended.
+
+## Website Privacy
+
+The project website is a static site. It may request GitHub API endpoints in the visitor's browser to display release, download, and repository statistics, and it loads the Star History chart from `api.star-history.com`. These website requests are separate from the desktop application.
 
 ## Third-Party Components
 
@@ -55,7 +77,7 @@ When you add a download task, the application connects to the servers or peers y
 |-----------|---------|-----------------|
 | [aria2](https://aria2.github.io/) | Download engine | Connects to download servers and BitTorrent peers as directed by the user |
 | [DB-IP](https://db-ip.com/) | GeoIP database (CC BY 4.0) | **Offline only** — bundled database, no network requests |
-| [Tauri Updater Plugin](https://github.com/tauri-apps/plugins-workspace) | Auto-update framework | Used for the update check described above |
+| [Tauri Updater Plugin](https://github.com/tauri-apps/plugins-workspace) | Auto-update framework | Used for update checks and update installation |
 
 ## Children's Privacy
 

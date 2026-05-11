@@ -65,26 +65,21 @@ What changed is everything underneath. Every transition and micro-interaction ha
 
 ## Features
 
-- **Multi-protocol downloads** — HTTP, FTP, BitTorrent, Magnet links
-- **BitTorrent** — Selective file download, DHT, peer exchange, encryption, GeoIP peer flags
-- **Tracker management** — Auto-sync from community tracker lists with protocol probing
-- **Concurrent downloads** — Configurable parallel tasks and per-task thread count
-- **Speed control** — Global and per-task upload/download limits with time-of-day scheduling
-- **System tray** — Real-time speed display in the menu bar (macOS), background operation
-- **Color schemes** — Multiple built-in color themes with light/dark mode and system preference detection
-- **Lightweight mode** — Destroys the frontend window on close/minimize, keeping only the tray and engine alive
-- **File categorization** — Auto-sort completed downloads into subdirectories by file type
-- **UPnP port mapping** — Automatic NAT traversal for better BitTorrent connectivity
-- **Keep awake** — Prevent system sleep while downloads are active
-- **Clipboard detection** — Monitor clipboard for downloadable URLs with per-protocol filters
-- **Auto-archive** — Automatically archive completed tasks to keep the task list clean
-- **Shutdown when complete** — Optionally shut down the system after all downloads finish
-- **i18n** — 26 languages, auto-detects system language on first launch
-- **Task management** — Pause, resume, delete with file cleanup, batch operations
-- **Download protocols** — Register as default handler for magnet and thunder links
-- **Notifications** — System notifications on task completion
-- **Lightweight** — Tauri-powered, ~20 MB bundle, minimal resource footprint
-- **[Browser extension](https://github.com/AnInsomniacy/motrix-next-extension)** — Intercept downloads from Chrome / Edge with smart filtering, cookie forwarding, and real-time control ([Chrome Web Store](https://chromewebstore.google.com/detail/ofeajdebdjajhkmcmamagokecnbephhl) · [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/loojjolhejmakcdlbidigoniobfanjlb))
+- **Multi-protocol downloads** — HTTP, FTP, BitTorrent, Magnet, `.torrent`, and Metalink tasks
+- **BitTorrent** — Selective file download, DHT, peer exchange, encryption controls, metadata caching, GeoIP peer flags, and tracker probing
+- **Browser extension integration** — Embedded Extension API with independent authentication, download confirmation, smart auto-submit, filename hints, referer/cookie forwarding, and real-time controls ([Chrome Web Store](https://chromewebstore.google.com/detail/ofeajdebdjajhkmcmamagokecnbephhl) · [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/loojjolhejmakcdlbidigoniobfanjlb))
+- **Safe filename handling** — Content-Disposition, RFC 2047, non-UTF-8, percent-encoded, and extensionless URL resolution with path traversal sanitization
+- **Download organization** — Favorite and recent folders, optional file-type categorization, stale-record cleanup, and completed history backed by SQLite
+- **Concurrent downloads** — Independent controls for active tasks, HTTP connections per server, segments per file, and BT peer limits
+- **Speed control** — Global and per-task upload/download limits with day-of-week and time-of-day scheduling
+- **System integration** — Tray operation, optional tray speed display, macOS Dock badge/progress, protocol handlers for `magnet://`, `thunder://`, and `motrixnext://`
+- **Lightweight mode** — Destroys the WebView on minimize-to-tray while Rust keeps the engine, task monitor, notifications, history, and extension routing alive
+- **Notifications and power options** — Native task start/complete/failure notifications, keep-awake during downloads, and optional shutdown after completion
+- **Network controls** — Scoped proxy support for downloads, app updates, and tracker updates, plus system proxy detection
+- **Auto-update channels** — Stable, Beta, and Latest Across Channels policies with separate download and install phases
+- **Diagnostics** — Structured logs, exportable diagnostic ZIPs, database integrity checks, automatic DB rebuild, and Linux GPU rendering fallback
+- **Personalization** — Light/dark/system theme, 10 color schemes, 26 languages, and first-launch system language detection
+- **Lightweight bundle** — Tauri 2 + Rust backend with a ~20 MB application bundle
 
 ## Installation
 
@@ -100,7 +95,14 @@ brew install --cask motrix-next
 xattr -cr /Applications/MotrixNext.app  # remove quarantine (app is unsigned)
 ```
 
-Or download `MotrixNext_aarch64.app.tar.gz` (Apple Silicon) / `MotrixNext_x64.app.tar.gz` (Intel) from [Releases](https://github.com/AnInsomniacy/motrix-next/releases) and drag to `/Applications`.
+Or download the `.dmg` installer from [Releases](https://github.com/AnInsomniacy/motrix-next/releases):
+
+| Architecture | File |
+|-------------|------|
+| Apple Silicon | `MotrixNext_x.x.x_aarch64.dmg` |
+| Intel | `MotrixNext_x.x.x_x64.dmg` |
+
+The `.app.tar.gz` macOS artifacts are published for the Tauri updater and Homebrew cask automation.
 
 > [!TIP]
 > If macOS says the app is **"damaged and can't be opened"**, see the [FAQ below](#faq).
@@ -190,7 +192,7 @@ The app is fully open-source and every release binary is built automatically by 
 
 - [Rust](https://rustup.rs/) (latest stable)
 - [Node.js](https://nodejs.org/) >= 22
-- [pnpm](https://pnpm.io/)
+- [pnpm](https://pnpm.io/) 10.x, managed by the `packageManager` field in `package.json`
 
 ### Setup
 
@@ -217,12 +219,15 @@ motrix-next/
 │   ├── api/                    # Aria2 JSON-RPC client
 │   ├── components/             # Vue components
 │   │   ├── about/              #   About panel
+│   │   ├── common/             #   Shared UI primitives
 │   │   ├── layout/             #   Sidebar, speedometer, navigation
 │   │   ├── preference/         #   Settings pages, update dialog
-│   │   └── task/               #   Task list, detail, add task
+│   │   ├── task/               #   Task list, detail, add task
+│   │   └── tray/               #   Tray action bridge
 │   ├── composables/            # Reusable composition functions
 │   ├── router/                 # Vue Router configuration
 │   ├── shared/                 # Shared utilities & config
+│   │   ├── constants/          #   Split constant modules
 │   │   ├── locales/            #   26 language packs
 │   │   ├── utils/              #   Pure utility functions (with tests)
 │   │   ├── types.ts            #   TypeScript interfaces
@@ -236,8 +241,10 @@ motrix-next/
 │   │   ├── aria2/              #   Native Rust aria2 JSON-RPC client
 │   │   ├── commands/           #   Tauri invoke handlers (config, engine, fs, etc.)
 │   │   ├── engine/             #   Aria2 sidecar lifecycle (args, state, cleanup)
-│   │   ├── services/           #   Runtime services (stat, speed, monitor, HTTP API)
+│   │   ├── services/           #   Runtime services (stat, speed, monitor, HTTP API, deep links)
+│   │   ├── db_guard.rs         #   SQLite health checks and rebuild guard
 │   │   ├── error.rs            #   AppError enum
+│   │   ├── gpu_guard.rs        #   Linux GPU compatibility guard
 │   │   ├── history.rs          #   SQLite history persistence
 │   │   ├── menu.rs             #   Native menu builder
 │   │   ├── tray.rs             #   System tray setup
