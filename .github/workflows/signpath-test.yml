@@ -1,4 +1,4 @@
-name: SignPath Test
+name: SignPath Smoke Test
 
 on:
   workflow_dispatch:
@@ -9,11 +9,11 @@ permissions:
 
 jobs:
   test-signing:
-    name: Test SignPath signing
+    name: SignPath smoke test
     runs-on: windows-latest
 
     steps:
-      - name: Create test executable
+      - name: Build smoke-test executable
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -30,7 +30,7 @@ jobs:
           New-Item -ItemType Directory -Path signpath-artifact | Out-Null
           Copy-Item signpath-output/signpath-smoke-test.exe signpath-artifact/signpath-smoke-test.exe
 
-      - name: Upload unsigned artifact
+      - name: Upload unsigned executable
         id: unsigned-artifact
         uses: actions/upload-artifact@v6
         with:
@@ -39,7 +39,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Submit SignPath signing request
+      - name: Submit SignPath request
         id: signpath
         uses: signpath/github-action-submit-signing-request@v2
         with:
@@ -53,32 +53,32 @@ jobs:
           wait-for-completion-timeout-in-seconds: 1800
           output-artifact-directory: signed-artifact
 
-      - name: Verify signed artifact
+      - name: Verify Authenticode signature
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
 
           $signedFile = Get-ChildItem signed-artifact -Recurse -Filter signpath-smoke-test.exe | Select-Object -First 1
           if (-not $signedFile) {
-            throw "The signed executable was not downloaded."
+            throw "Signed executable not found."
           }
 
           $signature = Get-AuthenticodeSignature -FilePath $signedFile.FullName
           if (-not $signature.SignerCertificate) {
-            throw "The signed executable does not contain an Authenticode signer certificate."
+            throw "Missing Authenticode signer certificate."
           }
 
           $expectedSubject = "CN=Test certificate for 'Motrix Next [OSS]'"
           if (-not $signature.SignerCertificate.Subject.Contains($expectedSubject)) {
-            throw "Unexpected signer certificate subject: $($signature.SignerCertificate.Subject)"
+            throw "Unexpected signer subject: $($signature.SignerCertificate.Subject)"
           }
 
-          "Signed artifact: $($signedFile.FullName)"
+          "Signed executable: $($signedFile.FullName)"
           "Signature status: $($signature.Status)"
           "Signer subject: $($signature.SignerCertificate.Subject)"
           "Signing request: ${{ steps.signpath.outputs.signing-request-web-url }}"
 
-      - name: Upload signed artifact
+      - name: Upload signed executable
         uses: actions/upload-artifact@v6
         with:
           name: signpath-test-signed
