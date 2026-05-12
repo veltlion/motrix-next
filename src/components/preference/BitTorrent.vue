@@ -254,10 +254,10 @@ onMounted(() => {
       </NFormItem>
       <NCollapseTransition :show="!form.keepSeeding" class="collapse-indent">
         <NFormItem :label="t('preferences.seed-ratio')">
-          <NInputNumber v-model:value="form.seedRatio" :min="1" :max="100" :step="0.1" style="width: 120px" />
+          <NInputNumber v-model:value="form.seedRatio" :min="0" :max="100" :step="0.1" style="width: 120px" />
         </NFormItem>
         <NFormItem :label="t('preferences.seed-time') + ' (' + t('preferences.seed-time-unit') + ')'">
-          <NInputNumber v-model:value="form.seedTime" :min="60" :max="525600" style="width: 120px" />
+          <NInputNumber v-model:value="form.seedTime" :min="0" :max="525600" style="width: 120px" />
         </NFormItem>
       </NCollapseTransition>
 
