@@ -34,7 +34,7 @@
     "targets": "all",
     "publisher": "AnInsomniacy",
     "copyright": "Copyright © 2025 AnInsomniacy. All rights reserved.",
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "externalBin": [
       "binaries/motrixnext-aria2c"
     ],
