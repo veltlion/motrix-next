@@ -41,6 +41,12 @@ mod platform {
         handle: HANDLE,
     }
 
+    // SAFETY: the power request is owned by this guard as a kernel HANDLE.
+    // PowerClearRequest and CloseHandle operate on the handle value and are not
+    // tied to the thread that created the request, so moving the owner between
+    // tokio worker threads does not change the ownership or release semantics.
+    unsafe impl Send for PlatformPowerGuard {}
+
     impl PlatformPowerGuard {
         pub fn acquire_download() -> Result<Self, AppError> {
             let mut reason = DOWNLOAD_REASON
@@ -149,5 +155,12 @@ mod tests {
             .expect("power.rs should contain production source before tests");
         assert!(!production_source.contains("PowerRequestDisplayRequired"));
         assert!(!production_source.contains(".display(true)"));
+    }
+
+    #[test]
+    fn power_guard_can_be_owned_by_tokio_spawned_services() {
+        fn assert_send<T: Send>() {}
+
+        assert_send::<PowerGuard>();
     }
 }

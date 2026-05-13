@@ -22,6 +22,7 @@ use crate::commands::power::ShutdownCancelState;
 use crate::commands::updater::{DownloadedUpdate, UpdateCancelState};
 use engine::EngineState;
 use tauri::{Emitter, Manager};
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_store::StoreExt;
 use upnp::UpnpState;
