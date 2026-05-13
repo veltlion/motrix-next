@@ -19,6 +19,7 @@ pub mod http_api;
 pub mod monitor;
 pub mod notification;
 pub mod notification_i18n;
+pub mod power;
 pub mod speed;
 pub mod stat;
 
@@ -182,9 +183,12 @@ async fn spawn_background_services(app: &tauri::AppHandle) {
 
     // Stop existing services (handles restart scenario)
     if let Some(ss) = app.try_state::<StatServiceState>() {
-        let mut guard = ss.0.lock().await;
-        if let Some(old) = guard.take() {
-            old.stop();
+        let old = {
+            let mut guard = ss.0.lock().await;
+            guard.take()
+        };
+        if let Some(old) = old {
+            old.stop().await;
             log::debug!("runtime_services: stopped old stat_service");
         }
     }

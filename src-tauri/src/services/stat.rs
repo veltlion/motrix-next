@@ -7,8 +7,8 @@
 //! Port of the frontend `fetchGlobalStat` in `stores/app.ts`.
 
 use super::config::RuntimeConfigState;
+use super::power::PowerGuard;
 use crate::aria2::client::Aria2Client;
-use keepawake::KeepAwake;
 use std::sync::Arc;
 use std::time::Duration;
 use tauri::Emitter;
@@ -307,12 +307,16 @@ unsafe fn draw_rounded_rect(rect: objc2_foundation::NSRect) {
 /// Handle for controlling the background stat service.
 pub struct StatServiceHandle {
     stop_tx: watch::Sender<bool>,
+    join_handle: tokio::task::JoinHandle<()>,
 }
 
 impl StatServiceHandle {
     /// Signal the service to stop.
-    pub fn stop(&self) {
+    pub async fn stop(self) {
         let _ = self.stop_tx.send(true);
+        if let Err(e) = self.join_handle.await {
+            log::warn!("stat_service: join failed during stop: {e}");
+        }
     }
 }
 
@@ -320,11 +324,14 @@ impl StatServiceHandle {
 pub fn spawn_stat_service(app: tauri::AppHandle, aria2: Arc<Aria2Client>) -> StatServiceHandle {
     let (stop_tx, stop_rx) = watch::channel(false);
 
-    tokio::spawn(async move {
+    let join_handle = tokio::spawn(async move {
         stat_loop(app, aria2, stop_rx).await;
     });
 
-    StatServiceHandle { stop_tx }
+    StatServiceHandle {
+        stop_tx,
+        join_handle,
+    }
 }
 
 /// Adaptive interval state.
@@ -367,9 +374,9 @@ async fn stat_loop(
     // The guard prevents system idle sleep via OS-native APIs while allowing
     // the display to turn off according to the user's power settings:
     //   macOS:   IOPMAssertionCreateWithName (PreventUserIdleSystemSleep)
-    //   Windows: SetThreadExecutionState(ES_SYSTEM_REQUIRED)
+    //   Windows: PowerCreateRequest + PowerSetRequest(SystemRequired)
     //   Linux:   systemd Inhibit("idle") (D-Bus)
-    let mut awake_guard: Option<KeepAwake> = None;
+    let mut awake_guard: Option<PowerGuard> = None;
 
     loop {
         tokio::select! {
@@ -443,16 +450,13 @@ async fn stat_loop(
             // is destroyed.
             if cfg.keep_awake && num_active > 0 {
                 if awake_guard.is_none() {
-                    match keepawake::Builder::default()
-                        .idle(true)
-                        .reason("Active downloads in progress")
-                        .app_name("Motrix Next")
-                        .app_reverse_domain("com.motrix.next")
-                        .create()
-                    {
+                    match PowerGuard::acquire_download() {
                         Ok(guard) => {
+                            let backend = guard.backend_name();
                             awake_guard = Some(guard);
-                            log::info!("keep_awake: assertion acquired (active downloads)");
+                            log::info!(
+                                "keep_awake: assertion acquired backend={backend} active={num_active}"
+                            );
                         }
                         Err(e) => {
                             log::warn!("keep_awake: failed to acquire assertion: {e}");
@@ -461,7 +465,7 @@ async fn stat_loop(
                 }
             } else if awake_guard.is_some() {
                 awake_guard = None; // RAII drop → OS releases the power assertion
-                log::info!("keep_awake: assertion released");
+                log::info!("keep_awake: assertion released active={num_active}");
             }
 
             // ── Tray title (macOS menu bar / Linux appindicator label) ──
@@ -724,25 +728,19 @@ mod tests {
         assert!(json.get("download_speed").is_none());
     }
 
-    // ── keepawake integration ───────────────────────────────────────
+    // ── power guard integration ─────────────────────────────────────
 
     /// Validates that the keepawake Builder API compiles and returns
     /// the expected types.  Does NOT create an actual OS assertion
     /// (safe for headless CI environments).
     #[test]
-    fn keepawake_builder_compiles() {
-        let _: fn() -> Result<KeepAwake, keepawake::Error> = || {
-            keepawake::Builder::default()
-                .idle(true)
-                .reason("test")
-                .app_name("test")
-                .app_reverse_domain("com.test")
-                .create()
-        };
+    fn power_guard_builder_compiles() {
+        let _: fn() -> Result<crate::services::power::PowerGuard, crate::error::AppError> =
+            crate::services::power::PowerGuard::acquire_download;
     }
 
     #[test]
-    fn keepawake_does_not_request_display_awake() {
+    fn power_guard_does_not_request_display_awake() {
         let source = include_str!("stat.rs");
         let production_source = source
             .split("#[cfg(test)]")

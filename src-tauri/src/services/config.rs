@@ -48,8 +48,8 @@ pub struct RuntimeConfig {
     #[serde(default)]
     pub shutdown_when_complete: bool,
     /// Whether to prevent system idle sleep during active downloads.
-    /// Uses `keepawake` crate (macOS IOPMAssertion, Windows SetThreadExecutionState,
-    /// Linux systemd Inhibit).
+    /// Uses platform-native power assertions: Windows Power Requests,
+    /// macOS IOPMAssertion, and Linux systemd Inhibit.
     #[serde(default)]
     pub keep_awake: bool,
     /// Whether task lifecycle events should trigger native system notifications.
