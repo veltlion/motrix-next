@@ -350,7 +350,7 @@ All code changes must be finalized before starting. Execute these three steps in
 
    Generate an English release title and release notes from the commits included in this release, following the Release Notes Conventions below.
 
-   Use the exact version and channel specified by the user, and enforce the Tag Naming rules above when bumping and publishing. Do not infer or invent the next version. If the version or channel is missing or ambiguous, ask before bumping or publishing. If the GitHub CLI is available and authenticated, publish the release directly with `gh release create` using the generated title and notes. Mark user-specified beta, alpha, or RC releases as pre-releases. This is preferred because the release workflow only starts after the GitHub Release is published.
+   Use the exact version and channel specified by the user, and enforce the Tag Naming rules above when bumping and publishing. Do not infer or invent the next version. If the version or channel is missing or ambiguous, ask before bumping or publishing. Before creating the GitHub Release, show the user the exact version, whether it will be marked as a pre-release, the generated release title, and the generated release notes. If the GitHub CLI is available and authenticated, publish the release directly with `gh release create` after showing those details. Mark user-specified beta, alpha, or RC releases as pre-releases. This is preferred because the release workflow only starts after the GitHub Release is published.
 
    If `gh` is unavailable, unauthenticated, or the user explicitly wants to publish manually, output the title and body in **two separate markdown code blocks** so the user can paste them into the GitHub Release page.
 
