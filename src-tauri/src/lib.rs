@@ -22,6 +22,7 @@ use crate::commands::power::ShutdownCancelState;
 use crate::commands::updater::{DownloadedUpdate, UpdateCancelState};
 use engine::EngineState;
 use tauri::{Emitter, Manager};
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_store::StoreExt;
 use upnp::UpnpState;
@@ -613,6 +614,23 @@ fn handle_run_event(app: &tauri::AppHandle, event: tauri::RunEvent) {
                     )
                     .await;
                 });
+            }
+            // Stop stat service before process shutdown so any active
+            // keep-awake power assertion is released deterministically.
+            if let Some(stat_state) = app.try_state::<services::stat::StatServiceState>() {
+                let _ = tauri::async_runtime::block_on(async {
+                    tokio::time::timeout(std::time::Duration::from_millis(500), async {
+                        let handle = {
+                            let mut guard = stat_state.0.lock().await;
+                            guard.take()
+                        };
+                        if let Some(handle) = handle {
+                            handle.stop().await;
+                        }
+                    })
+                    .await
+                });
+                log::info!("stat_service: stopped");
             }
         }
         #[cfg(target_os = "macos")]
