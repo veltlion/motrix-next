@@ -222,8 +222,8 @@ export const DEFAULT_APP_CONFIG = {
 
   // ── BitTorrent (qBT/Transmission/Deluge conventions) ──────────
   btMaxPeers: ENGINE_DEFAULT_BT_MAX_PEERS, // aria2 default=55; qBT=100, Transmission=60, Deluge=200
-  seedRatio: 2, // old Motrix=2, Transmission=2; 2:1 supports BT ecosystem health
-  seedTime: 2880, // old Motrix=2880 (48h); generous default for healthy swarm contribution
+  seedRatio: 1, // old Motrix=2, Transmission=2; 2:1 supports BT ecosystem health
+  seedTime: 0, // old Motrix=2880 (48h); generous default for healthy swarm contribution
   keepSeeding: false, // qBT stops at ratio; safer default for new users
   forceSave: true, // persist completed/seeding BT tasks in session file (aria2 skips FINISHED tasks without this)
   btSaveMetadata: true, // always save .torrent after metadata resolves for fast session restore
