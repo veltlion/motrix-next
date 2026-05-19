@@ -77,14 +77,14 @@ describe('buildBtForm', () => {
     expect(form.keepSeeding).toBe(false)
   })
 
-  it('defaults seedRatio to 2', () => {
+  it('defaults seedRatio to 1', () => {
     const form = buildBtForm(emptyConfig)
-    expect(form.seedRatio).toBe(2)
+    expect(form.seedRatio).toBe(1)
   })
 
-  it('defaults seedTime to 2880', () => {
+  it('defaults seedTime to 0', () => {
     const form = buildBtForm(emptyConfig)
-    expect(form.seedTime).toBe(2880)
+    expect(form.seedTime).toBe(0)
   })
 
   it('defaults btMaxPeers to ENGINE_DEFAULT_BT_MAX_PEERS', () => {
