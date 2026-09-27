@@ -230,8 +230,8 @@ export const DEFAULT_APP_CONFIG = {
   fileCategories: [] as import('@shared/types').FileCategory[],
 
   // ── P2P Sharing (BT + ED2K) ────────────────────────────────────
-  shareRatio: 2, // Transmission/qBT-style default for healthy P2P contribution
-  shareTime: 2880, // 48h default sharing window
+  shareRatio: 1, // Transmission/qBT-style default for healthy P2P contribution
+  shareTime: 1, // 48h default sharing window
   keepSharing: false, // stop by condition by default
 
   // ── BitTorrent (qBT/Transmission/Deluge conventions) ──────────
